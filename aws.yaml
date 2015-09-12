@@ -1,0 +1,22 @@
+# aws.yaml
+
+region: eu-west-1
+
+vpc: 
+    id: vpc-d33c5bb6
+    cidr-block: 10.0.0.0/16
+
+subnets:   
+# 0
+- {
+    remark: Development testing,
+    id: subnet-ca6afb93,
+    cidr-block: 10.0.0.0/24
+  }
+
+admin:
+    type: t2.micro
+    ami: 
+        id: ami-e801af9f
+    user-data: user-data-master
+

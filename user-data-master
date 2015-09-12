@@ -1,0 +1,10 @@
+#!/bin/bash
+# user-data for Salt Master ("admin node")
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+zypper ar zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
+zypper addrepo http://download.opensuse.org/repositories/devel:languages:python/SLE_12/devel:languages:python.repo
+zypper --gpg-auto-import-keys ref
+zypper -n install salt-master
+#zypper -n update
+systemctl enable salt-master.service
+systemctl start salt-master.service
