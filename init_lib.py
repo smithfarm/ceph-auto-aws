@@ -20,30 +20,11 @@ def read_user_data( fn ):
     return r
 
 
-def init_sleskey( u ):
+def init_user_data( fn ):
     """
-        Takes the current user-data script (in string form).
-        If environment variable SLESKEY is defined, adds the command
-        'SUSEConnect -r $SLESKEY' to the end of the user-data script.
-        Returns the (possibly modified) user-data script.
+        Takes a filename. Returns the corresponding user-data string (base64).
     """
-    if not 'SLESKEY' in environ:
-        return u
-    u += "\nSUSEConnect -r '" + environ['SLESKEY'] + "'\n"
-    return u
-
-
-def init_email( u ):
-    """
-        Takes the current user-data script (in string form).
-        If environment variable EMAIL is defined, adds the command
-        'cat <SOMEFILE> | mailx -r madness@aws.biz -s "AWS user-data log"
-        $SLESKEY' to the end of the user-data script.
-        Returns the (possibly modified) user-data script.
-    """
-    if not 'EMAIL' in environ:
-        return u
-    u += "\ncat /var/log/user-data.log | mailx -r madness@aws.biz -s 'AWS user-data log' " + environ['EMAIL'] + "\n"
+    u = read_user_data( fn )
     return u
 
 

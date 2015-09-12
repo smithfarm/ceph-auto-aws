@@ -79,18 +79,36 @@ for s in n:
         ) )
     count += 1
 
+# Prepare user-data.
+g['user-data'] = {}
+g['user-data']['master'] = init_lib.init_user_data( y['user-data']['master'] )
+
 # Non-create operations.
 operation = args.operation.lower()
 if operation != 'create':
     # FIXME: perform the operation
     raise SpinupError( "Operation {} not implemented".format(operation) )
 
-# Create operation.
+# Create operation on install_subnets specified in yaml.
+g['subnets'] = {}
+for c in y['install_subnets']:
+    subnet_id = y['subnets'][c]['id']
+    # Get all existing instances in the subnet.
+    existing_instances = g['ec2_conn'].get_all_instances(
+        filters={ "subnet-id": subnet_id }
+    )
+    noofinstances = len(existing_instances)
+    if noofinstances > 0:
+        print "There are {} existing instances in subnet {}".format(noofinstances, subnet_id)
+        for i in existing_instances:
+            print i.id
+        #sys.exit(1)
 
-# Admin node.
-
-# Prepare user-data.
-u = init_lib.read_user_data( y['admin']['user-data'] )
-u = init_lib.init_sleskey( u )
-u = init_lib.init_email( u )
-print u
+    # Admin node.
+    g['subnets'][c] = g['ec2_conn'].run_instances( 
+        y['admin']['ami'],
+        key_name=y['keyname'],
+        instance_type=y['admin']['type'],
+        user_data=g['user-data']['master'],
+        subnet_id=y['subnets'][c]['id']
+    )

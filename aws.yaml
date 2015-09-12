@@ -1,5 +1,10 @@
 # aws.yaml
 
+keyname: ncutler
+
+user-data: 
+    master: user-data-master
+
 region: eu-west-1
 
 vpc: 
@@ -9,14 +14,22 @@ vpc:
 subnets:   
 # 0
 - {
-    remark: Development testing,
+    name: VPC-wide infrastructure,
     id: subnet-ca6afb93,
     cidr-block: 10.0.0.0/24
   }
+# 1
+- {
+    name: Development testing,
+    id: subnet-a2fb6bfb,
+    cidr-block: 10.0.1.0/24
+  }
+
+install_subnets:
+- 1
 
 admin:
     type: t2.micro
-    ami: 
-        id: ami-e801af9f
-    user-data: user-data-master
+    ami: ami-e801af9f
+    user-data: master
 
