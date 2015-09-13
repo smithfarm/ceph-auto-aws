@@ -1,33 +1,42 @@
 region: eu-west-1
 
+# VPC - must already exist in the region
 vpc:
   cidr-block: 10.0.0.0/16
   name: susecon
 
+# keyname - must already exist
 keyname: ncutler
 
+# subnets - must already exist
 subnets:
 - cidr-block: 10.0.0.0/24
   name: master
 - cidr-block: 10.0.1.0/24
   name: Development testing
 
+# Salt Master node - must be the only instance in 10.0.0.0/24
 master:
-  ami: ami-e801af9f
+  ami-id: ami-e801af9f
   type: t2.micro
   user-data: user-data-master
 
+# List of natural numbers - subnets to install clusters into
+# The number indicates which /24 to use
 install_subnets:
 - 1
 
+# Template for admin nodes
 admin:
-  ami: ami-e801af9f
+  ami-id: ami-e801af9f
   type: t2.micro
-  user-data: user-data-minions
+  user-data: user-data-admin-nodes
 
+# Template for MON/OSD nodes
 mon:
-  ami: ami-e801af9f
+  ami-id: ami-e801af9f
   type: t2.small
+  # List of volumes and their sizes in GB
   volumes:
   - 20
-  user-data: user-data-minions
+  user-data: user-data-mons

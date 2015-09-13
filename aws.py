@@ -144,12 +144,17 @@ for c in y['install_subnets']:
 
     # Admin node.
     print "Create admin node"
-    reservation = init_lib.make_reservation( 
+    admin_node = init_lib.make_reservation( 
         g['ec2_conn'], 
-        y['admin']['ami'],
+        y['admin']['ami-id'],
         key_name=y['keyname'],
         instance_type=y['admin']['type'],
         user_data=y['admin']['user-data'],
-        subnet_id=subnet_id
+        subnet_id=subnet_id,
+        master=False,
+        master_ip=g['master_instance'].private_ip_address,
+        delegate=c
     )
+    init_lib.update_name( admin_node, 'admin-{}'.format(c) )
+
 

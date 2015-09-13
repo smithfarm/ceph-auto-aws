@@ -9,6 +9,7 @@ import base64
 from boto import vpc, ec2
 from os import environ
 from pprint import pprint
+import re
 from yaml_lib import yaml_attr
 
 
@@ -120,25 +121,36 @@ def set_subnet_map_public_ip( ec, subnet_id ):
     return None
 
 
+def template_token_subst( buf, key, val ):
+    """
+        Given a string (buf), a key (e.g. '@@MASTER_IP@@') and val
+        (e.g. 10.0.1.34), replace all occurrences of key in buf with
+        val. Return the new string.
+    """
+    targetre = re.compile( re.escape( key ) )
+    return re.sub( targetre, val, buf )
+
+
 def make_reservation( ec, ami_id, **kwargs ):
     """
         Given EC2Connection object, AMI ID, and kwargs with key_name,
-        instance_type, user_data, subnet_id, and name_tag, call 
-        run_instances and return the reservation object.
+        instance_type, user_data, and subnet_id, call run_instances 
+        and return the reservation object.
     """
     # get user_data string
     u = read_user_data( kwargs['user_data'] )
+    if not kwargs['master']:
+        u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
+        u = template_token_subst( u, '@@DELEGATE@@', str(kwargs['delegate']) )
     # get reservation
-    reservation = g['ec2_conn'].run_instances( 
+    reservation = ec.run_instances( 
         ami_id,
         key_name=kwargs['key_name'],
         instance_type=kwargs['instance_type'],
         user_data=u,
         subnet_id=kwargs['subnet_id']
     )
-    # assign name tag
-    update_name( reservation, kwargs['name_tag'] )
-
-    return reservation
+    # return the instance object
+    return reservation.instances[0]
 
 

@@ -34,7 +34,7 @@ systemctl enable salt-minion.service
 cat <<EOF > $MINION_CONF
 master: @@MASTER_IP@@
 grains:
-  role: admin
+  role: mon
   delegate: @@DELEGATE@@
 EOF
 
