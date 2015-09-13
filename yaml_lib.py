@@ -38,17 +38,15 @@ def parse_yaml(yaml_file):
     return conf
 
 
-def initialize_vpc( init ):
+def write_yaml( y, fn ):
     """
-        Takes init section of yaml structure. Connects to VPC.
-        Returns the VPC connection.
+        Takes YaML data structure and filename. Writes/updates the file.
     """
-    init['region'] = yaml_attr( init, 'region', 'eu-west-1' )
-    c = vpc.connect_to_region(init['region'])
-    init['vpc'] = yaml_attr( init, 'vpc', None )
-    init['vpc']['id'] = yaml_attr( init['vpc'], 'id', None )
-    all_vpcs = c.get_all_vpcs()
-    print all_vpcs
+    try:
+        f = open( fn, 'w')
+    except OSError as e:
+        raise SpinupError( "Could not open yaml file ->{}<- for writing".format(fn) )
+    f.write( yaml.safe_dump(y, default_flow_style=False) )
+    return None
 
-    return c
 

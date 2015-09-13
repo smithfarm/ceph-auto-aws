@@ -1,35 +1,33 @@
-# aws.yaml
+region: eu-west-1
+
+vpc:
+  cidr-block: 10.0.0.0/16
+  name: susecon
 
 keyname: ncutler
 
-user-data: 
-    master: user-data-master
+subnets:
+- cidr-block: 10.0.0.0/24
+  name: master
+- cidr-block: 10.0.1.0/24
+  name: Development testing
 
-region: eu-west-1
-
-vpc: 
-    id: vpc-d33c5bb6
-    cidr-block: 10.0.0.0/16
-
-subnets:   
-# 0
-- {
-    name: VPC-wide infrastructure,
-    id: subnet-ca6afb93,
-    cidr-block: 10.0.0.0/24
-  }
-# 1
-- {
-    name: Development testing,
-    id: subnet-a2fb6bfb,
-    cidr-block: 10.0.1.0/24
-  }
+master:
+  ami: ami-e801af9f
+  type: t2.micro
+  user-data: user-data-master
 
 install_subnets:
 - 1
 
 admin:
-    type: t2.micro
-    ami: ami-e801af9f
-    user-data: master
+  ami: ami-e801af9f
+  type: t2.micro
+  user-data: user-data-minions
 
+mon:
+  ami: ami-e801af9f
+  type: t2.small
+  volumes:
+  - 20
+  user-data: user-data-minions

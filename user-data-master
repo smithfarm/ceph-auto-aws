@@ -2,33 +2,74 @@
 #
 # user-data-master
 #
-# Launch script for Salt Master ("admin node")
+# Launch script for Salt Master
 
 # notify via email that script started to run
 EMAIL='presnypreklad@gmail.com'
-APACHE_SERVER_IP='10.0.0.60'
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
 mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 start" $EMAIL
 
+# set up directories from which we will serve media repos
+mkdir -p /srv/repos
+mkdir -p /srv/repos/SES2-media1
+mkdir -p /srv/repos/SES2-media2
+
+# download media
+cd /srv/repos
+# wget http://download.suse.de/install/SUSE-Enterprise-Storage-2.0-RC1/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media1.iso
+# wget http://download.suse.de/install/SUSE-Enterprise-Storage-2.0-RC1/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media2.iso
+
+# add media to /etc/fstab
+cat <<EOF >>/etc/fstab
+\#/srv/repos/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media1.iso /srv/repos/SES2-media1 iso9660 loop 0 0
+\#/srv/repos/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media2.iso /srv/repos/SES2-media2 iso9660 loop 0 0
+EOF
+
+# mount media
+#mount /srv/repos/SES2-media1
+#mount /srv/repos/SES2-media2
+
+# add zypper repos
 # wait for background zypper to finish
 while sleep 5 ; do
-    zypper addrepo http://$APACHE_SERVER_IP/SES2/ SES2
+    zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
     if [[ $? = 0 ]] ; then
         break
     fi
 done
-zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
 zypper addrepo http://download.opensuse.org/repositories/devel:languages:python/SLE_12/devel:languages:python.repo
 zypper --gpg-auto-import-keys ref
-zypper -n install salt-master
-zypper -n install iperf
-zypper -n install ceph-deploy
-#zypper -n update
 
 # be the Salt Master
+zypper -n install salt-master
 systemctl enable salt-master.service
 systemctl start salt-master.service
 
+# be the Apache server
+zypper -n install apache2
+cat <<EOF >/etc/apache2/vhosts.d/admin.conf
+<VirtualHost *:80>
+    ServerAdmin presnypreklad@gmail.com
+    ServerName admin
+    DocumentRoot /srv/repos
+    HostnameLookups Off 
+    UseCanonicalName Off 
+    ServerSignature On
+    <Directory /srv/repos>
+        Options Indexes FollowSymLinks
+        AllowOverride All 
+        Require all granted
+    </Directory>
+</VirtualHost>
+EOF
+systemctl enable apache2.service
+systemctl start apache2.service
+
+# update packages
+#zypper -n update
+
 # announce completion
 cat /var/log/cloud-init-output.log | mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 COMPLETE (cloud-init-output.log)" $EMAIL
+
+#systemctl reboot

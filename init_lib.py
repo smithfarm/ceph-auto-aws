@@ -20,12 +20,34 @@ def read_user_data( fn ):
     return r
 
 
-def init_user_data( fn ):
+def get_tags( ec, r_id ):
     """
-        Takes a filename. Returns the corresponding user-data string (base64).
+        Takes EC2Connection object and resource ID. Returns
+        tags associated with that resource.
     """
-    u = read_user_data( fn )
-    return u
+    return ec.get_all_tags(filters={ "resource-id": r_id })
+
+
+def get_name( ec, obj ):
+    tags = get_tags( ec, obj.id )
+    found = 0
+    for t in tags:
+        if t.name.lower() == 'name':
+            found = 1
+            break
+    if found:
+        return t
+    else:
+        return None
+
+
+def update_name( obj, val ):
+    """
+        Given an EC2 resource object and a value, updates
+        the "name" tag of the resource to val.
+    """
+    obj.add_tag( 'Name', val )
+    return None
 
 
 def init_region( r ):
@@ -39,10 +61,10 @@ def init_region( r ):
     return ( c, ec )
 
 
-def init_vpc( c, our_id ):
+def init_vpc( c, cidr ):
     """
-        Takes VPCConnection object, which is actually a connection 
-        to a particular region. Looks for our VPC in that region.
+        Takes VPCConnection object (which is actually a connection 
+        to a particular region) and a CIDR block string. Looks for our VPC in that region.
         Returns the VpcId of our VPC.
     """
     # look for our VPC
@@ -50,28 +72,28 @@ def init_vpc( c, our_id ):
     found = 0
     our_vpc = None
     for v in all_vpcs:
-        if v.id == our_id:
+        if v.cidr_block == cidr:
             our_vpc = v
             found = 1
             break
     if not found:
-        raise SpinupError( "VPC {} not found".format(v.id) )
+        raise SpinupError( "VPC {} not found".format(cidr) )
 
     return our_vpc
 
 
-def init_subnet( c, our_id ):
+def init_subnet( c, cidr ):
     """
-        Takes VPCConnection object, which is actually a connection 
-        to a particular region. Looks for our subnet in that region.
-        Returns the SubnetId of our subnet.
+        Takes VPCConnection object, which is actually a connection to 
+        a particular region, and a CIDR block string. Looks for our 
+        subnet in that region.  Returns the subnet resource object.
     """
     # look for our VPC
     all_subnets = c.get_all_subnets()
     found = 0
     our_subnet = None
     for s in all_subnets:
-        if s.id == our_id:
+        if s.cidr_block == cidr:
             our_subnet = s
             found = 1
             break
@@ -96,4 +118,27 @@ def set_subnet_map_public_ip( ec, subnet_id ):
     ec.APIVersion = orig_api_version
 
     return None
+
+
+def make_reservation( ec, ami_id, **kwargs ):
+    """
+        Given EC2Connection object, AMI ID, and kwargs with key_name,
+        instance_type, user_data, subnet_id, and name_tag, call 
+        run_instances and return the reservation object.
+    """
+    # get user_data string
+    u = read_user_data( kwargs['user_data'] )
+    # get reservation
+    reservation = g['ec2_conn'].run_instances( 
+        ami_id,
+        key_name=kwargs['key_name'],
+        instance_type=kwargs['instance_type'],
+        user_data=u,
+        subnet_id=kwargs['subnet_id']
+    )
+    # assign name tag
+    update_name( reservation, kwargs['name_tag'] )
+
+    return reservation
+
 
