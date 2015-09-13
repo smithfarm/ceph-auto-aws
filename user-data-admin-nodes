@@ -1,0 +1,20 @@
+#!/bin/bash
+
+MINION_CONF=/etc/salt/minion.d/ceph.conf
+
+zypper ar http://download.suse.de/ibs/Devel:/Galaxy:/salt:/SLE12/SLE_12/Devel:Galaxy:salt:SLE12.repo
+zypper --gpg-auto-import-keys ref
+zypper -n install salt-minion
+#zypper -n update
+systemctl enable salt-minion.service
+
+cat <<EOF > $MINION_CONF
+master: @@SALT_MASTER@@
+EOF
+
+chown root:root $MINION_CONF
+chmod 0644 $MINION_CONF
+
+systemctl start salt-minion.service
+
+echo "The system is finally up"
