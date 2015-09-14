@@ -125,11 +125,16 @@ for n in y['install_subnets']:
     if n > len(subnets):
         raise SpinupError( "Subnet {} is to be installed, but only {} subnets are defined in yaml".format(n, len(subnets)) )
 
+# Initialize structures to hold the resource objects we will be creating.
+g['admin_node'] = {}
+g['mon1_node'] = {}
+g['mon2_node'] = {}
+g['mon3_node'] = {}
+
 # Create operation on install_subnets specified in yaml.
-g['subnets'] = {}
-for c in y['install_subnets']:
-    subnet_id = g['subnet_obj'][c].id
-    subnet_cidr = g['subnet_obj'][c].cidr_block
+for delegate in y['install_subnets']:
+    subnet_id = g['subnet_obj'][delegate].id
+    subnet_cidr = g['subnet_obj'][delegate].cidr_block
     print "Installing subnet {} ({})".format( subnet_cidr, subnet_id )
     # Get all existing instances in the subnet.
     existing_instances = g['ec2_conn'].get_all_instances(
@@ -142,9 +147,9 @@ for c in y['install_subnets']:
             print i.id
         #sys.exit(1)
 
-    # Admin node.
+    # One admin node.
     print "Create admin node"
-    admin_node = init_lib.make_reservation( 
+    g['admin_node'][delegate] = init_lib.make_reservation( 
         g['ec2_conn'], 
         y['admin']['ami-id'],
         key_name=y['keyname'],
@@ -153,8 +158,24 @@ for c in y['install_subnets']:
         subnet_id=subnet_id,
         master=False,
         master_ip=g['master_instance'].private_ip_address,
-        delegate=c
+        delegate_no=delegate
     )
-    init_lib.update_name( admin_node, 'admin-{}'.format(c) )
+    init_lib.update_name( g['admin_node'][delegate], 'admin-{}'.format(delegate) )
 
-
+    # Three mon nodes.
+    for x in range(1, 4):
+        print "Create mon{} node".format(x)
+        mon_node = g['mon{}_node'.format(x)]
+        mon_node[delegate] = init_lib.make_reservation( 
+            g['ec2_conn'], 
+            y['mon']['ami-id'],
+            key_name=y['keyname'],
+            instance_type=y['mon']['type'],
+            user_data=y['mon']['user-data'],
+            subnet_id=subnet_id,
+            master=False,
+            master_ip=g['master_instance'].private_ip_address,
+            delegate_no=delegate
+        )
+        init_lib.update_name( mon_node[delegate], 'mon{}-{}'.format(x, delegate) )
+        
