@@ -14,6 +14,9 @@ from yaml_lib import yaml_attr
 
 
 def read_user_data( fn ):
+    """
+        Given a filename, returns the file's contents in a string.
+    """
     r = ''
     with open( fn ) as fh: 
         r = fh.read()
@@ -23,13 +26,17 @@ def read_user_data( fn ):
 
 def get_tags( ec, r_id ):
     """
-        Takes EC2Connection object and resource ID. Returns
-        tags associated with that resource.
+        Takes EC2Connection object and resource ID. Returns tags associated
+        with that resource.
     """
     return ec.get_all_tags(filters={ "resource-id": r_id })
 
 
 def get_name( ec, obj ):
+    """
+        Get the Name tag associated with the given resource object.  Returns
+        None if there is no Name tag.
+    """
     tags = get_tags( ec, obj.id )
     found = 0
     for t in tags:
@@ -44,8 +51,8 @@ def get_name( ec, obj ):
 
 def update_name( obj, val ):
     """
-        Given an EC2 resource object and a value, updates
-        the "name" tag of the resource to val.
+        Given an EC2 resource object and a value, updates the Name tag of the
+        resource to val.
     """
     obj.add_tag( 'Name', val )
     return None
@@ -53,8 +60,8 @@ def update_name( obj, val ):
 
 def init_region( r ):
     """
-        Takes a region string. Connects to that region.
-        Returns the VPC connection.
+        Takes a region string. Connects to that region.  Returns EC2Connection
+        and VPCConnection objects in a tuple.
     """
     # connect to region
     c = vpc.connect_to_region( r )
@@ -64,9 +71,9 @@ def init_region( r ):
 
 def init_vpc( c, cidr ):
     """
-        Takes VPCConnection object (which is actually a connection 
-        to a particular region) and a CIDR block string. Looks for our VPC in that region.
-        Returns the VpcId of our VPC.
+        Takes VPCConnection object (which is actually a connection to a
+        particular region) and a CIDR block string. Looks for our VPC in that
+        region.  Returns the VpcId of our VPC.
     """
     # look for our VPC
     all_vpcs = c.get_all_vpcs()
@@ -85,9 +92,9 @@ def init_vpc( c, cidr ):
 
 def init_subnet( c, cidr ):
     """
-        Takes VPCConnection object, which is actually a connection to 
-        a particular region, and a CIDR block string. Looks for our 
-        subnet in that region.  Returns the subnet resource object.
+        Takes VPCConnection object, which is actually a connection to a
+        region, and a CIDR block string. Looks for our subnet in that region.
+        Returns the subnet resource object.
     """
     # look for our VPC
     all_subnets = c.get_all_subnets()
@@ -106,8 +113,9 @@ def init_subnet( c, cidr ):
 
 def set_subnet_map_public_ip( ec, subnet_id ):
     """
-        Takes ECConnection object and SubnetId string. Attempts to set
-        the MapPublicIpOnLaunch attribute to True.
+        Takes ECConnection object and SubnetId string. Attempts to set the
+        MapPublicIpOnLaunch attribute to True.
+        FIXME: give credit to source
     """
     orig_api_version = ec.APIVersion
     ec.APIVersion = '2014-06-15'
@@ -123,27 +131,27 @@ def set_subnet_map_public_ip( ec, subnet_id ):
 
 def template_token_subst( buf, key, val ):
     """
-        Given a string (buf), a key (e.g. '@@MASTER_IP@@') and val
-        (e.g. 10.0.1.34), replace all occurrences of key in buf with
-        val. Return the new string.
+        Given a string (buf), a key (e.g. '@@MASTER_IP@@') and val, replace all
+        occurrences of key in buf with val. Return the new string.
     """
     targetre = re.compile( re.escape( key ) )
-    return re.sub( targetre, val, buf )
+
+    return re.sub( targetre, str(val), buf )
 
 
 def make_reservation( ec, ami_id, **kwargs ):
     """
-        Given EC2Connection object, AMI ID, and kwargs with key_name,
-        instance_type, user_data, and subnet_id, call run_instances 
-        and return the reservation object.
+        Given EC2Connection object, AMI ID, and all the kwargs, make
+        reservation for a single instance and return the instance object.
     """
-    # get user_data string
+    # Get user_data string.
     u = read_user_data( kwargs['user_data'] )
     if not kwargs['master']:
         u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
         u = template_token_subst( u, '@@DELEGATE@@', str(kwargs['delegate_no']) )
         u = template_token_subst( u, '@@SLES_KEY@@', environ['SLESKEY'] )
-    # get reservation
+
+    # Make the reservation.
     reservation = ec.run_instances( 
         ami_id,
         key_name=kwargs['key_name'],
@@ -151,7 +159,8 @@ def make_reservation( ec, ami_id, **kwargs ):
         user_data=u,
         subnet_id=kwargs['subnet_id']
     )
-    # return the instance object
+
+    # Return the instance object.
     return reservation.instances[0]
 
 
