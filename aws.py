@@ -91,8 +91,6 @@ if args.master:
     # One master node.
     print "Create 1 master node"
     u = process_user_data( y['master']['user-data'], y['master']['replace-from-environment'] )
-    print u
-    sys.exit(0)
     reservation = init_lib.make_reservation( 
         g['ec2_conn'], 
         y['master']['ami-id'],
@@ -105,7 +103,11 @@ if args.master:
     )
     g['master'] = reservation.instances[0]
     init_lib.update_tag( g['master'], 'Name', 'master' )
-    print "Master node created."
+    print "Master node {} ({}, {}) created.".format(
+        g['master_instance'].id, 
+        g['master_instance'].ip_address,
+        g['master_instance'].private_ip_address
+    )
     sys.exit(0)
 else:
     # Check that master exists and get its public_ipv4
@@ -116,7 +118,7 @@ else:
         raise SpinupError( "There are too many instances in the master subnet" )
     g['master_instance'] = instances[0]
     init_lib.update_tag( g['master_instance'], 'Name', 'master' )
-    print "Found master instance {}, {}, {}".format( 
+    print "Found master instance {} ({}, {})".format( 
         g['master_instance'].id, 
         g['master_instance'].ip_address,
         g['master_instance'].private_ip_address
@@ -191,13 +193,14 @@ for delegate in y['install_subnets']:
 
     # Three mon nodes.
     print "Create 3 mon nodes"
+    u = process_user_data( y['mon']['user-data'], y['mon']['replace-from-environment'] )
     reservation = init_lib.make_reservation( 
         g['ec2_conn'], 
         y['mon']['ami-id'],
         3,
         key_name=y['keyname'],
         instance_type=y['mon']['type'],
-        user_data=y['mon']['user-data'],
+        user_data=u,
         subnet_id=subnet_id,
         master=False,
         master_ip=g['master_instance'].private_ip_address,
