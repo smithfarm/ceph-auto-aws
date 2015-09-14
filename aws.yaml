@@ -35,6 +35,8 @@ admin:
   ami-id: ami-e801af9f
   type: t2.micro
   user-data: user-data-admin-nodes
+  replace-from-environment:
+  - SLES_KEY
 
 # Template for MON/OSD nodes
 mon:
@@ -43,3 +45,6 @@ mon:
   # List of volumes and their sizes in GB
   volume: 20
   user-data: user-data-mon-nodes
+  replace-from-environment:
+  - SLES_KEY
+
