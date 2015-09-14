@@ -5,6 +5,11 @@
 # Launch script for Salt Master
 
 SLES_KEY=@@SLES_KEY@@
+BETA_PROGRAM_USERNAME=@@BETA_PROGRAM_USERNAME@@
+BETA_PROGRAM_PASSWORD=@@BETA_PROGRAM_PASSWORD@@
+BETA_PROGRAM_URL='http://beta.suse.com/private/SUSE-Storage-Beta/2/rc1/'
+MEDIA1='SUSE-Enterprise-Storage-2-DVD-x86_64-RC1-Media1.iso'
+MEDIA2='SUSE-Enterprise-Storage-2-DVD-x86_64-RC1-Media2.iso'
 
 # notify via email that script started to run
 EMAIL='presnypreklad@gmail.com'
@@ -23,18 +28,18 @@ mkdir -p /srv/repos/SES2-media2
 
 # download media
 cd /srv/repos
-# wget http://download.suse.de/install/SUSE-Enterprise-Storage-2.0-RC1/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media1.iso
-# wget http://download.suse.de/install/SUSE-Enterprise-Storage-2.0-RC1/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media2.iso
+wget --user=$BETA_PROGRAM_USERNAME --password=$BETA_PROGRAM_PASSWORD $BETA_PROGRAM_URL$MEDIA1
+wget --user=$BETA_PROGRAM_USERNAME --password=$BETA_PROGRAM_PASSWORD $BETA_PROGRAM_URL$MEDIA2
 
 # add media to /etc/fstab
 cat <<EOF >>/etc/fstab
-\#/srv/repos/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media1.iso /srv/repos/SES2-media1 iso9660 loop 0 0
-\#/srv/repos/SUSE-Enterprise-Storage-2-DVD-x86_64-Build0034-Media2.iso /srv/repos/SES2-media2 iso9660 loop 0 0
+/srv/repos/$MEDIA1 /srv/repos/SES2-media1 iso9660 loop 0 0
+/srv/repos/$MEDIA2 /srv/repos/SES2-media2 iso9660 loop 0 0
 EOF
 
 # mount media
-#mount /srv/repos/SES2-media1
-#mount /srv/repos/SES2-media2
+mount /srv/repos/SES2-media1
+mount /srv/repos/SES2-media2
 
 # add zypper repos
 # wait for background zypper to finish

@@ -54,7 +54,7 @@ n['cidr-block'] = yaml_lib.yaml_attr( n, 'cidr-block', None )
 n['name'] = yaml_lib.yaml_attr( n, 'name', 'susecon' )
 print "Looking for VPC {}".format(n['cidr-block'])
 g['vpc_obj'] = init_lib.init_vpc( g['vpc_conn'], n['cidr-block'] )
-init_lib.update_name( g['vpc_obj'], n['name'] )
+init_lib.update_tag( g['vpc_obj'], 'Name', n['name'] )
 print "Found VPC {} (Name: {})".format(n['cidr-block'], n['name'])
 
 # Get subnet objects and make sure names are set.
@@ -79,7 +79,7 @@ for s in subnets:
     # Get subnet object and append it to globals storage.
     g['subnet_obj'].append( init_lib.init_subnet( g['vpc_conn'], s['cidr-block'] ) )
     # Update subnet name.
-    init_lib.update_name( g['subnet_obj'][count], s['name'] )
+    init_lib.update_tag( g['subnet_obj'][count], 'Name', s['name'] )
     # Update subnet "MapPublicIpOnLaunch" attribute.
     if g['subnet_obj'][count].mapPublicIpOnLaunch == 'false':
         init_lib.set_subnet_map_public_ip( g['ec2_conn'], g['subnet_obj'][count].id )
@@ -88,8 +88,25 @@ for s in subnets:
 
 # Was --master given?
 if args.master:
-    # FIXME: implement master node provisioning from user-data-master
-    raise SpinupError( "You specified --master, but this feature is not ready yet." )
+    # One master node.
+    print "Create 1 master node"
+    u = process_user_data( y['master']['user-data'], y['master']['replace-from-environment'] )
+    print u
+    sys.exit(0)
+    reservation = init_lib.make_reservation( 
+        g['ec2_conn'], 
+        y['master']['ami-id'],
+        1,
+        key_name=y['keyname'],
+        instance_type=y['master']['type'],
+        user_data=y['master']['user-data'],
+        subnet_id=g['subnet_obj'][0].id,
+        master=True
+    )
+    g['master'] = reservation.instances[0]
+    init_lib.update_tag( g['master'], 'Name', 'master' )
+    print "Master node created."
+    sys.exit(0)
 else:
     # Check that master exists and get its public_ipv4
     instances = g['ec2_conn'].get_only_instances( filters={ "subnet-id": g['subnet_obj'][0].id } )
@@ -98,7 +115,7 @@ else:
     if 1 < len(instances):
         raise SpinupError( "There are too many instances in the master subnet" )
     g['master_instance'] = instances[0]
-    init_lib.update_name( g['master_instance'], 'master' )
+    init_lib.update_tag( g['master_instance'], 'Name', 'master' )
     print "Found master instance {}, {}, {}".format( 
         g['master_instance'].id, 
         g['master_instance'].ip_address,
@@ -130,7 +147,13 @@ g['admin_node'] = {}
 g['mon1_node'] = {}
 g['mon2_node'] = {}
 g['mon3_node'] = {}
-
+volume_size = yaml_lib.yaml_attr( y['mon'], 'volume', 20 )
+for delegate in y['install_subnets']:
+    g['admin_node'][delegate] = {}
+    g['mon1_node'][delegate] = {}
+    g['mon2_node'][delegate] = {}
+    g['mon3_node'][delegate] = {}
+    
 # Create operation on install_subnets specified in yaml.
 for delegate in y['install_subnets']:
     subnet_id = g['subnet_obj'][delegate].id
@@ -148,34 +171,54 @@ for delegate in y['install_subnets']:
         #sys.exit(1)
 
     # One admin node.
-    print "Create admin node"
-    g['admin_node'][delegate] = init_lib.make_reservation( 
+    print "Create 1 admin node"
+    u = process_user_data( y['admin']['user-data'], y['admin']['replace-from-environment'] )
+    reservation = init_lib.make_reservation( 
         g['ec2_conn'], 
         y['admin']['ami-id'],
+        1,
         key_name=y['keyname'],
         instance_type=y['admin']['type'],
-        user_data=y['admin']['user-data'],
+        user_data=u,
+        subnet_id=subnet_id,
+        master=False
+        master_ip=g['master_instance'].private_ip_address,
+        delegate_no=delegate
+    )
+    g['admin_node'][delegate]['instance'] = reservation.instances[0]
+    init_lib.update_tag( g['admin_node'][delegate]['instance'], 'Name', 'admin' )
+    init_lib.update_tag( g['admin_node'][delegate]['instance'], 'Delegate', delegate )
+
+    # Three mon nodes.
+    print "Create 3 mon nodes"
+    reservation = init_lib.make_reservation( 
+        g['ec2_conn'], 
+        y['mon']['ami-id'],
+        3,
+        key_name=y['keyname'],
+        instance_type=y['mon']['type'],
+        user_data=y['mon']['user-data'],
         subnet_id=subnet_id,
         master=False,
         master_ip=g['master_instance'].private_ip_address,
         delegate_no=delegate
     )
-    init_lib.update_name( g['admin_node'][delegate], 'admin-{}'.format(delegate) )
-
-    # Three mon nodes.
     for x in range(1, 4):
-        print "Create mon{} node".format(x)
-        mon_node = g['mon{}_node'.format(x)]
-        mon_node[delegate] = init_lib.make_reservation( 
-            g['ec2_conn'], 
-            y['mon']['ami-id'],
-            key_name=y['keyname'],
-            instance_type=y['mon']['type'],
-            user_data=y['mon']['user-data'],
-            subnet_id=subnet_id,
-            master=False,
-            master_ip=g['master_instance'].private_ip_address,
-            delegate_no=delegate
-        )
-        init_lib.update_name( mon_node[delegate], 'mon{}-{}'.format(x, delegate) )
-        
+        mon_node = g['mon{}_node'.format(x)][delegate]
+        mon_node['instance'] = reservation.instances[x-1]
+        init_lib.update_tag( mon_node['instance'], 'Name', 'mon' )
+        init_lib.update_tag( mon_node['instance'], 'Delegate', delegate )
+        mon_node['volume'] = g['ec2_conn'].create_volume( volume_size, mon_node['instance'].placement )
+    for x in range(1, 4):
+        mon_node = g['mon{}_node'.format(x)][delegate]
+        instance = mon_node['instance']
+        volume = mon_node['volume']
+        init_lib.wait_for_running( g['ec2_conn'], instance.id )
+        init_lib.wait_for_available( g['ec2_conn'], volume.id )
+        if not g['ec2_conn'].attach_volume( volume.id, instance.id, '/dev/sdb' ):
+            raise SpinupError( "Failed to attach volume {} to instance {}".format(
+                volume.id,
+                instance.id
+            ) )
+
+

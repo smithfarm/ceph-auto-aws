@@ -10,6 +10,7 @@ from boto import vpc, ec2
 from os import environ
 from pprint import pprint
 import re
+import time
 from yaml_lib import yaml_attr
 
 
@@ -32,15 +33,15 @@ def get_tags( ec, r_id ):
     return ec.get_all_tags(filters={ "resource-id": r_id })
 
 
-def get_name( ec, obj ):
+def get_tag( ec, obj, tag ):
     """
-        Get the Name tag associated with the given resource object.  Returns
-        None if there is no Name tag.
+        Get the value of a tag associated with the given resource object.
+        Returns None if the tag is not set. Warning: EC2 tags are case-sensitive.
     """
     tags = get_tags( ec, obj.id )
     found = 0
     for t in tags:
-        if t.name.lower() == 'name':
+        if t.name == tag:
             found = 1
             break
     if found:
@@ -49,12 +50,12 @@ def get_name( ec, obj ):
         return None
 
 
-def update_name( obj, val ):
+def update_tag( obj, tag, val ):
     """
-        Given an EC2 resource object and a value, updates the Name tag of the
-        resource to val.
+        Given an EC2 resource object, a tag and a value, updates the given tag 
+        to val.
     """
-    obj.add_tag( 'Name', val )
+    obj.add_tag( tag, val )
     return None
 
 
@@ -139,28 +140,80 @@ def template_token_subst( buf, key, val ):
     return re.sub( targetre, str(val), buf )
 
 
-def make_reservation( ec, ami_id, **kwargs ):
+def process_user_data( fn, *vars ):
     """
-        Given EC2Connection object, AMI ID, and all the kwargs, make
-        reservation for a single instance and return the instance object.
+        Given filename of user-data file and a list of environment
+        variable names, replaces @@...@@ tokens with the values of the
+        environment variables.  Returns the user-data string on success
+        raises exception on failure.
     """
     # Get user_data string.
-    u = read_user_data( kwargs['user_data'] )
-    if not kwargs['master']:
-        u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
-        u = template_token_subst( u, '@@DELEGATE@@', str(kwargs['delegate_no']) )
-        u = template_token_subst( u, '@@SLES_KEY@@', environ['SLESKEY'] )
+    buf = read_user_data( fn )
+    for e in vars:
+        if e not in environ:
+            raise SpinupError( "Missing environment variable {}!".format( e ) )
+        buf = template_token_subst( buf, '@@'+e+'@@', environ[e] )
+    return buf
+
+
+def make_reservation( ec, ami_id, count, **kwargs ):
+    """
+        Given EC2Connection object, AMI ID, count, as well as all the kwargs
+        referred to below, make reservations for count instances and return the
+        registration object.
+    """
+    our_kwargs = { 
+        "key_name": kwargs['key_name'],
+        "subnet_id": kwargs['subnet_id'],
+        "instance_type": kwargs['instance_type'],
+        "min_count": count,
+        "max_count": count
+    }
+
+    # Master or minion?
+    if kwargs['master']:
+        our_kwargs['user-data'] = kwargs['user-data']
+    else:
+        # substitute @@MASTER_IP@@ and @@DELEGATE@@
+        u = kwargs['user-data']
+        u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master-ip'] )
+        u = template_token_subst( u, '@@DELEGATE@@', str(delegate) )
+        our_kwargs['user-data'] = u
 
     # Make the reservation.
-    reservation = ec.run_instances( 
-        ami_id,
-        key_name=kwargs['key_name'],
-        instance_type=kwargs['instance_type'],
-        user_data=u,
-        subnet_id=kwargs['subnet_id']
-    )
+    reservation = ec.run_instances( ami_id, kwargs )
 
-    # Return the instance object.
-    return reservation.instances[0]
+    # Return the reservation object.
+    return reservation
+
+
+def wait_for_running( ec2_conn, instance_id ):
+    """
+        Given an instance id, wait for its state to change to "running".
+    """
+    print "Waiting for {} running state".format( instance_id )
+    while True:
+        instances = ec2_conn.get_only_instances( instance_ids=[ instance_id ] )
+        print "Current state is {}".format( instances[0].state )
+        if instances[0].state != 'running':
+            print "Sleeping for 5 seconds"
+            time.sleep(5)
+        else:
+            break
+
+
+def wait_for_available( ec2_conn, volume_id ):
+    """
+        Given a volume id, wait for its state to change to "available".
+    """
+    print "Waiting for {} available state".format( volume_id )
+    while True:
+        volumes = ec2_conn.get_all_volumes( volume_ids=[ volume_id ] )
+        print "Current status is {}".format( volumes[0].status )
+        if volumes[0].status != 'available':
+            print "Sleeping for 5 seconds"
+            time.sleep(5)
+        else:
+            break
 
 

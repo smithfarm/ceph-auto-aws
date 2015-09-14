@@ -20,6 +20,10 @@ master:
   ami-id: ami-e801af9f
   type: t2.micro
   user-data: user-data-master
+  replace-from-environment:
+  - SLES_KEY
+  - BETA_PROGRAM_USERNAME
+  - BETA_PROGRAM_PASSWORD
 
 # List of natural numbers - subnets to install clusters into
 # The number indicates which /24 to use
@@ -37,6 +41,5 @@ mon:
   ami-id: ami-e801af9f
   type: t2.small
   # List of volumes and their sizes in GB
-  volumes:
-  - 20
+  volume: 20
   user-data: user-data-mon-nodes
