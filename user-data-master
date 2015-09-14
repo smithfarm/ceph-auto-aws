@@ -4,11 +4,17 @@
 #
 # Launch script for Salt Master
 
+SLES_KEY=@@SLES_KEY@@
+
 # notify via email that script started to run
 EMAIL='presnypreklad@gmail.com'
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
 mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 start" $EMAIL
+
+# reset standard SLES12 repos
+rm /etc/zypp/credentials.d/*
+SUSEConnect -r "$SLES_KEY"
 
 # set up directories from which we will serve media repos
 mkdir -p /srv/repos

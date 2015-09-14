@@ -141,7 +141,8 @@ def make_reservation( ec, ami_id, **kwargs ):
     u = read_user_data( kwargs['user_data'] )
     if not kwargs['master']:
         u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
-        u = template_token_subst( u, '@@DELEGATE@@', str(kwargs['delegate']) )
+        u = template_token_subst( u, '@@DELEGATE@@', str(kwargs['delegate_no']) )
+        u = template_token_subst( u, '@@SLES_KEY@@', environ['SLESKEY'] )
     # get reservation
     reservation = ec.run_instances( 
         ami_id,

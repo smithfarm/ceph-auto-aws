@@ -39,4 +39,4 @@ mon:
   # List of volumes and their sizes in GB
   volumes:
   - 20
-  user-data: user-data-mons
+  user-data: user-data-mon-nodes
