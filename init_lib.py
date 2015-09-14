@@ -129,6 +129,21 @@ def set_subnet_map_public_ip( ec, subnet_id ):
 
     return None
 
+ 
+def get_master_instance( ec2_conn, subnet_id ):
+    """
+        Given EC2Connection object and Master Subnet id, check that there is
+        just one instance running in that subnet - this is the Master. Raise
+        exception if the number of instances is != 0. 
+        Return the Master instance object.
+    """
+    instances = ec2_conn.get_only_instances( filters={ "subnet-id": subnet_id } )
+    if 1 > len(instances):
+        raise SpinupError( "There are no instances in the master subnet" )
+    if 1 < len(instances):
+        raise SpinupError( "There are too many instances in the master subnet" )
+    return instances[0]
+
 
 def template_token_subst( buf, key, val ):
     """
