@@ -112,7 +112,7 @@ if args.master:
         y['master']['user-data'], 
         y['master']['replace-from-environment'] 
     )
-
+    
     #PC * Spin up AWS instance for the Master.
     reservation = init_lib.make_reservation( 
         g['ec2_conn'], 
@@ -120,14 +120,14 @@ if args.master:
         1,
         key_name=y['keyname'],
         instance_type=y['master']['type'],
-        user_data=y['master']['user-data'],
+        user_data=u,
         subnet_id=g['subnet_obj'][0].id,
         master=True
     )
-    g['master'] = reservation.instances[0]
+    g['master_instance'] = reservation.instances[0]
 
     #PC * Clobber tag with hard-coded value "master".
-    init_lib.update_tag( g['master'], 'Name', 'master' )
+    init_lib.update_tag( g['master_instance'], 'Name', 'master' )
 
     #PC * Report result to user, and exit.
     print "Master node {} ({}, {}) created.".format(
@@ -210,7 +210,7 @@ for delegate in y['install_subnets']:
     #PC     * Process admin node user-data
     u = init_lib.process_user_data( 
         y['admin']['user-data'], 
-        y['admin']['replace-from-environment'] 
+        y['admin']['replace-from-environment']
     )
 
     #PC     * Spin up admin node instance

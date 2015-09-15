@@ -155,7 +155,7 @@ def template_token_subst( buf, key, val ):
     return re.sub( targetre, str(val), buf )
 
 
-def process_user_data( fn, *vars ):
+def process_user_data( fn, vars = [] ):
     """
         Given filename of user-data file and a list of environment
         variable names, replaces @@...@@ tokens with the values of the
@@ -165,7 +165,7 @@ def process_user_data( fn, *vars ):
     # Get user_data string.
     buf = read_user_data( fn )
     for e in vars:
-        if e not in environ:
+        if not e in environ:
             raise SpinupError( "Missing environment variable {}!".format( e ) )
         buf = template_token_subst( buf, '@@'+e+'@@', environ[e] )
     return buf
@@ -187,16 +187,16 @@ def make_reservation( ec, ami_id, count, **kwargs ):
 
     # Master or minion?
     if kwargs['master']:
-        our_kwargs['user-data'] = kwargs['user-data']
+        our_kwargs['user_data'] = kwargs['user_data']
     else:
         # substitute @@MASTER_IP@@ and @@DELEGATE@@
-        u = kwargs['user-data']
-        u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master-ip'] )
+        u = kwargs['user_data']
+        u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
         u = template_token_subst( u, '@@DELEGATE@@', str(delegate) )
-        our_kwargs['user-data'] = u
+        our_kwargs['user_data'] = u
 
     # Make the reservation.
-    reservation = ec.run_instances( ami_id, kwargs )
+    reservation = ec.run_instances( ami_id, **our_kwargs )
 
     # Return the reservation object.
     return reservation
