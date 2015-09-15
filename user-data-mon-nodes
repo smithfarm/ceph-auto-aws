@@ -13,6 +13,15 @@ instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
 mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 start" $EMAIL
 
+# wait for zypper services to settle
+# wait for background zypper to finish
+while sleep 10 ; do
+    zypper services | grep 'SMT-http_smt-ec2_susecloud_net'
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
 # zypper update
 # wait for background zypper to finish
 while sleep 5 ; do
