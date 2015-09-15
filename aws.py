@@ -155,7 +155,10 @@ if args.master:
 #PC * Check that master exists and get its public IP address. Continue if and
 #PC   only if there is a single instance in the Master Subnet.
 # FIXME: check that the Master instance state is "running".
-g['master_instance'] = get_master_instance( g['ec2_conn'], g['subnet_obj'][0].id )
+g['master_instance'] = init_lib.get_master_instance( 
+    g['ec2_conn'], 
+    g['subnet_obj'][0].id 
+)
 
 #PC * Clobber Master instance tag with hard-coded value "master".
 init_lib.update_tag( g['master_instance'], 'Name', 'master' )
