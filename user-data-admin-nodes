@@ -57,6 +57,16 @@ chmod 0644 $MINION_CONF
 
 systemctl start salt-minion.service
 
+# set up ntpd
+cat <<EOF >>/etc/ntp.conf
+server 0.amazon.pool.ntp.org iburst
+server 1.amazon.pool.ntp.org iburst
+server 2.amazon.pool.ntp.org iburst
+server 3.amazon.pool.ntp.org iburst
+EOF
+systemctl enable ntpd.service
+systemctl start ntpd.service
+
 # announce completion
 mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL
 
