@@ -184,9 +184,9 @@ def count_instances_in_subnet( ec, subnet_id ):
 
 def make_reservation( ec, ami_id, count, **kwargs ):
     """
-        Given EC2Connection object, AMI ID, count, as well as all the kwargs
-        referred to below, make reservations for count instances and return the
-        registration object.
+        Given EC2Connection object, delegate number, AMI ID, count, as well as
+        all the kwargs referred to below, make reservations for count instances
+        and return the registration object.
     """
     our_kwargs = { 
         "key_name": kwargs['key_name'],
@@ -203,7 +203,7 @@ def make_reservation( ec, ami_id, count, **kwargs ):
         # substitute @@MASTER_IP@@ and @@DELEGATE@@
         u = kwargs['user_data']
         u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
-        u = template_token_subst( u, '@@DELEGATE@@', str(delegate) )
+        u = template_token_subst( u, '@@DELEGATE@@', kwargs['delegate_no'] )
         our_kwargs['user_data'] = u
 
     # Make the reservation.
