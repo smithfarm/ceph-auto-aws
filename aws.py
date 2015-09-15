@@ -105,6 +105,20 @@ for s in subnets:
 
 #PC * If --master option was given on the command line: 
 if args.master:
+
+    #PC * Get all existing instances in the subnet.
+    subnet_id = g['subnet_obj'][0].id
+    subnet_cidr = g['subnet_obj'][0].cidr_block
+    noofinstances = init_lib.count_instances_in_subnet(
+        g['ec2_conn'],
+        subnet_id
+    )
+
+    #PC * If there are already instances in the subnet, print their IDs and bail out.
+    if noofinstances > 0:
+        print "There are already {} instances in the Master subnet {}".format(noofinstances, subnet_cidr)
+        sys.exit(1)
+
     print "Creating 1 master node in the Master Subnet {}.".format( y['subnets'][0]['cidr-block'] )
 
     #PC * Process Master user-data script (replace tokens with values from environment)
@@ -192,12 +206,14 @@ for delegate in y['install_subnets']:
     print "Installing subnet {} ({})".format( subnet_cidr, subnet_id )
 
     #PC * Get all existing instances in the subnet.
+    noofinstances = init_lib.count_instances_in_subnet(
+        g['ec2_conn'],
+        subnet_id
+    )
 
     #PC * If there are already instances in the subnet, print their IDs and bail out.
     if noofinstances > 0:
-        print "There are already {} instances in subnet {}".format(noofinstances, subnet_id)
-        for i in existing_instances:
-            print i.id
+        print "There are already {} instances in subnet {}".format(noofinstances, subnet_cidr)
         sys.exit(1)
 
     #PC * Create 1 admin node:
