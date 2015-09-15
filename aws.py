@@ -108,7 +108,10 @@ if args.master:
     print "Creating 1 master node in the Master Subnet {}.".format( y['subnets'][0]['cidr-block'] )
 
     #PC * Process Master user-data script (replace tokens with values from environment)
-    u = process_user_data( y['master']['user-data'], y['master']['replace-from-environment'] )
+    u = init_lib.process_user_data( 
+        y['master']['user-data'], 
+        y['master']['replace-from-environment'] 
+    )
 
     #PC * Spin up AWS instance for the Master.
     reservation = init_lib.make_reservation( 
@@ -205,7 +208,10 @@ for delegate in y['install_subnets']:
     print "Create 1 admin node"
 
     #PC     * Process admin node user-data
-    u = process_user_data( y['admin']['user-data'], y['admin']['replace-from-environment'] )
+    u = init_lib.process_user_data( 
+        y['admin']['user-data'], 
+        y['admin']['replace-from-environment'] 
+    )
 
     #PC     * Spin up admin node instance
     reservation = init_lib.make_reservation( 
@@ -216,7 +222,7 @@ for delegate in y['install_subnets']:
         instance_type=y['admin']['type'],
         user_data=u,
         subnet_id=subnet_id,
-        master=False
+        master=False,
         master_ip=g['master_instance'].private_ip_address,
         delegate_no=delegate
     )
@@ -232,7 +238,10 @@ for delegate in y['install_subnets']:
     print "Create 3 mon nodes"
 
     #PC     * Process mon node user-data
-    u = process_user_data( y['mon']['user-data'], y['mon']['replace-from-environment'] )
+    u = init_lib.process_user_data( 
+        y['mon']['user-data'], 
+        y['mon']['replace-from-environment'] 
+    )
 
     #PC     * Spin up 3 mon node instances
     reservation = init_lib.make_reservation( 
