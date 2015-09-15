@@ -21,7 +21,7 @@ master:
   type: t2.micro
   user-data: user-data-master
   replace-from-environment:
-  - SLES_KEY
+  - EMAIL
   - BETA_PROGRAM_USERNAME
   - BETA_PROGRAM_PASSWORD
 
@@ -36,7 +36,7 @@ admin:
   type: t2.micro
   user-data: user-data-admin-nodes
   replace-from-environment:
-  - SLES_KEY
+  - EMAIL
 
 # Template for MON/OSD nodes
 mon:
@@ -46,5 +46,5 @@ mon:
   volume: 20
   user-data: user-data-mon-nodes
   replace-from-environment:
-  - SLES_KEY
+  - EMAIL
 

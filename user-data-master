@@ -4,7 +4,7 @@
 #
 # Launch script for Salt Master
 
-SLES_KEY=@@SLES_KEY@@
+EMAIL=@@EMAIL@@
 BETA_PROGRAM_USERNAME=@@BETA_PROGRAM_USERNAME@@
 BETA_PROGRAM_PASSWORD=@@BETA_PROGRAM_PASSWORD@@
 BETA_PROGRAM_URL='http://beta.suse.com/private/SUSE-Storage-Beta/2/rc1/'
@@ -12,14 +12,18 @@ MEDIA1='SUSE-Enterprise-Storage-2-DVD-x86_64-RC1-Media1.iso'
 MEDIA2='SUSE-Enterprise-Storage-2-DVD-x86_64-RC1-Media2.iso'
 
 # notify via email that script started to run
-EMAIL='presnypreklad@gmail.com'
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
-mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 start" $EMAIL
+mailx -r ceph-auto-aws@github.com -s "Salt Master $public_ipv4 user-data start" $EMAIL
 
-# reset standard SLES12 repos
-rm /etc/zypp/credentials.d/*
-SUSEConnect -r "$SLES_KEY"
+# update packages
+# wait for background zypper to finish
+while sleep 10 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
 
 # set up directories from which we will serve media repos
 mkdir -p /srv/repos
@@ -41,14 +45,8 @@ EOF
 mount /srv/repos/SES2-media1
 mount /srv/repos/SES2-media2
 
-# add zypper repos
-# wait for background zypper to finish
-while sleep 5 ; do
-    zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
-    if [[ $? = 0 ]] ; then
-        break
-    fi
-done
+# add repos
+zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
 zypper addrepo http://download.opensuse.org/repositories/devel:languages:python/SLE_12/devel:languages:python.repo
 zypper --gpg-auto-import-keys ref
 
@@ -77,10 +75,7 @@ EOF
 systemctl enable apache2.service
 systemctl start apache2.service
 
-# update packages
-#zypper -n update
-
 # announce completion
-cat /var/log/cloud-init-output.log | mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 COMPLETE (cloud-init-output.log)" $EMAIL
+cat /var/log/cloud-init-output.log | mailx -r ceph-auto-aws@github.com -s "Salt Master $public_ipv4 user-data complete, rebooting" $EMAIL
 
-#systemctl reboot
+systemctl reboot

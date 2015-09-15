@@ -4,27 +4,26 @@
 #
 # Launch script for Ceph Admin Nodes
 
+EMAIL=@@EMAIL@@
 MASTER_IP=@@MASTER_IP@@
-SLES_KEY=@@SLES_KEY@@
+DELEGATE=@@DELEGATE@@
 
 # notify via email that script started to run
-EMAIL='presnypreklad@gmail.com'
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
 mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 start" $EMAIL
 
-# reset standard SLES12 repos
-rm /etc/zypp/credentials.d/*
-SUSEConnect -r "$SLES_KEY"
-
-# add zypper repos
+# zypper update
 # wait for background zypper to finish
 while sleep 5 ; do
-    zypper addrepo http://$MASTER_IP/SES2-media1 SES2-media1
+    zypper -n update
     if [[ $? = 0 ]] ; then
         break
     fi
 done
+
+# add zypper repos
+zypper addrepo http://$MASTER_IP/SES2-media1 SES2-media1
 zypper addrepo http://$MASTER_IP/SES2-media2 SES2-media2
 zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
 zypper addrepo http://download.opensuse.org/repositories/devel:languages:python/SLE_12/devel:languages:python.repo
@@ -32,9 +31,6 @@ zypper --gpg-auto-import-keys ref
 zypper -n install salt-minion
 
 MINION_CONF=/etc/salt/minion.d/ceph.conf
-
-#zypper -n update
-systemctl enable salt-minion.service
 
 cat <<EOF > $MINION_CONF
 master: @@MASTER_IP@@
@@ -46,12 +42,10 @@ EOF
 chown root:root $MINION_CONF
 chmod 0644 $MINION_CONF
 
+systemctl enable salt-minion.service
 systemctl start salt-minion.service
 
-# update packages
-#zypper -n update
-
 # announce completion
-cat /var/log/cloud-init-output.log | mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 COMPLETE (cloud-init-output.log)" $EMAIL
+cat /var/log/cloud-init-output.log | mailx -r ceph-auto-aws@github.com -s "Delegate $DELEGATE mon node $public_ipv4 user-data complete, rebooting" $EMAIL
 
-#systemctl reboot
+systemctl reboot
