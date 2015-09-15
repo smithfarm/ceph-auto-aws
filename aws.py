@@ -127,6 +127,13 @@ if args.master:
         y['master']['replace-from-environment'] 
     )
     
+    #PC * Derive address (e.g. 10.0.0.10) for the Master
+    g['master']['ip-address'] = init_lib.derive_ip_address( 
+        y['subnets'][0]['cidr-block'],
+        0,
+        10
+    )
+
     #PC * Spin up AWS instance for the Master.
     reservation = init_lib.make_reservation( 
         g['ec2_conn'], 
@@ -136,6 +143,7 @@ if args.master:
         instance_type=y['master']['type'],
         user_data=u,
         subnet_id=g['subnet_obj'][0].id,
+        private_ip_address=y['master']['ip-address'],
         master=True
     )
     g['master_instance'] = reservation.instances[0]
@@ -222,6 +230,13 @@ for delegate in y['install_subnets']:
     #PC * Create 1 admin node:
     print "Create 1 admin node"
 
+    #PC     * Derive IP address of admin node
+    g['admin_node'][delegate]['ip-address'] = init_lib.derive_ip_address( 
+        y['subnets'][0]['cidr-block'],
+        delegate,
+        10
+    )
+
     #PC     * Process admin node user-data
     u = init_lib.process_user_data( 
         y['admin']['user-data'], 
@@ -237,6 +252,7 @@ for delegate in y['install_subnets']:
         instance_type=y['admin']['type'],
         user_data=u,
         subnet_id=subnet_id,
+        private_ip_address=g['admin_node'][delegate]['ip-address'],
         master=False,
         master_ip=g['master_instance'].private_ip_address,
         delegate_no=delegate
@@ -258,38 +274,52 @@ for delegate in y['install_subnets']:
         y['mon']['replace-from-environment'] 
     )
 
-    #PC     * Spin up 3 mon node instances
-    reservation = init_lib.make_reservation( 
-        g['ec2_conn'], 
-        y['mon']['ami-id'],
-        3,
-        key_name=y['keyname'],
-        instance_type=y['mon']['type'],
-        user_data=u,
-        subnet_id=subnet_id,
-        master=False,
-        master_ip=g['master_instance'].private_ip_address,
-        delegate_no=delegate
-    )
-
     #PC     * For each of the three mon nodes:
     for x in range(1, 4):
+
         mon_node = g['mon{}_node'.format(x)][delegate]
-        mon_node['instance'] = reservation.instances[x-1]
+
+        #PC     * Derive IP address
+        mon_node['ip-address'] = init_lib.derive_ip_address( 
+            y['subnets'][0]['cidr-block'],
+            delegate,
+            10+x
+        )
+
+        #PC     * Make reservation.
+        reservation = init_lib.make_reservation( 
+            g['ec2_conn'], 
+            y['mon']['ami-id'],
+            key_name=y['keyname'],
+            instance_type=y['mon']['type'],
+            user_data=u,
+            subnet_id=subnet_id,
+            private_ip_address=mon_node['ip-address'],
+            master=False,
+            master_ip=g['master_instance'].private_ip_address,
+            delegate_no=delegate
+        )
+        mon_node['instance'] = reservation.instances[0]
+
         #PC     * Update tags.
         init_lib.update_tag( mon_node['instance'], 'Name', 'mon' )
         init_lib.update_tag( mon_node['instance'], 'Delegate', delegate )
+
         #PC     * Create OSD volume.
         mon_node['volume'] = g['ec2_conn'].create_volume( volume_size, mon_node['instance'].placement )
 
     for x in range(1, 4):
+
         mon_node = g['mon{}_node'.format(x)][delegate]
         instance = mon_node['instance']
         volume = mon_node['volume']
+
         #PC     * Make sure node state is "running" (wait if necessary).
         init_lib.wait_for_running( g['ec2_conn'], instance.id )
+
         #PC     * Make sure volume status is "available" (wait if necessary).
         init_lib.wait_for_available( g['ec2_conn'], volume.id )
+
         #PC     * Attach the OSD volume to the mon node.
         if not g['ec2_conn'].attach_volume( volume.id, instance.id, '/dev/sdb' ):
             raise SpinupError( "Failed to attach volume {} to instance {}".format(

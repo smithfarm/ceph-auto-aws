@@ -130,6 +130,24 @@ def set_subnet_map_public_ip( ec, subnet_id ):
     return None
 
  
+def derive_ip_address( cidr_block, delegate, final8 ):
+    """
+        Given a CIDR block string, a delegate number, and an integer
+        representing the final 8 bits of the IP address, construct and return
+        the IP address derived from this values.  For example, if cidr_block is
+        10.0.0.0/16, the delegate number is 10, and the final8 is 8, the
+        derived IP address will be 10.0.10.8.
+    """
+    result = ''
+    match = re.match( r'\d+\.\d+', cidr_block )
+    if match:
+        result = '{}.{}.{}'.format( match.group(0), delegate, final8 )
+    else:
+        raise SpinupError( "{} passed to derive_ip_address() is not a CIDR block!".format(cidr_block) )
+
+    return result        
+    
+
 def get_master_instance( ec2_conn, subnet_id ):
     """
         Given EC2Connection object and Master Subnet id, check that there is
@@ -142,6 +160,7 @@ def get_master_instance( ec2_conn, subnet_id ):
         raise SpinupError( "There are no instances in the master subnet" )
     if 1 < len(instances):
         raise SpinupError( "There are too many instances in the master subnet" )
+
     return instances[0]
 
 
@@ -182,18 +201,17 @@ def count_instances_in_subnet( ec, subnet_id ):
     return len(instance_list)
 
 
-def make_reservation( ec, ami_id, count, **kwargs ):
+def make_reservation( ec, ami_id, **kwargs ):
     """
-        Given EC2Connection object, delegate number, AMI ID, count, as well as
-        all the kwargs referred to below, make reservations for count instances
+        Given EC2Connection object, delegate number, AMI ID, as well as
+        all the kwargs referred to below, make a reservation for an instance
         and return the registration object.
     """
     our_kwargs = { 
         "key_name": kwargs['key_name'],
         "subnet_id": kwargs['subnet_id'],
         "instance_type": kwargs['instance_type'],
-        "min_count": count,
-        "max_count": count
+        "private_ip_address": kwargs['private_ip_address']
     }
 
     # Master or minion?
