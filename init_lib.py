@@ -171,6 +171,17 @@ def process_user_data( fn, vars = [] ):
     return buf
 
 
+def count_instances_in_subnet( ec, subnet_id ):
+    """
+        Given EC2Connection object and subnet ID, count number of instances
+        in that subnet and return it.
+    """
+    instance_list = ec.get_only_instances(
+        filters={ "subnet-id": subnet_id }
+    )
+    return len(instance_list)
+
+
 def make_reservation( ec, ami_id, count, **kwargs ):
     """
         Given EC2Connection object, AMI ID, count, as well as all the kwargs

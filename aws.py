@@ -192,14 +192,10 @@ for delegate in y['install_subnets']:
     print "Installing subnet {} ({})".format( subnet_cidr, subnet_id )
 
     #PC * Get all existing instances in the subnet.
-    existing_instances = g['ec2_conn'].get_all_instances(
-        filters={ "subnet-id": subnet_id }
-    )
-    noofinstances = len(existing_instances)
 
     #PC * If there are already instances in the subnet, print their IDs and bail out.
     if noofinstances > 0:
-        print "There are {} existing instances in subnet {}".format(noofinstances, subnet_id)
+        print "There are already {} instances in subnet {}".format(noofinstances, subnet_id)
         for i in existing_instances:
             print i.id
         sys.exit(1)
