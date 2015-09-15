@@ -11,7 +11,8 @@ DELEGATE=@@DELEGATE@@
 # notify via email that script started to run
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
-mailx -r ceph-auto-aws@github.com -s "$instance_id $public_ipv4 start" $EMAIL
+message="Delegate $DELEGATE mon node $public_ipv4"
+mailx -r ceph-auto-aws@github.com -s "$message start" $EMAIL
 
 # wait for zypper services to settle
 # wait for background zypper to finish
@@ -33,7 +34,7 @@ done
 
 # add zypper repos
 zypper addrepo http://$MASTER_IP/SES2-media1 SES2-media1
-zypper addrepo http://$MASTER_IP/SES2-media2 SES2-media2
+zypper addrepo http://$MASTER_IP/SES2-updates SES2-updates
 zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
 zypper addrepo http://download.opensuse.org/repositories/devel:languages:python/SLE_12/devel:languages:python.repo
 zypper --gpg-auto-import-keys ref
@@ -55,6 +56,6 @@ systemctl enable salt-minion.service
 systemctl start salt-minion.service
 
 # announce completion
-cat /var/log/cloud-init-output.log | mailx -r ceph-auto-aws@github.com -s "Delegate $DELEGATE mon node $public_ipv4 user-data complete, rebooting" $EMAIL
+mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL
 
 systemctl reboot

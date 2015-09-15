@@ -9,12 +9,13 @@ BETA_PROGRAM_USERNAME=@@BETA_PROGRAM_USERNAME@@
 BETA_PROGRAM_PASSWORD=@@BETA_PROGRAM_PASSWORD@@
 BETA_PROGRAM_URL='http://beta.suse.com/private/SUSE-Storage-Beta/2/rc1/'
 MEDIA1='SUSE-Enterprise-Storage-2-DVD-x86_64-RC1-Media1.iso'
-MEDIA2='SUSE-Enterprise-Storage-2-DVD-x86_64-RC1-Media2.iso'
+MEDIA2='SUSE-Enterprise-Storage-2-Updates-x86_64-RC1-Media.iso'
 
 # notify via email that script started to run
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
-mailx -r ceph-auto-aws@github.com -s "Salt Master $public_ipv4 user-data start" $EMAIL
+message="Salt Master $public_ipv4"
+mailx -r ceph-auto-aws@github.com -s "$message user-data start" $EMAIL
 
 # wait for zypper services to settle
 # wait for background zypper to finish
@@ -37,7 +38,7 @@ done
 # set up directories from which we will serve media repos
 mkdir -p /srv/repos
 mkdir -p /srv/repos/SES2-media1
-mkdir -p /srv/repos/SES2-media2
+mkdir -p /srv/repos/SES2-updates
 
 # download media
 cd /srv/repos
@@ -47,12 +48,12 @@ wget --user=$BETA_PROGRAM_USERNAME --password=$BETA_PROGRAM_PASSWORD $BETA_PROGR
 # add media to /etc/fstab
 cat <<EOF >>/etc/fstab
 /srv/repos/$MEDIA1 /srv/repos/SES2-media1 iso9660 loop 0 0
-/srv/repos/$MEDIA2 /srv/repos/SES2-media2 iso9660 loop 0 0
+/srv/repos/$MEDIA2 /srv/repos/SES2-updates iso9660 loop 0 0
 EOF
 
 # mount media
 mount /srv/repos/SES2-media1
-mount /srv/repos/SES2-media2
+mount /srv/repos/SES2-updates
 
 # add repos
 zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
@@ -85,6 +86,6 @@ systemctl enable apache2.service
 systemctl start apache2.service
 
 # announce completion
-cat /var/log/cloud-init-output.log | mailx -r ceph-auto-aws@github.com -s "Salt Master $public_ipv4 user-data complete, rebooting" $EMAIL
+mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL
 
 systemctl reboot
