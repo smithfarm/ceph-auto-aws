@@ -55,7 +55,19 @@ def update_tag( obj, tag, val ):
         Given an EC2 resource object, a tag and a value, updates the given tag 
         to val.
     """
-    obj.add_tag( tag, val )
+    for x in range(0, 5):
+        error = False
+        try:
+            obj.add_tag( tag, val )
+        except:
+            error = True
+            e = sys.exc_info()[0]
+            print "Huh, trying again ({})".format(e)
+            time.sleep(5)
+        if not error:
+            print "Object {} successfully tagged.".format(obj)
+            break
+
     return None
 
 
@@ -245,6 +257,8 @@ def wait_for_running( ec2_conn, instance_id ):
             print "Sleeping for 5 seconds"
             time.sleep(5)
         else:
+            print "Waiting another 5 seconds for good measure"
+            time.sleep(5)
             break
 
 
@@ -262,4 +276,25 @@ def wait_for_available( ec2_conn, volume_id ):
         else:
             break
 
+
+def wait_for_detachment( ec2_conn, v_id, i_id ):
+    """
+        Given a volume ID and an instance ID, wait for volume to 
+        become detached.
+    """
+    print "Waiting for volume {} to be detached from instnace {}".format(v_id, i_id)
+    while True:
+        attached_vol = ec2_conn.get_all_volumes(
+            filters={ 
+                "volume-id": v_id,
+                "attachment.instance-id": i_id,
+                "attachment.device": "/dev/sdb"
+            }
+        )
+        if attached_vol is None:
+            break
+            print "Detached!"
+        else:
+            time.sleep(5)
+            print "Still attached."
 
