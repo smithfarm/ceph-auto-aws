@@ -1,3 +1,11 @@
+#
+# runner_lib.py
+#
+# runcommand() for running executables in a subprocess or shell
+#
+# Credits to Owen Synge <osynge@suse.com>
+#
+
 import sys
 import subprocess
 import time

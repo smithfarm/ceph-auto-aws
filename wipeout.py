@@ -12,7 +12,7 @@ import argparse
 from aws_lib import SpinupError
 import init_lib
 from os.path import expanduser
-import runner
+from runner_lib import runcommand
 import sys
 import yaml_lib
 
@@ -127,7 +127,7 @@ args = [
     "sudo salt-key -d 'ip-10-0-{}-*' -y".format(delegate),
 ]
 print "Attempting to run 'salt-key -d' on Salt Master"
-( rc, output, err ) = runner.runcommand(
+( rc, output, err ) = runcommand(
     cmd = 'ssh',
     arguments = args,
     shell = False,
