@@ -85,6 +85,15 @@ EOF
 systemctl enable apache2.service
 systemctl start apache2.service
 
+# salt-related scripts
+cat <<EOF >/root/bin/salt-setup-admin.sh
+DELEGATE=\$1 ; salt -C "G@delegate:\$DELEGATE and G@role:admin" state.sls ceph-admin
+EOF
+cat <<EOF >/root/bin/salt-setup-mons.sh
+DELEGATE=\$1 ; salt -C "G@delegate:\$DELEGATE and G@role:mon" state.sls ceph-mon
+EOF
+chmod 755 /root/bin/*
+
 # announce completion
 mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL
 
