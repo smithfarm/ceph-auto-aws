@@ -16,6 +16,8 @@ subnets:
   name: Delegate 1
 - cidr-block: 10.0.2.0/24
   name: Delegate 2
+- cidr-block: 10.0.3.0/24
+  name: Delegate 3
 
 # Salt Master node - must be the only instance in 10.0.0.0/24
 master:
