@@ -138,7 +138,6 @@ if args.master:
     reservation = init_lib.make_reservation( 
         g['ec2_conn'], 
         y['master']['ami-id'],
-        1,
         key_name=y['keyname'],
         instance_type=y['master']['type'],
         user_data=u,
@@ -247,7 +246,6 @@ for delegate in y['install_subnets']:
     reservation = init_lib.make_reservation( 
         g['ec2_conn'], 
         y['admin']['ami-id'],
-        1,
         key_name=y['keyname'],
         instance_type=y['admin']['type'],
         user_data=u,
