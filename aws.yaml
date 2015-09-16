@@ -13,7 +13,9 @@ subnets:
 - cidr-block: 10.0.0.0/24
   name: master
 - cidr-block: 10.0.1.0/24
-  name: Development testing
+  name: Delegate 1
+- cidr-block: 10.0.2.0/24
+  name: Delegate 2
 
 # Salt Master node - must be the only instance in 10.0.0.0/24
 master:
@@ -28,7 +30,7 @@ master:
 # List of natural numbers - subnets to install clusters into
 # The number indicates which /24 to use
 install_subnets:
-- 1
+- 2
 
 # Template for admin nodes
 admin:
