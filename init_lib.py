@@ -95,19 +95,21 @@ def init_subnet( c, cidr ):
     """
         Takes VPCConnection object, which is actually a connection to a
         region, and a CIDR block string. Looks for our subnet in that region.
-        Returns the subnet resource object.
+        Returns the subnet resource object on success, raises exception on 
+        failure.
     """
     # look for our VPC
     all_subnets = c.get_all_subnets()
-    found = 0
+    found = False
     our_subnet = None
     for s in all_subnets:
         if s.cidr_block == cidr:
+            print "Found subnet {}".format(cidr)
             our_subnet = s
-            found = 1
+            found = True
             break
     if not found:
-        SpinupError( "Subnet {} not found".format(s.id) )
+        raise SpinupError( "Subnet {} not found".format(cidr) )
 
     return our_subnet
 
