@@ -10,6 +10,7 @@ from boto import vpc, ec2
 from os import environ
 from pprint import pprint
 import re
+import sys
 import time
 from yaml_lib import yaml_attr
 
@@ -291,9 +292,10 @@ def wait_for_detachment( ec2_conn, v_id, i_id ):
                 "attachment.device": "/dev/sdb"
             }
         )
-        if attached_vol is None:
-            break
+        print "attached_vol == {}".format(attached_vol)
+        if attached_vol is None or len(attached_vol) == 0:
             print "Detached!"
+            break
         else:
             time.sleep(5)
             print "Still attached."
