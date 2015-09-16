@@ -306,6 +306,9 @@ for delegate in y['install_subnets']:
 
         #PC     * Create OSD volume.
         mon_node['volume'] = g['ec2_conn'].create_volume( volume_size, mon_node['instance'].placement )
+        init_lib.update_tag( mon_node['volume'], 'Name', 'osd' )
+        init_lib.update_tag( mon_node['volume'], 'Delegate', delegate )
+        init_lib.update_tag( mon_node['volume'], 'Monitor', x )
 
     for x in range(1, 4):
 
