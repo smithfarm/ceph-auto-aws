@@ -1,6 +1,6 @@
 #!/bin/bash -x
 #
-# user-data-admin-nodes
+# user-data-osd-nodes
 #
 # Launch script for Ceph Admin Nodes
 
@@ -11,7 +11,7 @@ DELEGATE=@@DELEGATE@@
 # notify via email that script started to run
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
-message="Delegate $DELEGATE admin node $public_ipv4"
+message="Delegate $DELEGATE osd node $public_ipv4"
 mailx -r ceph-auto-aws@github.com -s "$message user-data start" $EMAIL
 
 # wait for zypper services to settle
@@ -24,7 +24,7 @@ while sleep 10 ; do
 done
 
 # zypper update
-# wait for any background zypper to finish
+# wait for background zypper to finish
 while sleep 5 ; do
     zypper -n update
     if [[ $? = 0 ]] ; then
@@ -42,19 +42,17 @@ zypper -n install salt-minion
 
 MINION_CONF=/etc/salt/minion.d/ceph.conf
 
-#zypper -n update
-systemctl enable salt-minion.service
-
 cat <<EOF > $MINION_CONF
 master: @@MASTER_IP@@
 grains:
-  role: admin
+  role: osd
   delegate: @@DELEGATE@@
 EOF
 
 chown root:root $MINION_CONF
 chmod 0644 $MINION_CONF
 
+systemctl enable salt-minion.service
 systemctl start salt-minion.service
 
 # set up ntpd
