@@ -87,7 +87,9 @@ def init_vpc( c, cidr ):
     """
         Takes VPCConnection object (which is actually a connection to a
         particular region) and a CIDR block string. Looks for our VPC in that
-        region.  Returns the VpcId of our VPC.
+        region.  Returns the boto.vpc.vpc.VPC object corresponding to our VPC.
+        See: 
+        http://boto.readthedocs.org/en/latest/ref/vpc.html#boto.vpc.vpc.VPC
     """
     # look for our VPC
     all_vpcs = c.get_all_vpcs()
@@ -104,12 +106,12 @@ def init_vpc( c, cidr ):
     return our_vpc
 
 
-def init_subnet( c, cidr ):
+def init_subnet( c, vpc_id, cidr ):
     """
         Takes VPCConnection object, which is actually a connection to a
         region, and a CIDR block string. Looks for our subnet in that region.
-        Returns the subnet resource object on success, raises exception on 
-        failure.
+        If subnet does not exist, creates it.  Returns the subnet resource
+        object on success, raises exception on failure.
     """
     # look for our VPC
     all_subnets = c.get_all_subnets()
@@ -122,7 +124,7 @@ def init_subnet( c, cidr ):
             found = True
             break
     if not found:
-        raise SpinupError( "Subnet {} not found".format(cidr) )
+        our_subnet = c.create_subnet( vpc_id, cidr )
 
     return our_subnet
 
