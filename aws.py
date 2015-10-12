@@ -200,12 +200,16 @@ g['admin_node'] = {}
 g['mon1_node'] = {}
 g['mon2_node'] = {}
 g['mon3_node'] = {}
+g['osd_node'] = {}
+g['windows_node'] = {}
 volume_size = yaml_lib.yaml_attr( y['mon'], 'volume', 20 )
 for delegate in y['install_subnets']:
     g['admin_node'][delegate] = {}
     g['mon1_node'][delegate] = {}
     g['mon2_node'][delegate] = {}
     g['mon3_node'][delegate] = {}
+    g['osd_node'][delegate] = {}
+    g['windows_node'][delegate] = {}
     
 #PC * Loop over the delegate numbers in "install_subnets":
 for delegate in y['install_subnets']:
@@ -328,4 +332,103 @@ for delegate in y['install_subnets']:
                 volume.id,
                 instance.id
             ) )
+
+    #PC * Create 1 osd-only node:
+
+    print "Create 1 osd-only node"
+
+    #PC     * Derive IP address of osd node
+    g['osd_node'][delegate]['ip-address'] = init_lib.derive_ip_address( 
+        y['subnets'][0]['cidr-block'],
+        delegate,
+        14
+    )
+
+    #PC     * Process osd-only node user-data
+    u = init_lib.process_user_data( 
+        y['osd']['user-data'], 
+        y['osd']['replace-from-environment']
+    )
+
+    #PC     * Spin up osd-only node instance
+    reservation = init_lib.make_reservation( 
+        g['ec2_conn'], 
+        y['osd']['ami-id'],
+        key_name=y['keyname'],
+        instance_type=y['osd']['type'],
+        user_data=u,
+        subnet_id=subnet_id,
+        private_ip_address=g['osd_node'][delegate]['ip-address'],
+        master=False,
+        master_ip=g['master_instance'].private_ip_address,
+        delegate_no=delegate
+    )
+    g['osd_node'][delegate]['instance'] = reservation.instances[0]
+
+    #PC     * Set osd-only node tag to "osd".
+    init_lib.update_tag( g['osd_node'][delegate]['instance'], 'Name', 'osd' )
+
+    #PC     * Set admin node "Delegate" tag to the delegate number.
+    init_lib.update_tag( g['osd_node'][delegate]['instance'], 'Delegate', delegate )
+
+    #PC     * Create OSD volume.
+    osd_node = g['osd_node'][delegate]
+    osd_node['volume'] = g['ec2_conn'].create_volume( volume_size, osd_node['instance'].placement )
+    init_lib.update_tag( osd_node['volume'], 'Name', 'osd' )
+    init_lib.update_tag( osd_node['volume'], 'Delegate', delegate )
+    init_lib.update_tag( osd_node['volume'], 'Monitor', x )
+
+    instance = osd_node['instance']
+    volume = osd_node['volume']
+
+    #PC     * Make sure node state is "running" (wait if necessary).
+    init_lib.wait_for_running( g['ec2_conn'], instance.id )
+
+    #PC     * Make sure volume status is "available" (wait if necessary).
+    init_lib.wait_for_available( g['ec2_conn'], volume.id )
+
+    #PC     * Attach the OSD volume to the mon node.
+    if not g['ec2_conn'].attach_volume( volume.id, instance.id, '/dev/sdb' ):
+        raise SpinupError( "Failed to attach volume {} to instance {}".format(
+            volume.id,
+            instance.id
+        ) )
+
+    #PC * Create 1 windows node:
+
+    print "Create 1 windows node"
+
+    #PC     * Derive IP address of windows node
+    g['windows_node'][delegate]['ip-address'] = init_lib.derive_ip_address( 
+        y['subnets'][0]['cidr-block'],
+        delegate,
+        14
+    )
+
+    #PC     * Process windows node user-data
+    u = init_lib.process_user_data( 
+        y['windows']['user-data'], 
+        y['windows']['replace-from-environment']
+    )
+
+    #PC     * Spin up windows node instance
+    reservation = init_lib.make_reservation( 
+        g['ec2_conn'], 
+        y['windows']['ami-id'],
+        key_name=y['keyname'],
+        instance_type=y['windows']['type'],
+        user_data=u,
+        subnet_id=subnet_id,
+        private_ip_address=g['windows_node'][delegate]['ip-address'],
+        master=False,
+        master_ip=g['master_instance'].private_ip_address,
+        delegate_no=delegate
+    )
+    g['windows_node'][delegate]['instance'] = reservation.instances[0]
+
+    #PC     * Set windows node tag to "osd".
+    init_lib.update_tag( g['windows_node'][delegate]['instance'], 'Name', 'windows' )
+
+    #PC     * Set admin node "Delegate" tag to the delegate number.
+    init_lib.update_tag( g['windows_node'][delegate]['instance'], 'Delegate', delegate )
 

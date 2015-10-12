@@ -18,6 +18,8 @@ subnets:
   name: Delegate 2
 - cidr-block: 10.0.3.0/24
   name: Delegate 3
+- cidr-block: 10.0.4.0/24
+  name: Delegate 4
 
 # Salt Master node - must be the only instance in 10.0.0.0/24
 master:
@@ -32,7 +34,7 @@ master:
 # List of natural numbers - subnets to install clusters into
 # The number indicates which /24 to use
 install_subnets:
-- 2
+- 4
 
 # Template for admin nodes
 admin:
@@ -46,9 +48,24 @@ admin:
 mon:
   ami-id: ami-e801af9f
   type: t2.small
-  # List of volumes and their sizes in GB
   volume: 20
   user-data: user-data-mon-nodes
   replace-from-environment:
   - EMAIL
+
+# Template for OSD-only nodes
+osd:
+  ami-id: ami-e801af9f
+  type: t2.small
+  volume: 20
+  user-data: user-data-osd-nodes
+  replace-from-environment:
+  - EMAIL
+
+# Template for windows nodes
+windows:
+  ami-id: ami-1a92cf6d
+  type: t2.small
+  user-data:
+  replace-from-environment: []
 
