@@ -82,6 +82,7 @@ g['vpc_obj'] = init_lib.init_vpc( g['vpc_conn'], n['cidr-block'] )
 #PC * Get Salt Master subnet (first one in "subnets" list).
 g['master_subnet'] = init_lib.init_subnet( 
     g['vpc_conn'],
+    g['vpc_obj'].id,
     y['subnets'][0]['cidr-block']
 )
 
@@ -96,7 +97,7 @@ print "Salt Master is {}".format( g['master_instance'].ip_address )
 cidr_block = '10.0.{}.0/24'.format(delegate)
 
 #PC * Get subnet object (raise exception if it doesn't exist).
-g['subnet_obj'] = init_lib.init_subnet( g['vpc_conn'], cidr_block )
+g['subnet_obj'] = init_lib.init_subnet( g['vpc_conn'], g['vpc_obj'].id, cidr_block )
 print "Wiping out all instances in {} (and attached volumes)".format(cidr_block)
 
 #PC * Get all instances in the subnet.
