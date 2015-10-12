@@ -72,11 +72,11 @@ print "{} subnets in yaml".format(len(subnets))
 if 1 > len(n):
     raise SpinupError( "No subnets in yaml" )
 
-#PC * Loop through the YAML subnet definitions. All subnets are assumed to
-#PC   exist in the VPC. If they don't, bad things happen.
+#PC * Loop through the YAML subnet definitions.
 g['subnet_obj'] = []
 count = 0
 for s in subnets:
+
     #PC * First subnet is assumed to be the "Master Subnet" (CIDR block
     #PC   defaults to 10.0.0.0/24).
     if count == 0:
@@ -88,17 +88,23 @@ for s in subnets:
     #PC   defaults to 10.0.<delegate>.0/24
     else:
         # minion subnet
-        s['name'] = yaml_lib.yaml_attr( s, 'name', None )
+        s['delegate'] = yaml_lib.yaml_attr( s, 'delegate', None )
         s['cidr-block'] = yaml_lib.yaml_attr( s, 'cidr-block', '10.0.{}.0/24'.format(count) )
         print "Looking for minion subnet {} ({})".format(s['cidr-block'], s['name'])
+
     #PC * For each subnet (Master or Minion) in YAML: 
     #PC     * Get subnet object and store it.
-    g['subnet_obj'].append( init_lib.init_subnet( g['vpc_conn'], s['cidr-block'] ) )
+    g['subnet_obj'].append( init_lib.init_subnet( g['vpc_conn'], g['vpc_obj'].id, s['cidr-block'] ) )
     #PC     * Clobber existing subnet tag with the one specified in YAML.
-    init_lib.update_tag( g['subnet_obj'][count], 'Name', s['name'] )
+    init_lib.update_tag( g['subnet_obj'][count], 'Name', y['nametag'] )
+    init_lib.update_tag( g['subnet_obj'][count], 'Delegate', s['delegate'] )
+
     #PC     * Update subnet "MapPublicIpOnLaunch" attribute, so all instances
     #PC       created in this subnet will automatically get a public IP address.
-    if g['subnet_obj'][count].mapPublicIpOnLaunch == 'false':
+    if not ( 
+            hasattr( g['subnet_obj'][count], 'mapPublicIpOnLaunch' ) and 
+            g['subnet_obj'][count].mapPublicIpOnLaunch != 'false' 
+        ):
         init_lib.set_subnet_map_public_ip( g['ec2_conn'], g['subnet_obj'][count].id )
     print "Found subnet {} ({})".format(s['cidr-block'], s['name'])
     count += 1
