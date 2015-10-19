@@ -11,7 +11,7 @@ DELEGATE=@@DELEGATE@@
 # notify via email that script started to run
 instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
 public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
-message="Delegate $DELEGATE admin node $public_ipv4"
+message="Delegate $DELEGATE @@ROLE@@ node $public_ipv4"
 mailx -r ceph-auto-aws@github.com -s "$message user-data start" $EMAIL
 
 # wait for zypper services to settle
@@ -34,9 +34,8 @@ done
 
 # add zypper repos
 zypper addrepo http://$MASTER_IP/SES2-media1 SES2-media1
-zypper addrepo http://$MASTER_IP/SES2-updates SES2-updates
+zypper addrepo http://$MASTER_IP/ses2-update-repo/SUSE:Updates:Storage:2:x86_64.repo
 zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
-#zypper addrepo http://download.opensuse.org/repositories/devel:languages:python/SLE_12/devel:languages:python.repo
 zypper --gpg-auto-import-keys ref
 zypper -n install salt-minion
 
@@ -48,7 +47,7 @@ systemctl enable salt-minion.service
 cat <<EOF > $MINION_CONF
 master: @@MASTER_IP@@
 grains:
-  role: admin
+  role: @@ROLE@@
   delegate: @@DELEGATE@@
 EOF
 
@@ -66,9 +65,6 @@ server 3.amazon.pool.ntp.org iburst
 EOF
 systemctl enable ntpd.service
 systemctl start ntpd.service
-
-# install the proper kernel
-zypper -n install kernel-default
 
 # announce completion
 mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL
