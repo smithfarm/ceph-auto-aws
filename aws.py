@@ -264,7 +264,8 @@ for delegate in y['install_subnets']:
         master=False,
         master_ip=g['master_instance'].private_ip_address,
         role='admin',
-        delegate_no=delegate
+        delegate_no=delegate,
+        node_no=0
     )
     g['admin_node'][delegate]['instance'] = reservation.instances[0]
 
@@ -306,7 +307,8 @@ for delegate in y['install_subnets']:
             master=False,
             master_ip=g['master_instance'].private_ip_address,
             role='mon',
-            delegate_no=delegate
+            delegate_no=delegate,
+            node_no=x
         )
         mon_node['instance'] = reservation.instances[0]
 
@@ -371,7 +373,8 @@ for delegate in y['install_subnets']:
         master=False,
         master_ip=g['master_instance'].private_ip_address,
         role='osd',
-        delegate_no=delegate
+        delegate_no=delegate,
+        node_no=4
     )
     g['osd_node'][delegate]['instance'] = reservation.instances[0]
 
@@ -433,7 +436,8 @@ for delegate in y['install_subnets']:
         master=False,
         master_ip=g['master_instance'].private_ip_address,
         role='windows',
-        delegate_no=delegate
+        delegate_no=delegate,
+        node_no=5
     )
     g['windows_node'][delegate]['instance'] = reservation.instances[0]
 

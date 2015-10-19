@@ -37,24 +37,6 @@ zypper addrepo http://$MASTER_IP/SES2-media1 SES2-media1
 zypper addrepo http://$MASTER_IP/ses2-update-repo/SUSE:Updates:Storage:2:x86_64.repo
 zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
 zypper --gpg-auto-import-keys ref
-zypper -n install salt-minion
-
-MINION_CONF=/etc/salt/minion.d/ceph.conf
-
-#zypper -n update
-systemctl enable salt-minion.service
-
-cat <<EOF > $MINION_CONF
-master: @@MASTER_IP@@
-grains:
-  role: @@ROLE@@
-  delegate: @@DELEGATE@@
-EOF
-
-chown root:root $MINION_CONF
-chmod 0644 $MINION_CONF
-
-systemctl start salt-minion.service
 
 # set up ntpd
 cat <<EOF >>/etc/ntp.conf
@@ -65,6 +47,20 @@ server 3.amazon.pool.ntp.org iburst
 EOF
 systemctl enable ntpd.service
 systemctl start ntpd.service
+
+# set up salt-minion
+zypper -n install salt-minion
+systemctl enable salt-minion.service
+MINION_CONF=/etc/salt/minion.d/ceph.conf
+cat <<EOF > $MINION_CONF
+master: @@MASTER_IP@@
+grains:
+  delegate: @@DELEGATE@@
+  role: @@ROLE@@
+  node_no: @@NODE_NO@@
+EOF
+chown root:root $MINION_CONF
+chmod 0644 $MINION_CONF
 
 # announce completion
 mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL

@@ -224,6 +224,8 @@ def make_reservation( ec, ami_id, **kwargs ):
         all the kwargs referred to below, make a reservation for an instance
         and return the registration object.
     """
+
+    # extract arguments to be passed to ec.run_instances()
     our_kwargs = { 
         "key_name": kwargs['key_name'],
         "subnet_id": kwargs['subnet_id'],
@@ -235,11 +237,12 @@ def make_reservation( ec, ami_id, **kwargs ):
     if kwargs['master']:
         our_kwargs['user_data'] = kwargs['user_data']
     else:
-        # substitute @@MASTER_IP@@ and @@DELEGATE@@
+        # perform token substitution in user-data string
         u = kwargs['user_data']
         u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
         u = template_token_subst( u, '@@DELEGATE@@', kwargs['delegate_no'] )
         u = template_token_subst( u, '@@ROLE@@', kwargs['role'] )
+        u = template_token_subst( u, '@@NODE_NO@@', kwargs['node_no'] )
         our_kwargs['user_data'] = u
 
     # Make the reservation.
