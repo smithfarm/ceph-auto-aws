@@ -239,6 +239,7 @@ def make_reservation( ec, ami_id, **kwargs ):
         u = kwargs['user_data']
         u = template_token_subst( u, '@@MASTER_IP@@', kwargs['master_ip'] )
         u = template_token_subst( u, '@@DELEGATE@@', kwargs['delegate_no'] )
+        u = template_token_subst( u, '@@ROLE@@', kwargs['role'] )
         our_kwargs['user_data'] = u
 
     # Make the reservation.
