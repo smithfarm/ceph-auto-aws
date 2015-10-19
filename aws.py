@@ -81,16 +81,16 @@ for s in subnets:
     #PC   defaults to 10.0.0.0/24).
     if count == 0:
         # master subnet
-        s['name'] = yaml_lib.yaml_attr( s, 'name', 'master' )
+        s['name'] = yaml_lib.yaml_attr( s, 'delegate', '0' )
         s['cidr-block'] = yaml_lib.yaml_attr( s, 'cidr-block', '10.0.0.0/24' )
         print "Looking for master subnet {} ({})".format(s['cidr-block'], s['name'])
     #PC * All others are "Minion Subnets" (i.e. for delegates): CIDR block
     #PC   defaults to 10.0.<delegate>.0/24
     else:
         # minion subnet
-        s['delegate'] = yaml_lib.yaml_attr( s, 'delegate', None )
+        s['delegate'] = yaml_lib.yaml_attr( s, 'delegate', 'MISSING' )
         s['cidr-block'] = yaml_lib.yaml_attr( s, 'cidr-block', '10.0.{}.0/24'.format(count) )
-        print "Looking for minion subnet {} ({})".format(s['cidr-block'], s['name'])
+        print "Looking for minion subnet {} (delegate {})".format(s['cidr-block'], s['delegate'])
 
     #PC * For each subnet (Master or Minion) in YAML: 
     #PC     * Get subnet object and store it.
@@ -106,7 +106,7 @@ for s in subnets:
             g['subnet_obj'][count].mapPublicIpOnLaunch != 'false' 
         ):
         init_lib.set_subnet_map_public_ip( g['ec2_conn'], g['subnet_obj'][count].id )
-    print "Found subnet {} ({})".format(s['cidr-block'], s['name'])
+    print "Found subnet {} (delegate {})".format(s['cidr-block'], s['delegate'])
     count += 1
 
 #PC * If --master option was given on the command line: 
@@ -154,7 +154,7 @@ if args.master:
     g['master_instance'] = reservation.instances[0]
 
     #PC * Clobber tag with hard-coded value "master".
-    init_lib.update_tag( g['master_instance'], 'Name', 'master' )
+    init_lib.update_tag( g['master_instance'], 'Name', y['nametag'] )
 
     #PC * Report result to user, and exit.
     print "Master node {} ({}, {}) created.".format(
@@ -174,7 +174,7 @@ g['master_instance'] = init_lib.get_master_instance(
 )
 
 #PC * Clobber Master instance tag with hard-coded value "master".
-init_lib.update_tag( g['master_instance'], 'Name', 'master' )
+init_lib.update_tag( g['master_instance'], 'Name', y['nametag'] )
 print "Found master instance {} ({}, {})".format( 
     g['master_instance'].id, 
     g['master_instance'].ip_address,
@@ -263,14 +263,14 @@ for delegate in y['install_subnets']:
         private_ip_address=g['admin_node'][delegate]['ip-address'],
         master=False,
         master_ip=g['master_instance'].private_ip_address,
+        role='admin',
         delegate_no=delegate
     )
     g['admin_node'][delegate]['instance'] = reservation.instances[0]
 
-    #PC     * Set admin node tag to "admin".
-    init_lib.update_tag( g['admin_node'][delegate]['instance'], 'Name', 'admin' )
-
-    #PC     * Set admin node "Delegate" tag to the delegate number.
+    #PC     * Set admin node tags
+    init_lib.update_tag( g['admin_node'][delegate]['instance'], 'Name', y['nametag'] )
+    init_lib.update_tag( g['admin_node'][delegate]['instance'], 'Role', 'admin' )
     init_lib.update_tag( g['admin_node'][delegate]['instance'], 'Delegate', delegate )
 
     #PC * Create 3 mon nodes.
@@ -305,18 +305,21 @@ for delegate in y['install_subnets']:
             private_ip_address=mon_node['ip-address'],
             master=False,
             master_ip=g['master_instance'].private_ip_address,
+            role='mon',
             delegate_no=delegate
         )
         mon_node['instance'] = reservation.instances[0]
 
         #PC     * Update tags.
-        init_lib.update_tag( mon_node['instance'], 'Name', 'mon' )
+        init_lib.update_tag( mon_node['instance'], 'Name', y['nametag'] )
+        init_lib.update_tag( mon_node['instance'], 'Role', 'mon' )
         init_lib.update_tag( mon_node['instance'], 'Delegate', delegate )
         init_lib.update_tag( mon_node['instance'], 'Monitor', x )
 
         #PC     * Create OSD volume.
         mon_node['volume'] = g['ec2_conn'].create_volume( volume_size, mon_node['instance'].placement )
-        init_lib.update_tag( mon_node['volume'], 'Name', 'osd' )
+        init_lib.update_tag( mon_node['volume'], 'Name', y['nametag'] )
+        init_lib.update_tag( mon_node['instance'], 'Role', 'mon' )
         init_lib.update_tag( mon_node['volume'], 'Delegate', delegate )
         init_lib.update_tag( mon_node['volume'], 'Monitor', x )
 
@@ -367,20 +370,21 @@ for delegate in y['install_subnets']:
         private_ip_address=g['osd_node'][delegate]['ip-address'],
         master=False,
         master_ip=g['master_instance'].private_ip_address,
+        role='osd',
         delegate_no=delegate
     )
     g['osd_node'][delegate]['instance'] = reservation.instances[0]
 
-    #PC     * Set osd-only node tag to "osd".
-    init_lib.update_tag( g['osd_node'][delegate]['instance'], 'Name', 'osd' )
-
-    #PC     * Set admin node "Delegate" tag to the delegate number.
+    #PC     * Set osd-only node tags
+    init_lib.update_tag( g['osd_node'][delegate]['instance'], 'Name', y['nametag'] )
+    init_lib.update_tag( g['osd_node'][delegate]['instance'], 'Role', 'osd' )
     init_lib.update_tag( g['osd_node'][delegate]['instance'], 'Delegate', delegate )
 
     #PC     * Create OSD volume.
     osd_node = g['osd_node'][delegate]
     osd_node['volume'] = g['ec2_conn'].create_volume( volume_size, osd_node['instance'].placement )
-    init_lib.update_tag( osd_node['volume'], 'Name', 'osd' )
+    init_lib.update_tag( osd_node['volume'], 'Name', y['nametag'] )
+    init_lib.update_tag( osd_node['volume'], 'Role', 'osd' )
     init_lib.update_tag( osd_node['volume'], 'Delegate', delegate )
     init_lib.update_tag( osd_node['volume'], 'Monitor', x )
 
@@ -408,7 +412,7 @@ for delegate in y['install_subnets']:
     g['windows_node'][delegate]['ip-address'] = init_lib.derive_ip_address( 
         y['subnets'][0]['cidr-block'],
         delegate,
-        14
+        15
     )
 
     #PC     * Process windows node user-data
@@ -428,13 +432,13 @@ for delegate in y['install_subnets']:
         private_ip_address=g['windows_node'][delegate]['ip-address'],
         master=False,
         master_ip=g['master_instance'].private_ip_address,
+        role='windows',
         delegate_no=delegate
     )
     g['windows_node'][delegate]['instance'] = reservation.instances[0]
 
-    #PC     * Set windows node tag to "osd".
-    init_lib.update_tag( g['windows_node'][delegate]['instance'], 'Name', 'windows' )
-
-    #PC     * Set admin node "Delegate" tag to the delegate number.
+    #PC     * Set windows node tags
+    init_lib.update_tag( g['windows_node'][delegate]['instance'], 'Name', y['nametag'] )
+    init_lib.update_tag( g['windows_node'][delegate]['instance'], 'Role', 'windows' )
     init_lib.update_tag( g['windows_node'][delegate]['instance'], 'Delegate', delegate )
 
