@@ -119,7 +119,7 @@ def init_subnet( c, vpc_id, cidr ):
     our_subnet = None
     for s in all_subnets:
         if s.cidr_block == cidr:
-            print "Found subnet {}".format(cidr)
+            #print "Found subnet {}".format(cidr)
             our_subnet = s
             found = True
             break
