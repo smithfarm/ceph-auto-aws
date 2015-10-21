@@ -1,0 +1,30 @@
+#!/bin/bash -x
+#
+# user-data-nodes-frozen
+#
+# Launch script for Ceph AWS nodes
+
+EMAIL=@@EMAIL@@
+DELEGATE=@@DELEGATE@@
+
+# set up salt-minion
+#zypper -n install salt-minion
+systemctl enable salt-minion.service
+MINION_CONF=/etc/salt/minion.d/ceph.conf
+cat <<EOF > $MINION_CONF
+master: @@MASTER_IP@@
+grains:
+  delegate: @@DELEGATE@@
+  role: @@ROLE@@
+  node_no: @@NODE_NO@@
+EOF
+chown root:root $MINION_CONF
+chmod 0644 $MINION_CONF
+systemctl start salt-minion.service
+
+# announce completion
+public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
+mailx \
+    -r ceph-auto-aws@github.com \
+    -s "Delegate $DELEGATE @@ROLE@@ (node @@NODE_NO@@, $public_ipv4) ready" \
+    $EMAIL

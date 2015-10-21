@@ -9,7 +9,7 @@ vpc:
 keyname: ncutler
 
 # nametag: value of Name tag that all objects will get
-nametag: susecon-handson20045
+nametag: susecon-ho20045
 
 # subnets - if these do not exist, they will be created
 subnets:
@@ -60,40 +60,42 @@ master:
 # List of natural numbers - subnets to install clusters into
 # The number indicates which /24 to use
 install_subnets:
-- 3
+- 2
 
 # Template for admin nodes
 admin:
-  ami-id: ami-e801af9f
-#  ami-id: ami-f3281b84
+#  ami-id: ami-e801af9f
+  ami-id: ami-61211d16
   type: t2.small
-  user-data: user-data-nodes
+#  user-data: user-data-snapshot
+  user-data: user-data-nodes-frozen
   replace-from-environment:
   - EMAIL
 
 # Template for MON/OSD nodes
 mon:
-  ami-id: ami-e801af9f
-#  ami-id: ami-f3281b84
+#  ami-id: ami-e801af9f
+  ami-id: ami-61211d16
   type: t2.small
   volume: 20
-  user-data: user-data-nodes
+#  user-data: user-data-snapshot
+  user-data: user-data-nodes-frozen
   replace-from-environment:
   - EMAIL
 
 # Template for OSD-only nodes
 osd:
-  ami-id: ami-e801af9f
-#  ami-id: ami-f3281b84
+#  ami-id: ami-e801af9f
+  ami-id: ami-61211d16
   type: t2.small
   volume: 20
-  user-data: user-data-nodes
+#  user-data: user-data-snapshot
+  user-data: user-data-nodes-frozen
   replace-from-environment:
   - EMAIL
 
 # Template for windows nodes
 windows:
-#  ami-id: ami-1a92cf6d
   ami-id: ami-abe9c9dc
   type: t2.small
   user-data: /var/tmp/user-data-windows
