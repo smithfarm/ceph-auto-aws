@@ -16,7 +16,7 @@ All of the following instructions assume you are *in* the directory containing t
 
 1. Get list of each delegate's public IP addresses
 1. Spin up delegate VMs
-1. Start Ceph cluster on delegate VMs
+1. Deploy Ceph cluster on delegate VMs
 1. Wipe out delegates
 
 
@@ -49,7 +49,10 @@ Third, run the spinup script:
 python aws.py
 ```
 
-## How to start Ceph cluster on delegate VMs
+Note that this step only creates the VMs. To get a running cluster, see the next section.
+
+
+## How to deploy Ceph cluster on delegate VMs
 
 WIP
 
