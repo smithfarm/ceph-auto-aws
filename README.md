@@ -17,10 +17,12 @@ Automate deployment of Ceph clusters on SLES12 in AWS
 1. Make sure the delegates do not already exist
 1. Edit the `aws.yaml` file. Modify the `install_subnets` section so it matches the list of delegates you wish to spin up, e.g.:
 
-    install_subnets:
-    - 1
-    - 2
-    - 3
+<pre>
+install_subnets:
+- 1
+- 2
+- 3
+</pre>
 
 1. Run the spinup script: `python aws.py`
 
