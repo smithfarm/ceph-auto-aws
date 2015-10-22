@@ -3,18 +3,32 @@ Automate deployment of Ceph clusters on SLES12 in AWS
 
 ## Getting started
 
-1. Clone the repo to your local machine
-1. Put your AWS credentials in `~/.boto` or `~/.aws/credentials` as described [here](http://boto.readthedocs.org/en/latest/getting_started.html#configuring-boto-credentials)
+First, install the `python-boto` package from the `devel:languages:python` repo. The easiest way to do this may be to visit the page https://build.opensuse.org/package/show/devel:languages:python/python-boto and click on the "Download package" link in the upper right.
+
+Second, clone this git repo to your local machine
+
+Third, put your AWS credentials in `~/.boto` or `~/.aws/credentials` as described [here](http://boto.readthedocs.org/en/latest/getting_started.html#configuring-boto-credentials)
+
+All of the following instructions assume you are *in* the directory containing the local clone.
 
 ## What you can do with this
 
+1. Get list of each delegate's public IP addresses
 1. Spin up delegates
 1. Wipe out delegates
-1. Get list of each delegate's public IP addresses
+
+## How to get list of delegate public IP addresses
+
+This script is also a nice, non-destructive way to check if you have your environment set up correctly.
+
+To run the script, do:
+```
+./list-public-ips.py
+```
 
 ## How to spin up delegates
 
-First, make sure the delegates do not already exist. This can be done either via the Amazon EC2 Web Console or by running the `list-public-ips.py` script (see below).
+First, make sure the delegates do not already exist. This can be done either via the Amazon EC2 Web Console or by running the `list-public-ips.py` script.
 
 Second, edit the `aws.yaml` file. Modify the `install_subnets` section so it matches the list of delegates you wish to spin up. For example, the following snippet shows the syntax for installing delegates 1-3:
 <pre>
@@ -25,19 +39,16 @@ install_subnets:
 </pre>
 
 Third, run the spinup script: 
-    python aws.py
+```
+python aws.py
+```
 
 ## How to wipe out delegates
 
-1. Make sure you know the delegate number you wish to wipe out and that you really, really want to wipe it out
-1. Run the wipeout script, providing the delegate number as the sole argument, e.g.:
+First, make sure you know the delegate number you wish to wipe out and that you really, really want to wipe it out
+
+Second, run the wipeout script, providing the delegate number as the sole argument. For example, the following command wipes out all instances and volumes associated with Delegate No. 3:
 ```
 python wipeout.py 3
 ```
 
-## How to get list of delegate public IP addresses
-
-Run the script:
-```
-./list-public-ips.py
-```
