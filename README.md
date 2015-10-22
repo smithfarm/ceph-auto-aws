@@ -26,6 +26,8 @@ To run the script, do:
 ./list-public-ips.py
 ```
 
+Note that the output of this script also includes the public IP address of the Salt Master.
+
 ## How to spin up delegates
 
 First, make sure the delegates do not already exist. This can be done either via the Amazon EC2 Web Console or by running the `list-public-ips.py` script.
