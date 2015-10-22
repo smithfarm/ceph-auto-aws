@@ -11,11 +11,14 @@ Third, put your AWS credentials in `~/.boto` or `~/.aws/credentials` as describe
 
 All of the following instructions assume you are *in* the directory containing the local clone.
 
+
 ## What you can do with this
 
 1. Get list of each delegate's public IP addresses
-1. Spin up delegates
+1. Spin up delegate VMs
+1. Start Ceph cluster on delegate VMs
 1. Wipe out delegates
+
 
 ## How to get list of delegate public IP addresses
 
@@ -28,7 +31,8 @@ To run the script, do:
 
 Note that the output of this script also includes the public IP address of the Salt Master.
 
-## How to spin up delegates
+
+## How to spin up delegate VMs
 
 First, make sure the delegates do not already exist. This can be done either via the Amazon EC2 Web Console or by running the `list-public-ips.py` script.
 
@@ -44,6 +48,11 @@ Third, run the spinup script:
 ```
 python aws.py
 ```
+
+## How to start Ceph cluster on delegate VMs
+
+WIP
+
 
 ## How to wipe out delegates
 
