@@ -1,0 +1,48 @@
+#!/bin/bash -x
+EMAIL=@@EMAIL@@
+MASTER_IP=@@MASTER_IP@@
+
+# notify via email that script started to run
+instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
+public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
+message="node $public_ipv4 (snapshot)"
+mailx -r ceph-auto-aws@github.com -s "$message start" $EMAIL
+
+# wait for zypper services to settle
+# wait for background zypper to finish
+while sleep 10 ; do
+    zypper services | grep 'SMT-http_smt-ec2_susecloud_net'
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
+# zypper update
+# wait for any background zypper to finish
+while sleep 5 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
+# add zypper repos
+zypper addrepo http://$MASTER_IP/SES2-media1 SES2-media1
+zypper addrepo http://$MASTER_IP/ses2-update-repo/SUSE:Updates:Storage:2:x86_64.repo
+#zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12/home:smithfarm:susecon.repo
+zypper --gpg-auto-import-keys ref
+zypper -n install salt-minion
+
+# set up ntpd
+cat <<EOF >>/etc/ntp.conf
+server 0.amazon.pool.ntp.org iburst
+server 1.amazon.pool.ntp.org iburst
+server 2.amazon.pool.ntp.org iburst
+server 3.amazon.pool.ntp.org iburst
+EOF
+systemctl enable ntpd.service
+
+# announce completion
+mailx -r ceph-auto-aws@github.com -s "$message rebooting" $EMAIL
+
+systemctl reboot

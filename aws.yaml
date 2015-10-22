@@ -98,6 +98,6 @@ osd:
 windows:
   ami-id: ami-abe9c9dc
   type: t2.small
-  user-data: /var/tmp/user-data-windows
+  user-data: user-data-windows
   replace-from-environment: []
 
