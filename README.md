@@ -54,7 +54,10 @@ Note that this step only creates the VMs. To get a running cluster, see the next
 
 ## How to deploy Ceph cluster on delegate VMs
 
-WIP
+1. ssh to a delegate's admin node
+2. `sudo su - ceph`
+3. `./ceph-deploy.sh`
+4. `ceph health`
 
 
 ## How to wipe out delegates
