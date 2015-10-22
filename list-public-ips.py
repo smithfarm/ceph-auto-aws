@@ -16,6 +16,19 @@ from runner_lib import runcommand
 import sys
 import yaml_lib
 
+def fetch_public_ip( ec2_conn, subnet_id, tag_value ):
+    instances = ec2_conn.get_only_instances( 
+        filters={ "subnet-id": subnet_id, "tag-key": "Role", "tag-value": tag_value } 
+    )
+    found = False
+    public_ip = ''
+    for i in instances:
+        public_ip = "{}".format(i.ip_address)
+        found = True
+    if not found:
+        public_ip = "(none)"
+    return public_ip
+
 #PC * This script (admin_nodes.py) makes the following assumptions:
 #PC     * delegate number provided in argument is really the one you want to
 #PC       wipe out
@@ -85,7 +98,7 @@ print "Salt Master is {}".format( g['master_instance'].ip_address )
 
 #PC * Loop over all possible subnets
 upper = 16
-print "Looping over delegates 1-{}".format(upper)
+print "Looping over delegates 1-{}".format(upper-1)
 for delegate in range(1, upper):
 
     cidr_block = '10.0.{}.0/24'.format(delegate)
@@ -93,18 +106,11 @@ for delegate in range(1, upper):
     #PC * Get subnet object (raise exception if it doesn't exist).
     g['subnet_obj'] = init_lib.init_subnet( g['vpc_conn'], g['vpc_obj'].id, cidr_block )
 
-    #PC * Get admin instance.
-    g['instances'] = g['ec2_conn'].get_only_instances( 
-        filters={ "subnet-id": g['subnet_obj'].id, "tag-key": "Role", "tag-value": "admin" } 
-    )
+    #PC * Get public IP addresses of admin node and windows client node
+    admin_ip = fetch_public_ip( g['ec2_conn'], g['subnet_obj'].id, 'admin' )
+    windows_ip = fetch_public_ip( g['ec2_conn'], g['subnet_obj'].id, 'windows' )
 
-    #PC * Loop over the instances, stopping them and detaching their OSD volumes.
-    found = False
-    for i in g['instances']:
-        print "Delegate #{} admin node: {}, public IP {}".format(delegate, i.id, i.ip_address)
-        found = True
-
-    if not found:
-        print "Delegate #{} admin node: (none)".format(delegate)
-
+    #PC * Print line for the current delegate
+    print "Delegate {}: admin {}, windows {}".format(delegate, admin_ip, windows_ip)
+    
 print "Done."
