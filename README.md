@@ -15,14 +15,24 @@ Automate deployment of Ceph clusters on SLES12 in AWS
 ## How to spin up delegates
 
 1. Make sure the delegates do not already exist
-1. Edit `aws.yaml` - `install_subnets` is the list of delegates to spin up
+1. Edit the `aws.yaml` file. Modify the `install_subnets` section so it matches the list of delegates you wish to spin up, e.g.:
+
+    install_subnets:
+    - 1
+    - 2
+    - 3
+
 1. Run the spinup script: `python aws.py`
 
 ## How to wipe out delegates
 
 1. Make sure you know the delegate number you wish to wipe out and that you really, really want to wipe it out
-1. Run the wipeout script, providing the delegate number as the sole argument, e.g. `python wipeout.py 3`
+1. Run the wipeout script, providing the delegate number as the sole argument, e.g.:
+
+    python wipeout.py 3
 
 ## How to get list of delegate public IP addresses
 
-1. Run the script: `python list-public-ips.py`
+Run the script:
+
+    python list-public-ips.py
