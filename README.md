@@ -77,7 +77,25 @@ Note the '4' in the hostname indicates Delegate 4.
 
 Next, accept the keys: `salt-key -Ay`
 
-Now that the keys are accepted, you can run the Salt State:
+Now that the keys are accepted, you can run the Salt State. Before you do that, 
+just a quick check to make sure all the minions are reachable:
+<pre>
+ip-10-0-0-64:/srv/salt # salt -G 'delegate:4' test.ping
+ip-10-0-4-12.eu-west-1.compute.internal:
+True
+ip-10-0-4-11.eu-west-1.compute.internal:
+True
+ip-10-0-4-14.eu-west-1.compute.internal:
+True
+ip-10-0-4-10.eu-west-1.compute.internal:
+True
+ip-10-0-4-13.eu-west-1.compute.internal:
+True
+</pre>
+
+If any are not reachable, hold off until they become reachable.
+
+Run the Salt State to prepare all the nodes:
 
 1. `cd /srv/salt` (may not be strictly necessary)
 1. `salt -G 'delegate:4' state.sls ceph-admin` (replace '4' with your target delegate number)
