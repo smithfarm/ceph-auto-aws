@@ -7,7 +7,7 @@ First, install the `python-boto` package from the `devel:languages:python` repo.
 
 Second, clone this git repo to your local machine
 
-Third, put your AWS credentials in `~/.boto` or `~/.aws/credentials` as described [here](http://boto.readthedocs.org/en/latest/getting_started.html#configuring-boto-credentials)
+Third, put your AWS credentials in `~/.boto` or `~/.aws/credentials` as described [here](http://boto.readthedocs.org/en/latest/getting_started.html#configuring-boto-credentials).
 
 All of the following instructions assume you are *in* the directory containing the local clone.
 
@@ -17,7 +17,7 @@ All of the following instructions assume you are *in* the directory containing t
 1. Get list of each delegate's public IP addresses
 1. Spin up delegate VMs
 1. Deploy Ceph cluster on delegate VMs
-1. Wipe out delegates
+1. Wipe out delegate VMs
 
 
 ## How to get list of delegate public IP addresses
