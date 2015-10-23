@@ -113,7 +113,7 @@ I have written a script to facilitate this.
 The output from the last command should be `HEALTH_OK`
 
 
-## How to wipe out delegates
+## How to wipe out delegate VMs
 
 First, make sure you know the delegate number you wish to wipe out and that you really, really want to wipe it out
 
@@ -122,3 +122,7 @@ Second, run the wipeout script, providing the delegate number as the sole argume
 python wipeout.py 3
 ```
 
+Note that it does take time for terminated VMs in AWS to actually go away. If
+you wipe out a delegate, the VMs will still be present (if terminated) for some
+time and that may cause an issue if you try to re-deploy that same delegate.
+This needs more testing.
