@@ -54,10 +54,45 @@ Note that this step only creates the VMs. To get a running cluster, see the next
 
 ## How to deploy Ceph cluster on delegate VMs
 
+After the VMs come up, the `salt-minion.service` will be started on each of
+them and it will connect to the Salt Master and ask for its key to be accepted.
+This can be seen using the following procedure
+
+1. ssh to the Salt Master (IP address can be determined from `list-public-ips.py` output)
+1. `sudo -s` to become root
+1. `salt-key -L`
+
+In the output of step 3, you should see five unaccepted keys for each delegate you
+are spinning up, e.g. after spinning up Delegate 4 I see:
+<pre>
+Unaccepted Keys:
+ip-10-0-4-10.eu-west-1.compute.internal
+ip-10-0-4-11.eu-west-1.compute.internal
+ip-10-0-4-12.eu-west-1.compute.internal
+ip-10-0-4-13.eu-west-1.compute.internal
+ip-10-0-4-14.eu-west-1.compute.internal
+</pre>
+
+Note the '4' in the hostname indicates Delegate 4.
+
+Next, accept the keys: `salt-key -Ay`
+
+Now that the keys are accepted, you can run the Salt State:
+
+1. `cd /srv/salt` (may not be strictly necessary)
+1. `salt -G 'delegate:4' state.sls ceph-admin` (replace '4' with your target delegate number)
+
+This may take some seconds to complete - be patient.
+
+At this point, the nodes are ready to run `ceph-deploy`, which will actually deploy the cluster.
+I have written a script to facilitate this.
+
 1. ssh to a delegate's admin node
 2. `sudo su - ceph`
 3. `./ceph-deploy.sh`
 4. `ceph health`
+
+The output from the last command should be `HEALTH_OK`
 
 
 ## How to wipe out delegates
