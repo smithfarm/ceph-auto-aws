@@ -97,7 +97,7 @@ g['master_instance'] = init_lib.get_master_instance(
 print "Salt Master is {}".format( g['master_instance'].ip_address )
 
 #PC * Loop over all possible subnets
-upper = 16
+upper = 41
 print "Looping over delegates 1-{}".format(upper-1)
 for delegate in range(1, upper):
 
