@@ -122,6 +122,74 @@ Clone this repo to your local machine::
 All of the following instructions assume you are *in* the directory
 containing the local clone.
 
+Virtual Private Cloud
+=====================
+
+Introduction
+------------
+
+To ensure that our demo clusters do not interfere with other AWS projects,
+we use a Virtual Private Cloud (VPC).
+
+All the delegates will share a single VPC 10.0.0.0/16. Within that VPC there
+will be a ``/24`` subnet for each delegate, plus one for the Salt Master.
+
+The Salt Master resides in its own subnet: 10.0.0.0/24.
+
+Each delegate will be assigned a number, e.g. 12. The subnet of delegate 12
+will be 10.0.12.0/24.
+
+Create a VPC
+------------
+
+In the VPC dashboard, click on ``Your VPCs`` and then ``Create VPC``.
+
+In the form dialog that appears, enter values::
+
+    Name tag:   handson
+    CIDR block: 10.0.0.0/16
+    Tenancy:    Default
+
+Click ``Yes, Create``.
+
+Check YAML
+----------
+
+All configuration/setup information is placed in the file ``aws.yaml``
+which you are expected to edit to suit your needs.
+
+Check and make sure the ``vpc`` stanza (inside the ``aws.yaml`` file in the
+current working directory) looks like this::
+
+    vpc:
+      cidr-block: 10.0.0.0/16
+      name: handson
+
+Validate VPC setup
+------------------
+
+Now validate that your VPC is set up properly::
+
+    $ ./list-public-ips.py
+    Connected to region eu-west-1
+    Looking for VPC 10.0.0.0/16
+    There are no instances in the master subnet
+
+Any other output (and especially any traceback) probably means your VPC is
+not set up properly.
+
+Subnet caveat
+-------------
+
+AWS reserves both the first four IP addresses and the last IP address in
+each subnet's CIDR block. For example, in the ``10.0.0.0/24`` subnet, these IP
+addresses are not available for use::
+
+* 10.0.0.0: Network address.
+* 10.0.0.1: Reserved by AWS for the VPC router.
+* 10.0.0.2: Reserved by AWS for mapping to the Amazon-provided DNS.
+* 10.0.0.3: Reserved by AWS for future use.
+* 10.0.0.255: Network broadcast address. We do not support broadcast in a VPC, therefore we reserve this address. 
 
 
 ## What you can do with this
