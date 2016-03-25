@@ -183,7 +183,7 @@ Subnet caveat
 
 AWS reserves both the first four IP addresses and the last IP address in
 each subnet's CIDR block. For example, in the ``10.0.0.0/24`` subnet, these IP
-addresses are not available for use::
+addresses are not available for use:
 
 * 10.0.0.0: Network address.
 * 10.0.0.1: Reserved by AWS for the VPC router.
