@@ -38,7 +38,7 @@ from myyaml import myyaml
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
