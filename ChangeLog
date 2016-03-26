@@ -1,0 +1,99 @@
+CHANGES
+=======
+
+* Drop ho script from top-level directory
+* .gitignore: add virtualenv directory
+* handson: start wholesale refactor
+
+0.0.2
+-----
+
+* list-public-ips.py: trap SpinupError
+* susecon2015 LICENSE is (c) 2015
+* LICENSE: 2015 -> 2016
+* Move SUSEcon 2015 scripting to susecon2015 directory
+* README.rst: minor syntax tweak
+* README.rst: drop obsolete verbiage
+* README.rst: write VPC chapter
+* README.rst: document early steps
+
+0.0.1
+-----
+
+* stop.py: add script to stop a delegate's instances
+* start.py: add script to start a delegate's instances
+* list-public-ips.py: run on delegates 1-40
+* README.md: discuss a possible race condition
+* README.md: minor grammar/style massage
+* README.md: explain how to ping the minions
+* README.md: cover salt key acceptance and Salt State
+* Add user-data for windows client VM
+* README.md: stub in deployment instructions
+* README.md: clarification
+* README.md: separate section for deploying Ceph cluster on VMs
+* README.md: explain how to get public IP address of Salt Master
+* README.md: flesh it out more
+* README.md: tweaking continues
+* README.md: more formatting tweaks
+* README.md: fix formatting
+* README.md: improve formatting and provide examples
+* README.md: major rewrite
+* list-public-ips.py: script to list public IPs of all delegates
+* user-data-nodes-frozen: freeze state of nodes
+* admin_nodes.py: new script displays list of admin node public IPs
+* Add node_no grain
+* aws.yaml: fix windows client; use unified user-data
+* init_lib.py: enable @@ROLE@@
+* user-data: add @@ROLE@@, consolidate into one file
+* aws.py: change Name tag, add Role tag
+* wipeout.py: fix init_lib.init_subnet() function call
+* init_lib.py: create subnet if it doesn't exist
+* aws.yaml: add nametag attribute; replace subnet name with delegate
+* aws.py: create subnets if they do not exist; adjust tags
+* aws.{py,yaml}: add osd-only and windows nodes
+* user-data scripts: align, fix bug, add osd-only
+* wipeout.py: add more documentation
+* runner.py -> runner_lib.py
+* wipeout.py: make Salt Master delete delegate's keys
+* user-data-master: add some quick shell scriptlets
+* init_lib.py: fix endless loop in wait_for_detachment()
+* runner.py: module for running binaries via the os
+* wipeout.py: finish basic script
+* init_lib.py: implement wait_for_detachment() function
+* aws.yaml: add subnet for Delegate 3
+* aws.yaml: add subnet for delegate 2
+* aws.py: tag volumes we create
+* wipeout.py: start writing wipeout script
+* init_lib.py: fix terrible lurking bugs in init_subnet()
+* aws.py: Add monitor tag to monitors
+* aws.py: fix make_reservation() calls
+* Specify private_ip_address when reserving instances
+* user-data: set up ntpd on admin and mon nodes
+* user-data: change media2 to updates; tweak emails
+* user-data: wait for zypper services to settle
+* init_lib.py: fix make_reservation() breakage
+* aws.py: fix function call
+* Tweak user-data scripts and handling thereof
+* aws.py: check for existing Salt Master instances..
+* init_lib.py: implement count_instances_in_subnet()
+* Fix bugs introduced by last refactor
+* aws.py: fix and cleanup process_user_data calls
+* init_lib.py: implement get_master_instance() function
+* aws.yaml: add SLES_KEY environment variables to admin and mon
+* aws.py: add pseudo-code comments and instructions for printing them
+* aws.py: Process user-data for mons, too
+* Slaving over AWS
+* init_lib.py: cleanup
+* Template SLES12 key
+* aws.py: create mon nodes
+* Work on admin node creation
+* Refactor everything
+* user-data-admin-nodes: user-data script for admin nodes
+* LICENSE: Copyright belongs to SUSE LLC
+* README.md: improve instructions
+* user-data-master: cleanup
+* Develop user-data-master script
+* README.md: use backticks for inline code
+* README.md: use a numbered list
+* Initial commit
+* Initial commit
