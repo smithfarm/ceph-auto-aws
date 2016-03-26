@@ -30,9 +30,8 @@
 #
 
 import argparse
-import boto
+from aws import aws
 import logging
-import sys
 
 log = logging.getLogger(__name__)
 
@@ -51,9 +50,6 @@ class TestCredentials(object):
         return parser
 
     def run(self):
-        try:
-            boto.connect_ec2()
-        except boto.exception.NoAuthHandlerFound:
-            sys.exit(1)
+        aws.conn()
         print "Successfully connected to AWS EC2!"
         return True
