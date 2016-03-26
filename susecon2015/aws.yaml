@@ -3,48 +3,43 @@ region: eu-west-1
 # VPC - must already exist in the region
 vpc:
   cidr-block: 10.0.0.0/16
-  name: susecon
+  name: handson
 
 # keyname - must already exist
 keyname: ncutler
 
 # nametag: value of Name tag that all objects will get
-nametag: susecon-ho20045
+nametag: handson
 
 # subnets - if these do not exist, they will be created
+# delegate 0 is reserved for the Salt Master
 subnets:
 - cidr-block: 10.0.0.0/24
   delegate: 0
 - cidr-block: 10.0.1.0/24
   delegate: 1
-- cidr-block: 10.0.2.0/24
-  delegate: 2
-- cidr-block: 10.0.3.0/24
-  delegate: 3
-- cidr-block: 10.0.4.0/24
-  delegate: 4
-- cidr-block: 10.0.5.0/24
-  delegate: 5
-- cidr-block: 10.0.6.0/24
-  delegate: 6
-- cidr-block: 10.0.7.0/24
-  delegate: 7
-- cidr-block: 10.0.8.0/24
-  delegate: 8
-- cidr-block: 10.0.9.0/24
-  delegate: 9
-- cidr-block: 10.0.10.0/24
-  delegate: 10 
-- cidr-block: 10.0.11.0/24
-  delegate: 11
-- cidr-block: 10.0.12.0/24
-  delegate: 12
-- cidr-block: 10.0.13.0/24
-  delegate: 13
-- cidr-block: 10.0.14.0/24
-  delegate: 14
-- cidr-block: 10.0.15.0/24
-  delegate: 15
+#- cidr-block: 10.0.2.0/24
+#  delegate: 2
+#- cidr-block: 10.0.3.0/24
+#  delegate: 3
+#- cidr-block: 10.0.4.0/24
+#  delegate: 4
+#- cidr-block: 10.0.5.0/24
+#  delegate: 5
+#- cidr-block: 10.0.6.0/24
+#  delegate: 6
+#- cidr-block: 10.0.7.0/24
+#  delegate: 7
+#- cidr-block: 10.0.8.0/24
+#  delegate: 8
+#- cidr-block: 10.0.9.0/24
+#  delegate: 9
+#- cidr-block: 10.0.10.0/24
+#  delegate: 10 
+#- cidr-block: 10.0.11.0/24
+#  delegate: 11
+#- cidr-block: 10.0.12.0/24
+#  delegate: 12
 
 # Salt Master node - must be the only instance in 10.0.0.0/24
 master:
@@ -60,7 +55,7 @@ master:
 # List of natural numbers - subnets to install clusters into
 # The number indicates which /24 to use
 install_subnets:
-- 2
+- 1
 
 # Template for admin nodes
 admin:
