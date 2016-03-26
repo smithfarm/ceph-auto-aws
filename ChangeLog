@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* README.rst: describe new tox-based installation workflow
+* README.rst: split code and documentation license
+
+v0.0.8
+------
+
+* Bump version: 0.0.7 → 0.0.8
+* update ChangeLog
 * tests: implement first unit test
 * requirements.txt: add pytest and pytest-capturelog
 * Add tox.ini and start using tox to build
