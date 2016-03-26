@@ -20,7 +20,7 @@ case "$1" in
         exit 1
 esac
 
-python setup.py install
+tox
 git add ChangeLog
 git commit -m "update ChangeLog"
 
