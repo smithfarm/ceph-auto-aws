@@ -89,28 +89,11 @@ Sample ``~/.boto`` file::
 Test AWS connectivity
 ---------------------
 
-If you want to test if your credentials are OK, try this::
+The ``test-credentials`` subcommand tests whether you have your AWS
+credentials in order::
 
-    $ python
-    Python 2.7.8 (default, Sep 30 2014, 15:34:38) [GCC] on linux2
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>> import boto
-    >>> boto.set_stream_logger('boto')
-    >>> ec2 = boto.connect_ec2()
-    2016-03-25 21:50:58,859 boto [DEBUG]:Using access key found in config file.
-    2016-03-25 21:50:58,860 boto [DEBUG]:Using secret key found in config file.
-
-If your credentials are wrong, the response will be different::
-
-    >>> ec2 = boto.connect_ec2()
-    2016-03-25 21:54:46,894 boto [DEBUG]:Retrieving credentials from metadata server.
-    2016-03-25 21:54:47,895 boto [ERROR]:Caught exception reading instance data
-    ... traceback ...
-    2016-03-25 21:54:47,901 boto [ERROR]:Unable to read instance data, giving up
-    ... traceback ...
-    boto.exception.NoAuthHandlerFound: No handler was ready to
-    authenticate. 1 handlers were checked. ['QuerySignatureV2AuthHandler']
-    Check your credentials
+    $ ./ho test-credentials
+    Successfully connected to AWS EC2!
 
 Clone repo
 ----------

@@ -1,0 +1,98 @@
+region: eu-west-1
+
+# VPC - must already exist in the region
+vpc:
+  cidr-block: 10.0.0.0/16
+  name: handson
+
+# keyname - must already exist
+keyname: ncutler
+
+# nametag: value of Name tag that all objects will get
+nametag: handson
+
+# subnets - if these do not exist, they will be created
+# delegate 0 is reserved for the Salt Master
+subnets:
+- cidr-block: 10.0.0.0/24
+  delegate: 0
+- cidr-block: 10.0.1.0/24
+  delegate: 1
+#- cidr-block: 10.0.2.0/24
+#  delegate: 2
+#- cidr-block: 10.0.3.0/24
+#  delegate: 3
+#- cidr-block: 10.0.4.0/24
+#  delegate: 4
+#- cidr-block: 10.0.5.0/24
+#  delegate: 5
+#- cidr-block: 10.0.6.0/24
+#  delegate: 6
+#- cidr-block: 10.0.7.0/24
+#  delegate: 7
+#- cidr-block: 10.0.8.0/24
+#  delegate: 8
+#- cidr-block: 10.0.9.0/24
+#  delegate: 9
+#- cidr-block: 10.0.10.0/24
+#  delegate: 10 
+#- cidr-block: 10.0.11.0/24
+#  delegate: 11
+#- cidr-block: 10.0.12.0/24
+#  delegate: 12
+
+# Salt Master node - must be the only instance in 10.0.0.0/24
+master:
+  ami-id: ami-e801af9f
+#  ami-id: ami-952a19e2
+  type: t2.micro
+  user-data: user-data-master
+  replace-from-environment:
+  - EMAIL
+  - BETA_PROGRAM_USERNAME
+  - BETA_PROGRAM_PASSWORD
+
+# List of natural numbers - subnets to install clusters into
+# The number indicates which /24 to use
+install_subnets:
+- 1
+
+# Template for admin nodes
+admin:
+#  ami-id: ami-e801af9f
+  ami-id: ami-61211d16
+  type: t2.small
+#  user-data: user-data-snapshot
+  user-data: user-data-nodes-frozen
+  replace-from-environment:
+  - EMAIL
+
+# Template for MON/OSD nodes
+mon:
+#  ami-id: ami-e801af9f
+  ami-id: ami-61211d16
+  type: t2.small
+  volume: 20
+#  user-data: user-data-snapshot
+  user-data: user-data-nodes-frozen
+  replace-from-environment:
+  - EMAIL
+
+# Template for OSD-only nodes
+osd:
+#  ami-id: ami-e801af9f
+  ami-id: ami-61211d16
+  type: t2.small
+  volume: 20
+#  user-data: user-data-snapshot
+  user-data: user-data-nodes-frozen
+  replace-from-environment:
+  - EMAIL
+
+# Template for windows nodes
+windows:
+  ami-id: ami-abe9c9dc
+  type: t2.small
+  user-data: user-data-windows
+  replace-from-environment: []
+
