@@ -3,7 +3,8 @@ Automate deployment of Ceph clusters in AWS
 ===========================================
 
 :Author: Nathan Cutler
-:License: Creative Commons Attribution-ShareAlike (CC BY-SA)
+:Code license: BSD 3 Clause
+:Documentation license: Creative Commons Attribution-ShareAlike (CC BY-SA)
 
 .. contents::
    :depth: 3
