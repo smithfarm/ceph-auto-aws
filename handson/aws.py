@@ -31,7 +31,8 @@
 #
 import boto
 
-_ss = {} # saved state
+_ss = {}  # saved state
+
 
 class AWS(object):
 

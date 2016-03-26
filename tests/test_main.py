@@ -28,18 +28,21 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+import boto
 import logging
-import mock
+from mock import patch
 import unittest
 
 from handson import main
 from handson import testcred
 
 
+def mock_connect_ec2():
+    return 'DummyValue'
+
 class TestHandsOn(unittest.TestCase):
 
     t = testcred.TestCredentials([])
-    mock.create_autospec(t.run, return_value=True)
 
     def test_init(self):
         w = main.HandsOn()
@@ -56,7 +59,8 @@ class TestHandsOn(unittest.TestCase):
             ])
         self.assertEqual(cm.exception.code, 0)
 
-    def test_run(self):
+    @patch('boto.connect_ec2', side_effects=mock_connect_ec2)
+    def test_run_positive(self, mock_connect_ec2):
         m = main.HandsOn()
 
         self.assertTrue(
