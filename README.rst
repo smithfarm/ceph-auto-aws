@@ -36,10 +36,7 @@ We assume that you have access to Amazon Web Services (AWS) Elastic
 Computing Cloud (EC2) and Virtual Private Cloud (VPC). That means you can login
 via a web browser and access the EC2 and VPC dashboards.
 
-This document further assumes you are running a recent (as of March 2016)
-openSUSE or SUSE Linux Enterprise platform.
-
-Nothing in this document is guaranteed to work (see License, above).
+Nothing in this document is guaranteed to work (see the licenses, above).
 
 Early steps
 ===========
@@ -99,13 +96,24 @@ the `virtualenv`_::
 
 .. _`virtualenv`: https://virtualenv.pypa.io/en/latest/
 
+Installation
+------------
+
+This software is designed to be installed in the standalone virtual Python
+environment which was installed in the local directory in the previous step,
+`Bootstrap and virtualenv`_.
+
+Installation includes running the test suite and is triggered by::
+
+    $ tox
+
 Get familiar with ho
 --------------------
 
 All scripting features are implemented as subcommands of a single script:
 ``ho`` (an abbreviation of "hands-on")::
 
-    $ ho
+    $ ho --help
 
 Test AWS connectivity
 ---------------------
