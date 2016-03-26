@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+0.0.3
+-----
+
+* Initial packaging using setuptools
 * Drop ho script from top-level directory
 * .gitignore: add virtualenv directory
 * handson: start wholesale refactor
