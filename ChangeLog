@@ -1,12 +1,35 @@
 CHANGES
 =======
 
+v0.0.12
+-------
+
+* Bump version: 0.0.11 → 0.0.12
+* Implement myyaml singleton and test-yaml subcommand
+* tox.ini: run flake8 on tests/ directory, too
+* aws.py: rename conn() method to ec2()
+
+v0.0.11
+-------
+
+* Bump version: 0.0.10 → 0.0.11
+* release.sh: run tox instead of "python setup.py install"
+* tests: mock the boto.connect_ec2() function
+* aws.py: implement and use AWS connection state singleton
+
+v0.0.10
+-------
+
+* Bump version: 0.0.9 → 0.0.10
+* update ChangeLog
 * Implement and test --version option
 * .bumpversion.cfg: update version number in main.py
 
 v0.0.9
 ------
 
+* Bump version: 0.0.8 → 0.0.9
+* update ChangeLog
 * Improve test coverage
 * setup.cfg: one-time version number fix
 * Move bumpversion configuration to separate file
@@ -16,6 +39,8 @@ v0.0.9
 v0.0.8
 ------
 
+* Bump version: 0.0.7 → 0.0.8
+* update ChangeLog
 * tests: implement first unit test
 * requirements.txt: add pytest and pytest-capturelog
 * Add tox.ini and start using tox to build
@@ -24,17 +49,23 @@ v0.0.8
 v0.0.7
 ------
 
+* Bump version: 0.0.6 → 0.0.7
+* update ChangeLog
 * release.sh: release automation script
 
 v0.0.6
 ------
 
+* Bump version: 0.0.5 → 0.0.6
 * Start using bumpversion to increment version numbers
 
 v0.0.5
 ------
 
+* 0.0.5
+* Bump target version to 0.0.5
 * README.rst: bootstrapping instructions
+* 0.0.4 release
 
 0.0.4
 -----

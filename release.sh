@@ -21,7 +21,4 @@ case "$1" in
 esac
 
 tox
-git add ChangeLog
-git commit -m "update ChangeLog"
-
 bumpversion $BUMP_COMPONENT
