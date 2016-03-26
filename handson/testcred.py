@@ -56,4 +56,4 @@ class TestCredentials(object):
         except boto.exception.NoAuthHandlerFound:
             sys.exit(1)
         print "Successfully connected to AWS EC2!"
-        sys.exit(0)
+        return True

@@ -33,15 +33,39 @@ import mock
 import unittest
 
 from handson import main
+from handson import testcred
 
 
 class TestHandsOn(unittest.TestCase):
 
+    t = testcred.TestCredentials([])
+    mock.create_autospec(t.run, return_value=True)
+
     def test_init(self):
         w = main.HandsOn()
+
         with self.assertRaises(SystemExit) as cm:
             w.parser.parse_args([
                 '-h',
             ])
         self.assertEqual(cm.exception.code, 0)
 
+    def test_run(self):
+        m = main.HandsOn()
+
+        self.assertTrue(
+            m.run([
+                '-v',
+                'test-credentials',
+            ])
+        )
+        l = logging.getLogger('handson')
+        self.assertIs(l.getEffectiveLevel(), logging.DEBUG)
+
+        self.assertTrue(
+            m.run([
+                'test-credentials',
+            ])
+        )
+        l = logging.getLogger('handson')
+        self.assertIs(l.getEffectiveLevel(), logging.INFO)

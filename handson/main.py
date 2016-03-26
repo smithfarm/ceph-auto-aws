@@ -56,8 +56,8 @@ class HandsOn(object):
 
             For instance:
 
-               ho test-connectivity --help
-               usage: ho test-connectivity [-h]
+               ho test-credentials --help
+               usage: ho test-credentials [-h]
                ...
 
             For more information, refer to the README.rst file at
@@ -115,4 +115,6 @@ class HandsOn(object):
             level = logging.INFO
         logging.getLogger('handson').setLevel(level)
 
-        return self.args.func(self.args).run()
+        self.args.func(self.args).run()
+
+        return True
