@@ -1,4 +1,3 @@
-# -*- mode: python; coding: utf-8 -*-
 #
 # Copyright (c) 2016, SUSE LLC All rights reserved.
 #
@@ -50,6 +49,6 @@ class TestCredentials(object):
         return parser
 
     def run(self):
-        aws.conn()
+        aws.ec2()
         print "Successfully connected to AWS EC2!"
         return True

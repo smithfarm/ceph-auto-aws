@@ -7,8 +7,6 @@ CHANGES
 v0.0.9
 ------
 
-* Bump version: 0.0.8 → 0.0.9
-* update ChangeLog
 * Improve test coverage
 * setup.cfg: one-time version number fix
 * Move bumpversion configuration to separate file
@@ -18,8 +16,6 @@ v0.0.9
 v0.0.8
 ------
 
-* Bump version: 0.0.7 → 0.0.8
-* update ChangeLog
 * tests: implement first unit test
 * requirements.txt: add pytest and pytest-capturelog
 * Add tox.ini and start using tox to build
@@ -28,23 +24,17 @@ v0.0.8
 v0.0.7
 ------
 
-* Bump version: 0.0.6 → 0.0.7
-* update ChangeLog
 * release.sh: release automation script
 
 v0.0.6
 ------
 
-* Bump version: 0.0.5 → 0.0.6
 * Start using bumpversion to increment version numbers
 
 v0.0.5
 ------
 
-* 0.0.5
-* Bump target version to 0.0.5
 * README.rst: bootstrapping instructions
-* 0.0.4 release
 
 0.0.4
 -----

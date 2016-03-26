@@ -36,8 +36,9 @@ _ss = {}  # saved state
 
 class AWS(object):
 
-    def conn(self):
+    def ec2(self):
         if 'ec2' not in _ss:
             _ss['ec2'] = boto.connect_ec2()
+        return _ss['ec2']
 
 aws = AWS()
