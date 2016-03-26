@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# admin_nodes.py
+# list_public_ips.py
 #
 # Print public IP addresses of admin nodes of all Delegates.
 #
@@ -29,37 +29,13 @@ def fetch_public_ip( ec2_conn, subnet_id, tag_value ):
         public_ip = "(none)"
     return public_ip
 
-#PC * This script (admin_nodes.py) makes the following assumptions:
-#PC     * delegate number provided in argument is really the one you want to
-#PC       wipe out
-#PC     * each delegate is segregated into his or her own subnet in the YAML
-#PC     * these delegate subnets defined in the YAML take the form
-#PC       10.0.[d].0/24, where [d] is the delegate number, and these subnets
-#PC       really exist
-#PC     * aws.yaml present in current directory or --yaml option provided;
-#PC     * Salt Master exists and is alone in subnet 10.0.0.0/24
-#PC     * SSH private key enabling SSH to Salt Master as user ec2-user is
-#PC       present in $HOME/.ssh/ec2
-#PC * If the above assumptions are fulfilled, the script should work.
-#PC * The following is a high-level description of what the script does.
-#PC * Parse command-line arguments.
 parser = argparse.ArgumentParser( description='Get public IP addresses of Delegate admin nodes.' )
 parser.add_argument( 
     '--yaml', 
     default='./aws.yaml', 
     help="yaml file to read (defaults to ./aws.yaml)" 
 )
-#parser.add_argument( 
-#    'delegate', 
-#    help="Delegate number to wipe out",
-#    nargs='?' 
-#)
 args = parser.parse_args()
-
-## Verify that delegate number was given on command line and that it is an integer.
-#if args.delegate is None:
-#    raise SpinupError( "Must provide delegate number to wipe out" )
-#delegate = int(args.delegate)
 
 # Initialize dictionary for storage of globals (values that do not change,
 # but are discarded when the script exits).
@@ -80,20 +56,33 @@ n = yaml_lib.yaml_attr( y, 'vpc', None )
 n['cidr-block'] = yaml_lib.yaml_attr( n, 'cidr-block', None )
 n['name'] = yaml_lib.yaml_attr( n, 'name', 'susecon' )
 print "Looking for VPC {}".format(n['cidr-block'])
-g['vpc_obj'] = init_lib.init_vpc( g['vpc_conn'], n['cidr-block'] )
+try:
+    g['vpc_obj'] = init_lib.init_vpc( g['vpc_conn'], n['cidr-block'] )
+except SpinupError as e:
+    print "{}".format( e )
+    sys.exit()
 
 #PC * Get Salt Master subnet (first one in "subnets" list).
-g['master_subnet'] = init_lib.init_subnet( 
-    g['vpc_conn'],
-    g['vpc_obj'].id,
-    y['subnets'][0]['cidr-block']
-)
+#PC * If there are no subnets, print a nice message and exit.
+try:
+    g['master_subnet'] = init_lib.init_subnet( 
+        g['vpc_conn'],
+        g['vpc_obj'].id,
+        y['subnets'][0]['cidr-block']
+    )
+except SpinupError as e:
+    print "{}".format( e )
+    sys.exit()
 
 #PC * Get Salt Master instance (i.e., the sole instance in the Salt Master subnet).
-g['master_instance'] = init_lib.get_master_instance( 
-    g['ec2_conn'], 
-    g['master_subnet'].id 
-)
+try:
+    g['master_instance'] = init_lib.get_master_instance( 
+        g['ec2_conn'], 
+        g['master_subnet'].id 
+    )
+except SpinupError as e:
+    print "{}".format( e )
+    sys.exit()
 print "Salt Master is {}".format( g['master_instance'].ip_address )
 
 #PC * Loop over all possible subnets
