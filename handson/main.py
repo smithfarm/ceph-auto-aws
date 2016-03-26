@@ -36,7 +36,7 @@ from testcred import TestCredentials
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
