@@ -50,6 +50,12 @@ class TestHandsOn(unittest.TestCase):
             ])
         self.assertEqual(cm.exception.code, 0)
 
+        with self.assertRaises(SystemExit) as cm:
+            w.parser.parse_args([
+                '--version',
+            ])
+        self.assertEqual(cm.exception.code, 0)
+
     def test_run(self):
         m = main.HandsOn()
 

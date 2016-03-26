@@ -36,6 +36,8 @@ from testcred import TestCredentials
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 
+__version__ = "0.0.9"
+
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -68,6 +70,12 @@ class HandsOn(object):
             '-v', '--verbose',
             action='store_true', default=None,
             help='be more verbose',
+        )
+
+        self.parser.add_argument(
+            '--version',
+            action='version', version=__version__,
+            help='print version number',
         )
 
         subparsers = self.parser.add_subparsers(
