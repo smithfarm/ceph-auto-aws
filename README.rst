@@ -22,6 +22,12 @@ delegate gets their own Ceph cluster.
 Scripting is provided for automating common tasks such as creating and
 wiping out a cluster.
 
+The scripting is written in Python and relies on `boto`_, "An integrated
+interface to current and future infrastructural services offered by Amazon Web
+Services."
+
+.. _`boto`: http://boto.cloudhackers.com/en/latest/index.html
+
 Prerequisites and assumptions
 =============================
 
@@ -49,21 +55,6 @@ We placed our user in the "ec2_full_access" group.
 
 .. _`Creating an IAM User in Your AWS Account`: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html`
 
-Install boto
-------------
-
-The scripts use `boto`_, "An integrated interface to current and future
-infrastructural services offered by Amazon Web Services."
-
-Fortunately, `boto`_ is packaged for openSUSE. Install the ``python-boto``
-package::
-
-    zypper install python-boto
-
-We are using version 2.34.
-
-.. _`boto`: http://boto.cloudhackers.com/en/latest/index.html
-
 Obtain access key
 -----------------
 
@@ -86,24 +77,43 @@ Sample ``~/.boto`` file::
     aws_access_key_id = [gobbledygook]
     aws_secret_access_key = [even_longer_gobbledygook]
 
+Clone repo
+----------
+
+Clone this repo to your local machine::
+
+    $ git clone https://github.com/smithfarm/ceph-auto-aws
+
+All of the following instructions assume you are *in* the directory
+containing the local clone.
+
+Bootstrap and virtualenv
+------------------------
+
+In order to start using ``handson``, run the ``bootstrap`` script and activate
+the `virtualenv`_::
+
+    $ ./bootstrap
+    $ source virtualenv/bin/activate
+
+.. _`virtualenv`: https://virtualenv.pypa.io/en/latest/
+
+Get familiar with ho
+--------------------
+
+All scripting features are implemented as subcommands of a single script:
+``ho`` (an abbreviation of "hands-on")::
+
+    $ ho
+
 Test AWS connectivity
 ---------------------
 
 The ``test-credentials`` subcommand tests whether you have your AWS
 credentials in order::
 
-    $ ./ho test-credentials
+    $ ho test-credentials
     Successfully connected to AWS EC2!
-
-Clone repo
-----------
-
-Clone this repo to your local machine::
-
-    git clone https://github.com/smithfarm/ceph-auto-aws
-
-All of the following instructions assume you are *in* the directory
-containing the local clone.
 
 Virtual Private Cloud
 =====================
