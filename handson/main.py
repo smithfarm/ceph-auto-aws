@@ -33,6 +33,8 @@ import argparse
 import logging
 import textwrap
 from testcred import TestCredentials
+from testyaml import TestYaml
+from myyaml import myyaml
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 
@@ -42,6 +44,15 @@ __version__ = "0.0.11"
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
+
+
+class YamlFileAction(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        print 'option_string: {0!r}'.format(option_string)
+        if option_string == '-y' or option_string == '--yamlfile':
+            print 'value: {0!r}'.format(values)
+            myyaml.yaml_file_name(values)
 
 
 class HandsOn(object):
@@ -78,6 +89,13 @@ class HandsOn(object):
             help='print version number',
         )
 
+        self.parser.add_argument(
+            '-y', '--yamlfile',
+            default='./aws.yaml',
+            action=YamlFileAction,
+            help='specify yaml file to read',
+        )
+
         subparsers = self.parser.add_subparsers(
             title='subcommands',
             description='valid subcommands',
@@ -112,6 +130,33 @@ class HandsOn(object):
             add_help=False,
         ).set_defaults(
             func=TestCredentials,
+        )
+
+        subparsers.add_parser(
+            'test-yaml',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Test YaML file.
+
+            Use this subcommand to check the yaml file.
+            """),
+            epilog=textwrap.dedent("""
+            Examples:
+
+            $ ho test-yaml-file
+            $ echo $?
+            0
+
+            $ ho --yamlfile bogus test-yaml-file
+            $ echo $?
+            1
+
+            """),
+            help='Test YaML file',
+            parents=[TestYaml.get_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=TestYaml,
         )
 
     def run(self, argv):

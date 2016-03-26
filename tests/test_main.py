@@ -28,21 +28,19 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import boto
 import logging
 from mock import patch
 import unittest
 
 from handson import main
-from handson import testcred
+from handson import myyaml
 
 
 def mock_connect_ec2():
     return 'DummyValue'
 
-class TestHandsOn(unittest.TestCase):
 
-    t = testcred.TestCredentials([])
+class TestHandsOn(unittest.TestCase):
 
     def test_init(self):
         w = main.HandsOn()
@@ -60,7 +58,7 @@ class TestHandsOn(unittest.TestCase):
         self.assertEqual(cm.exception.code, 0)
 
     @patch('boto.connect_ec2', side_effects=mock_connect_ec2)
-    def test_run_positive(self, mock_connect_ec2):
+    def test_test_credentials(self, mock_connect_ec2):
         m = main.HandsOn()
 
         self.assertTrue(
@@ -79,3 +77,27 @@ class TestHandsOn(unittest.TestCase):
         )
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.INFO)
+        l.info("Henry VIII")
+
+    def test_test_yaml(self):
+        m = main.HandsOn()
+
+        with self.assertRaises(myyaml.YamlError):
+            myyaml.myyaml.tree()
+
+        self.assertTrue(
+            m.run([
+                'test-yaml',
+            ])
+        )
+        self.assertTrue('region' in myyaml.myyaml.tree())
+        self.assertTrue('vpc' in myyaml.myyaml.tree())
+        self.assertTrue('keyname' in myyaml.myyaml.tree())
+
+        del(myyaml._ss['file_name'])
+        with self.assertRaises(IOError):
+            m.run([
+                '-y',
+                'BogusFileThatDoesNotExist',
+                'test-yaml',
+            ])
