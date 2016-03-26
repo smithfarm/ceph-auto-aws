@@ -1,6 +1,16 @@
 CHANGES
 =======
 
+* tests: implement first unit test
+* requirements.txt: add pytest and pytest-capturelog
+* Add tox.ini and start using tox to build
+* requirements.txt: add coverage and mock
+
+v0.0.7
+------
+
+* Bump version: 0.0.6 → 0.0.7
+* update ChangeLog
 * release.sh: release automation script
 
 v0.0.6
