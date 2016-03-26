@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* Implement and test --version option
+* .bumpversion.cfg: update version number in main.py
+
+v0.0.9
+------
+
+* Bump version: 0.0.8 → 0.0.9
+* update ChangeLog
 * Improve test coverage
 * setup.cfg: one-time version number fix
 * Move bumpversion configuration to separate file
