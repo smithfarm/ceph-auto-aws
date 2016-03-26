@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* Improve test coverage
+* setup.cfg: one-time version number fix
+* Move bumpversion configuration to separate file
 * README.rst: describe new tox-based installation workflow
 * README.rst: split code and documentation license
 
