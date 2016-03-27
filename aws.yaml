@@ -46,9 +46,6 @@ subnets:
     delegate: 1
 
 vpc:
-  cidr_block: 10.0.0.0/16
-  id: vpc-48eff22d
-  name: handson
 
 windows:
   ami-id: ami-abe9c9dc

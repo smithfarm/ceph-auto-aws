@@ -58,3 +58,6 @@ target/
 
 # Virtualenv
 virtualenv/
+
+# handson
+aws.yaml
