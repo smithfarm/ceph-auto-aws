@@ -29,7 +29,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import boto
+from boto import connect_ec2, ec2, vpc
 from handson.myyaml import myyaml
 
 _ss = {}  # saved state
@@ -38,18 +38,35 @@ _ss = {}  # saved state
 class AWS(object):
 
     def ping_ec2(self):
-        boto.connect_ec2()
+        connect_ec2()
 
     def ec2(self):
         tree = myyaml.tree()
         if 'ec2' not in _ss:
-            _ss['ec2'] = boto.ec2.connect_to_region(tree['region'])
+            _ss['ec2'] = ec2.connect_to_region(tree['region'])
         return _ss['ec2']
 
     def vpc(self):
         tree = myyaml.tree()
         if 'vpc' not in _ss:
-            _ss['vpc'] = boto.vpn.connect_to_region(tree['region'])
+            _ss['vpc'] = vpc.connect_to_region(tree['region'])
         return _ss['vpc']
+
+    def vpc_obj(self):
+        if 'vpc_obj' in _ss:
+            return _ss['vpc_obj']
+        tree = myyaml.tree()
+        vpc = self.vpc()
+        if 'id' in tree['vpc']:
+            vpc_id = tree['vpc']['id']
+            vpc_list = vpc.get_all_vpcs(vpc_ids=vpc_id)
+            _ss['vpc_obj'] = vpc_list[0]
+            return _ss['vpc_obj']
+        # create a new 10.0.0.0/16
+        _ss['vpc_obj'] = vpc.create_vpc('10.0.0.0/16')
+        tree['vpc']['id'] = _ss['vpc_obj'].id
+        tree['vpc']['cidr_block'] = _ss['vpc_obj'].cidr_block
+        myyaml.write()
+        return _ss['vpc_obj']
 
 aws = AWS()
