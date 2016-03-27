@@ -69,7 +69,12 @@ def validate_subnet(delegate, tree=None, vpc=None, vpc_obj=None):
     #
     # check id exists and cidr_block matches
     log.debug("Getting subnet id {}".format(sy['id']))
-    s_obj = vpc.get_all_subnets(subnet_ids=[sy['id']])[0]
+    s_list = vpc.get_all_subnets(subnet_ids=[sy['id']])
+    if len(s_list) == 0:  # pragma: no cover
+        raise HandsOnError(
+            "Subnet ID {} does not exist".format(sy['id'])
+        )
+    s_obj = s_list[0]
     log.info(
         "Found subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
     )
@@ -93,6 +98,50 @@ def validate_subnet(delegate, tree=None, vpc=None, vpc_obj=None):
                 delegate, sy['cidr_block'], s_obj.cidr_block
             ))
     return s_obj
+
+
+def validate_vpc(tree=None, vpc=None):
+    """
+        Validates VPC (creates if necessary), populates tree and returns VPC
+        object
+    """
+    if (
+            'vpc' not in tree or
+            tree['vpc'] is None or
+            'id' not in tree['vpc'] or
+            tree['vpc']['id'] is None
+    ):  # pragma: no cover
+        #
+        # create VPC
+        log.debug("VPC ID not specified in yaml: creating VPC")
+        vpc_obj = vpc.create_vpc('10.0.0.0/16')
+        tree['vpc'] = {}
+        tree['vpc']['id'] = vpc_obj.id
+        tree['vpc']['cidr_block'] = vpc_obj.cidr_block
+        log.info("New VPC ID {} created with CIDR block {}".format(
+            vpc_obj.id, vpc_obj.cidr_block
+        ))
+        return vpc_obj
+    #
+    # existing VPC
+    log.debug("VPD ID specified in yaml: fetching it")
+    vpc_id = tree['vpc']['id']
+    log.info("VPC ID according to yaml is {}".format(vpc_id))
+    vpc_list = vpc.get_all_vpcs(vpc_ids=vpc_id)
+    if len(vpc_list) == 0:  # pragma: no cover
+        raise HandsOnError(
+            "VPC ID {} does not exist".format(vpc_id)
+        )
+    vpc_obj = vpc_list[0]
+    cidr_block = vpc_obj.cidr_block
+    if cidr_block != '10.0.0.0/16':  # pragma: no cover
+        m = ("VPC ID {} exists, but has wrong CIDR block {} "
+             "(should be 10.0.0.0/16)")
+        raise HandsOnError(m.format(vpc_id, cidr_block))
+    log.info("VPC ID is {}, CIDR block is {}".format(
+        tree['vpc']['id'], tree['vpc']['cidr_block'],
+    ))
+    return vpc_obj
 
 
 class AWS(myyaml.MyYaml):
@@ -152,53 +201,15 @@ class AWS(myyaml.MyYaml):
         """
         #
         # cached VPC object
-        if 'vpc_obj' in self._aws:
+        if 'vpc_obj' in self._aws and self._aws['vpc_obj'] is not None:
             return self._aws['vpc_obj']
         #
         # non-cached
         tree = self.tree()
-        vpc = self.vpc()
-        if (
-                'vpc' not in tree or
-                tree['vpc'] is None or
-                'id' not in tree['vpc'] or
-                tree['vpc']['id'] is None
-        ):  # pragma: no cover
-            log.debug("VPC ID not specified in yaml: creating VPC")
-            self._aws['vpc_obj'] = vpc.create_vpc('10.0.0.0/16')
-            tree['vpc'] = {}
-            tree['vpc']['id'] = self._aws['vpc_obj'].id
-            tree['vpc']['cidr_block'] = self._aws['vpc_obj'].cidr_block
-            self.write()
-            log.info("VPC created".format(
-                tree['vpc']['id'], tree['vpc']['cidr_block']
-            ))
-        else:
-            log.debug("VPD ID specified in yaml: fetching it")
-            vpc_id = tree['vpc']['id']
-            log.info("VPC ID according to yaml is {}".format(vpc_id))
-            vpc_list = vpc.get_all_vpcs(vpc_ids=vpc_id)
-            if len(vpc_list) == 0:  # pragma: no cover
-                raise HandsOnError(
-                    "VPC ID {} does not exist".format(vpc_id)
-                )
-            if len(vpc_list) > 1:  # pragma: no cover
-                raise HandsOnError(
-                    "Multiple VPCs with VPC ID {} (???)"
-                    .format(vpc_id)
-                )
-            self._aws['vpc_obj'] = vpc_list[0]
-            cidr_block = self._aws['vpc_obj'].cidr_block
-            if cidr_block != '10.0.0.0/16':  # pragma: no cover
-                m = ("VPC ID {} exists, but has wrong CIDR block {} "
-                     "(should be 10.0.0.0/16)")
-                raise HandsOnError(m.format(vpc_id, cidr_block))
-        log.info("VPC ID is {}, CIDR block is {}".format(
-            tree['vpc']['id'],
-            tree['vpc']['cidr_block'],
-        ))
-        apply_tag(self._aws['vpc_obj'], tag='Name', val=tree['nametag'])
-        return self._aws['vpc_obj']
+        vpc_obj = validate_vpc(tree=self.tree(), vpc=self.vpc())
+        apply_tag(vpc_obj, tag='Name', val=tree['nametag'])
+        self._aws['vpc_obj'] = vpc_obj
+        return vpc_obj
 
     def subnet_objs(self):
         """
@@ -207,7 +218,7 @@ class AWS(myyaml.MyYaml):
         """
         #
         # cached subnet objects
-        if 'subnet_objs' in self._aws:
+        if 'subnet_objs' in self._aws and self._aws['subnet_objs'] is not None:
             return self._aws['subnet_objs']
         #
         # non-cached
