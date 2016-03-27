@@ -93,6 +93,24 @@ class AWS(myyaml.MyYaml):
             raise HandsOnError("Failed to connect to {}".format(region))
         return self._aws['vpc']
 
+    def apply_tag(self, obj, tag='Name', val=None):
+        """
+            tag an AWS object
+        """
+        for x in [1, 1, 2, 4, 8]:
+            error = False
+            try:
+                obj.add_tag(tag, val)
+            except:  # pragma: no cover
+                error = True
+                e = sys.exc_info()[0]
+                log.info("Huh, trying again ({})".format(e))
+                time.sleep(x)
+            if not error:
+                log.info("Object {} successfully tagged.".format(obj))
+                break
+        return None
+
     def vpc_obj(self):
         """
             fetch VPC object, create if necessary
@@ -145,21 +163,3 @@ class AWS(myyaml.MyYaml):
         ))
         self.apply_tag(self._aws['vpc_obj'], tag='Name', val=tree['nametag'])
         return self._aws['vpc_obj']
-
-    def apply_tag(self, obj, tag='Name', val=None):
-        """
-            tag an AWS object
-        """
-        for x in [1, 1, 2, 4, 8]:
-            error = False
-            try:
-                obj.add_tag(tag, val)
-            except:  # pragma: no cover
-                error = True
-                e = sys.exc_info()[0]
-                log.info("Huh, trying again ({})".format(e))
-                time.sleep(x)
-            if not error:
-                log.info("Object {} successfully tagged.".format(obj))
-                break
-        return None

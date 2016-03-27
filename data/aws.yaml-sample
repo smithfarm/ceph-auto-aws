@@ -5,6 +5,8 @@ admin:
   type: t2.small
   user-data: user-data-nodes-frozen
 
+delegates: 1
+
 install_subnets:
   - 1
 
@@ -40,10 +42,6 @@ osd:
 region: eu-west-1
 
 subnets:
-  - cidr-block: 10.0.0.0/24
-    delegate: 0
-  - cidr-block: 10.0.1.0/24
-    delegate: 1
 
 vpc:
 

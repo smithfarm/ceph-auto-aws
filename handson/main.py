@@ -61,8 +61,8 @@ class HandsOn(object):
 
             For instance:
 
-               ho test-credentials --help
-               usage: ho test-credentials [-h]
+               ho probe-aws --help
+               usage: ho probe-aws [-h]
                ...
 
             For more information, refer to the README.rst file at
