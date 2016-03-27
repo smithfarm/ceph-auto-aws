@@ -118,7 +118,7 @@ class AWS(myyaml.MyYaml):
             self.write()
             log.info("VPC created".format(
                 tree['vpc']['id'], tree['vpc']['cidr_block']
-            )
+            ))
         else:
             log.debug("VPD ID specified in yaml: fetching it")
             vpc_id = tree['vpc']['id']

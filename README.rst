@@ -130,10 +130,29 @@ credentials in order::
 Configuration
 =============
 
-Interaction with AWS is controlled by configuration files . . .
+aws.yaml
+--------
+
+Interaction with AWS is controlled by a configuration file called ``aws.yaml``.
+By default, this file is searched for in the current directory.
 
 The git repo contains a valid configuration which is sufficient to run "probe"
-subcommands.
+subcommands. This is a good starting point, so copy it into the current
+directory::
+
+    (virtualenv)$ cp data/aws.yaml-sample aws.yaml
+    (virtualenv)$ file aws.yaml
+    aws.yaml: ASCII text
+
+Validation
+----------
+
+At any time, you can run ``ho probe-yaml`` to check your configuration file::
+
+    (virtualenv)$ ho probe-yaml
+    2016-03-27 22:39:03,898 INFO Loaded yaml from ./aws.yaml
+
+If there is a problem, an exception will be thrown.
 
 Virtual Private Cloud
 =====================
