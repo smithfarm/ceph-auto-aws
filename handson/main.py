@@ -40,7 +40,7 @@ from handson.probe import ProbeYaml
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 
-__version__ = "0.0.13"
+__version__ = "0.0.14"
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
