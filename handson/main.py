@@ -32,9 +32,11 @@
 import argparse
 import logging
 import textwrap
-from testcred import TestCredentials
-from testyaml import TestYaml
+
 from handson.myyaml import myyaml
+from handson.probe import ProbeAWS
+from handson.probe import ProbeVPC
+from handson.probe import ProbeYaml
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 
@@ -103,10 +105,10 @@ class HandsOn(object):
         )
 
         subparsers.add_parser(
-            'test-credentials',
+            'probe-aws',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
-            Test AWS EC2 credentials.
+            Probe AWS (test ability to connect to EC2).
 
             Once you have set up your AWS credentials in ~/.boto,
             run this subcommand to check connectivity.
@@ -114,49 +116,74 @@ class HandsOn(object):
             epilog=textwrap.dedent("""
             Examples:
 
-            $ ho test-credentials
+            $ ho probe-aws
             $ echo $?
             0
 
-            $ ho test-credentials
+            $ ho probe-aws
             2016-03-26 01:09:08 ERROR Caught exception reading instance data
             ...
             $ echo $?
             1
 
             """),
-            help='Test AWS EC2 credentials',
-            parents=[TestCredentials.get_parser()],
+            help='Test ability to connect to AWS EC2',
+            parents=[ProbeAWS.get_parser()],
             add_help=False,
         ).set_defaults(
-            func=TestCredentials,
+            func=ProbeAWS,
         )
 
         subparsers.add_parser(
-            'test-yaml',
+            'probe-vpc',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
-            Test YaML file.
+            Probe VPC and create one if it is missing.
 
-            Use this subcommand to check the yaml file.
+            This subcommand checks the VPC status in AWS, compares it with the
+            YaML. If VPC is missing in AWS, it is created and the YaML is
+            updated.
+
+            """), epilog=textwrap.dedent(""" Examples:
+
+            $ ho probe-vpc
+            $ echo $?
+            0
+
+            """),
+            help='Probe VPC and create if missing',
+            parents=[ProbeVPC.get_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeVPC,
+        )
+
+        subparsers.add_parser(
+            'probe-yaml',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Validate YaML file.
+
+            Use this subcommand to validate the yaml file.
             """),
             epilog=textwrap.dedent("""
             Examples:
 
-            $ ho test-yaml-file
+            $ ho probe-yaml
             $ echo $?
             0
 
-            $ ho --yamlfile bogus test-yaml-file
+            $ ho --yamlfile bogus probe-yaml
+            ... tracebacks ...
             $ echo $?
             1
 
             """),
-            help='Test YaML file',
-            parents=[TestYaml.get_parser()],
+            help='Probe YaML file',
+            parents=[ProbeYaml.get_parser()],
             add_help=False,
         ).set_defaults(
-            func=TestYaml,
+            func=ProbeYaml,
         )
 
     def run(self, argv):

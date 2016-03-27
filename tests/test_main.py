@@ -64,7 +64,7 @@ class TestHandsOn(unittest.TestCase):
         self.assertTrue(
             m.run([
                 '-v',
-                'test-credentials',
+                'probe-aws',
             ])
         )
         l = logging.getLogger('handson')
@@ -72,14 +72,14 @@ class TestHandsOn(unittest.TestCase):
 
         self.assertTrue(
             m.run([
-                'test-credentials',
+                'probe-aws',
             ])
         )
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.INFO)
         l.info("Henry VIII")
 
-    def test_test_yaml(self):
+    def test_probe_yaml(self):
         m = main.HandsOn()
 
         # yaml file is loaded first time tree() is called
@@ -87,12 +87,13 @@ class TestHandsOn(unittest.TestCase):
 
         self.assertTrue(
             m.run([
-                'test-yaml',
+                'probe-yaml',
             ])
         )
         self.assertTrue('region' in myyaml.myyaml.tree())
         self.assertTrue('vpc' in myyaml.myyaml.tree())
         self.assertTrue('keyname' in myyaml.myyaml.tree())
+        self.assertTrue('nametag' in myyaml.myyaml.tree())
 
         # reset myyaml state and try another command
         myyaml._ss = {}
@@ -100,5 +101,5 @@ class TestHandsOn(unittest.TestCase):
             m.run([
                 '-y',
                 'BogusFileThatDoesNotExist',
-                'test-yaml',
+                'probe-yaml',
             ])
