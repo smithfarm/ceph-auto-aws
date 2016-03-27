@@ -41,8 +41,15 @@ class AWS(object):
         boto.connect_ec2()
 
     def ec2(self):
+        tree = myyaml.tree()
         if 'ec2' not in _ss:
-            _ss['ec2'] = boto.connect_ec2()
+            _ss['ec2'] = boto.ec2.connect_to_region(tree['region'])
         return _ss['ec2']
+
+    def vpc(self):
+        tree = myyaml.tree()
+        if 'vpc' not in _ss:
+            _ss['vpc'] = boto.vpn.connect_to_region(tree['region'])
+        return _ss['vpc']
 
 aws = AWS()
