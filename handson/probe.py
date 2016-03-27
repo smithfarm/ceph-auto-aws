@@ -57,6 +57,25 @@ class ProbeAWS(aws.AWS):
         return True
 
 
+class ProbeSubnets(aws.AWS):
+
+    def __init__(self, args):
+        super(ProbeSubnets, self).__init__(args.yamlfile)
+        self.tree()
+        self.args = args
+
+    @staticmethod
+    def get_parser():
+        parser = argparse.ArgumentParser(
+            parents=[],
+            conflict_handler='resolve',
+        )
+        return parser
+
+    def run(self):
+        self.subnet_objs()
+
+
 class ProbeVPC(aws.AWS):
 
     def __init__(self, args):

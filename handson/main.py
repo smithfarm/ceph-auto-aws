@@ -34,6 +34,7 @@ import logging
 import textwrap
 
 from handson.probe import ProbeAWS
+from handson.probe import ProbeSubnets
 from handson.probe import ProbeVPC
 from handson.probe import ProbeYaml
 
@@ -121,6 +122,33 @@ class HandsOn(object):
             add_help=False,
         ).set_defaults(
             func=ProbeAWS,
+        )
+
+        subparsers.add_parser(
+            'probe-subnets',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Probe subnets and create them if they are missing.
+
+            This subcommand checks that each delegate has a subnet in AWS VPC,
+            in accordance with the 'delegate' stanza of the YaML. If any subnet
+            is missing, it is created and the YaML is updated.
+
+            It also checks the Salt Master's dedicated subnet and creates it if
+            necessary.
+
+            """), epilog=textwrap.dedent(""" Examples:
+
+            $ ho probe-subnets
+            $ echo $?
+            0
+
+            """),
+            help='Probe subnets and create if missing',
+            parents=[ProbeSubnets.get_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeSubnets,
         )
 
         subparsers.add_parser(
