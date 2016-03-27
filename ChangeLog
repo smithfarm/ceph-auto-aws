@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+v0.0.15
+-------
+
+* Bump version: 0.0.14 → 0.0.15
+* release.sh: deduce version tag and push it to remote
+* update ChangeLog
+
 v0.0.14
 -------
 
