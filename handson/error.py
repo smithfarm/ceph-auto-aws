@@ -1,5 +1,6 @@
 #
-# Copyright (c) 2016, SUSE LLC All rights reserved.
+# Copyright (c) 2016, SUSE LLC
+# All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,37 +29,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-import argparse
-import myyaml
-import logging
-from handson.error import YamlError
 
-log = logging.getLogger(__name__)
-
-
-class TestYaml(object):
-
-    def __init__(self, args):
-        self.args = args
-
-    @staticmethod
-    def get_parser():
-        parser = argparse.ArgumentParser(
-            parents=[],
-            conflict_handler='resolve',
-        )
-        return parser
-
-    def run(self):
-        myyaml.myyaml.load()
-        print "Successfully loaded {}".format(myyaml.myyaml.yaml_file_name())
-        tree = myyaml.myyaml.tree()
-        try:
-            fodder = ['region', 'vpc', 'keyname']
-            for elem in fodder:
-                assert elem in tree
-        except AssertionError:
-            raise YamlError(
-                "Missing stanza in yaml file: {}".format(elem)
-            )
-        return True
+class YamlError(Exception):
+    pass

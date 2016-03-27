@@ -34,7 +34,7 @@ import logging
 import textwrap
 from testcred import TestCredentials
 from testyaml import TestYaml
-from myyaml import myyaml
+from handson.myyaml import myyaml
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 
@@ -49,9 +49,9 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 class YamlFileAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        print 'option_string: {0!r}'.format(option_string)
+        # print 'option_string: {0!r}'.format(option_string)
         if option_string == '-y' or option_string == '--yamlfile':
-            print 'value: {0!r}'.format(values)
+            # print 'value: {0!r}'.format(values)
             myyaml.yaml_file_name(values)
 
 
