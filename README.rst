@@ -171,8 +171,8 @@ The Salt Master resides in its own subnet: 10.0.0.0/24.
 Each delegate will be assigned a number, e.g. 12. The subnet of delegate 12
 will be 10.0.12.0/24.
 
-Check YAML
-----------
+Check VPC configuration
+-----------------------
 
 If you are setting up a VPC for the first time, ``ho probe-vpc`` will create
 it for you, provided the ``vpc`` stanza (inside the ``aws.yaml`` file in the
@@ -186,9 +186,8 @@ Once the VPC has been created, the ``vpc`` stanza will look like this::
       cidr_block: 10.0.0.0/16
       id: c8809dad
 
-
-Validate VPC setup
-------------------
+Validate VPC
+------------
 
 Now validate that your VPC is set up properly::
 
@@ -201,6 +200,31 @@ You can run ``ho probe-vpc`` as many times as you want: it is idempotent.
 
 Any other output (and especially any traceback) probably means your VPC is
 not set up properly.
+
+Internet Gateway and Route Table
+--------------------------------
+
+Initially, the VPC will not have an Internet Gateway, and so it will not 
+be able to communicate with the outside world in any way (regardless of 
+Security Group settings in any instances running inside the VPC). This includes
+SSH access into the VPC from outside.
+
+The fact that VPCs are by default completely isolated from the outside world is
+by design, but it is not appropriate for a hands-on demonstration.
+
+To remedy this, first create an Internet Gateway and attach it to the VPC. Then
+add a "default route" to the VPC's Route Table, via that gateway. The resulting
+Route Table will looks something like this:
+
+Destination Target  Status  Propagated
+10.0.0.0/16 local   Active  No
+0.0.0.0/0   igw-... Active  No
+
+The second routing table entry is tantamount to a default route. The
+destination must be set to 0.0.0.0/0, otherwise no packets originating 
+from the VPC will ever be routed to the outside.
+
+.. warning: he scripting does not do this step for you!
 
 Subnet caveat
 -------------
