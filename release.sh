@@ -22,3 +22,6 @@ esac
 
 tox
 bumpversion $BUMP_COMPONENT
+python setup.py install
+git commit -as -m "update ChangeLog"
+git push --follow-tags

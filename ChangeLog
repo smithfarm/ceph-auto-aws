@@ -1,6 +1,35 @@
 CHANGES
 =======
 
+v0.0.13
+-------
+
+* Bump version: 0.0.12 → 0.0.13
+* Implement probe-subnets subcommand
+* main.py, probe.py: add probe-subnets boilerplate
+* aws.py: move apply_tag() up before vpn_obj() which uses it
+* README.rst: finish VPC chapter and start Subnets chapter
+* README.rst: fix table and warning
+* README.rst: Internet Gateway and Route Table
+* README.rst: ho probe-yaml
+* aws.yaml -> data/aws.yaml-sample
+* Improve VPC and region error-checking
+* aws.yaml: remove transient parts of vpc stanza
+* README.rst: adapt to current state
+* Give AWS and MyYaml each their own instance variable for state
+* Refactor to implement chain of inheritance
+* myyaml.py: add ability to write the YaML file
+* aws.py: add ability to probe VPC
+* main.py: probe-* subcommands
+* requirements.txt: pyaml for prettier dumps
+* aws.yaml: replace with pyaml.dump version
+* Replace testyaml.py and testcred.py with probe.py
+* aws.py: use connect_to_region() for ec2 and vpc init
+* Load yaml file first time MyYaml.tree() is called
+* testcred.py: use ping_ec2() method
+* Move error classes to error.py
+* release.sh: tone down ChangesLog spam
+
 v0.0.12
 -------
 
