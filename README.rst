@@ -144,8 +144,8 @@ directory::
     (virtualenv)$ file aws.yaml
     aws.yaml: ASCII text
 
-Validation
-----------
+Validate configuration
+----------------------
 
 At any time, you can run ``ho probe-yaml`` to check your configuration file::
 
@@ -161,7 +161,7 @@ Introduction
 ------------
 
 To ensure that our demo clusters do not interfere with other AWS projects,
-we use a Virtual Private Cloud (VPC).
+we use a Virtual Private Cloud (VPC) containing a number of subnets.
 
 All the delegates will share a single VPC 10.0.0.0/16. Within that VPC there
 will be a ``/24`` subnet for each delegate, plus one for the Salt Master.
@@ -171,8 +171,8 @@ The Salt Master resides in its own subnet: 10.0.0.0/24.
 Each delegate will be assigned a number, e.g. 12. The subnet of delegate 12
 will be 10.0.12.0/24.
 
-Check VPC configuration
------------------------
+VPC configuration
+-----------------
 
 If you are setting up a VPC for the first time, ``ho probe-vpc`` will create
 it for you, provided the ``vpc`` stanza (inside the ``aws.yaml`` file in the
@@ -201,8 +201,8 @@ You can run ``ho probe-vpc`` as many times as you want: it is idempotent.
 Any other output (and especially any traceback) probably means your VPC is
 not set up properly.
 
-Internet Gateway and Route Table
---------------------------------
+Internet Gateway
+----------------
 
 Initially, the VPC will not have an Internet Gateway, and so it will not 
 be able to communicate with the outside world in any way (regardless of 
@@ -212,9 +212,24 @@ SSH access into the VPC from outside.
 The fact that VPCs are by default completely isolated from the outside world is
 by design, but it is not appropriate for a hands-on demonstration.
 
-To remedy this, first create an Internet Gateway and attach it to the VPC. Then
-add a "default route" to the VPC's Route Table, via that gateway. The resulting
-Route Table will looks something like this:
+To remedy this, first create an Internet Gateway and attach it to the VPC. 
+
+**WARNING:** The scripting does not do this step for you!
+
+Route Table
+-----------
+
+Even with the Internet Gateway in place, no packets originating from the VPC
+will be routed to the outside until a default route is added. This is because
+the default Route Table looks like this:
+
+=========== ======= ======= ===========
+Destination Target  Status  Propagated
+=========== ======= ======= ===========
+10.0.0.0/16 local   Active  No
+=========== ======= ======= ===========
+
+Add a "default route" line to this table, so it looks like this:
 
 =========== ======= ======= ===========
 Destination Target  Status  Propagated
@@ -223,11 +238,100 @@ Destination Target  Status  Propagated
 0.0.0.0/0   igw-... Active  No
 =========== ======= ======= ===========
 
-The second routing table entry is tantamount to a default route. The
-destination must be set to 0.0.0.0/0, otherwise no packets originating 
-from the VPC will ever be routed to the outside.
+**WARNING:** The scripting does not do this step for you!
+
+Network ACL
+-----------
+
+Network ACLs are like firewalls at the subnet level. For more information, see
+the `Network ACLs chapter of the AWS documentation`_.
+
+.. _`Network ACLs chapter of the AWS documentation`: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html
+
+Even with the Internet Gateway and the Route Table set up, networking may
+still not work as expected inside the VPC. If this is the case, check if
+there is a Network ACL associated with your VPC, and check the settings::
+
+    "Security" -> "Network ACLs" in VPC Dashboard
 
 **WARNING:** The scripting does not do this step for you!
+
+Security Groups
+---------------
+
+Security Groups are like firewalls at the instance (individual VM) level. For
+more information, see the `Security Groups for Your VPC` chapter of the AWS
+documentation.
+
+.. _`Security Groups for Your VPC`: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html
+
+Even with the Internet Gateway and the Route Table set up, and Network ACL wide
+open or disabled, networking may still not work as expected inside the VPC. If
+this is the case, check if there are any Security Groups associated with your
+VPC::
+
+    "Security" -> "Security Groups" in VPC Dashboard
+
+Initially, you can set the inbound and outbound rules of your VPC's default
+Security Group to "wide open" like this:
+
+**Inbound Rules**
+
+=========== ======== ========== ===========
+Type        Protocol Port Range Source
+=========== ======== ========== ===========
+ALL Traffic ALL      ALL        sg-...
+=========== ======== ========== ===========
+
+**Outbound Rules**
+
+=========== ======== ========== ===========
+Type        Protocol Port Range Destination
+=========== ======== ========== ===========
+ALL Traffic ALL      ALL        0.0.0.0/0
+=========== ======== ========== ===========
+
+However, such a setup means the machines in your VPC will be exposed to
+scanning, and if they have any unpatched vulnerabilities evil people might take
+control of them.
+
+To address this, remove those lines and add inbound/outbound rules covering all
+the public network segments from which people will be accessing your VPC.
+
+**WARNING:** The scripting does not do this step for you!
+
+Subnets
+=======
+
+Introduction
+------------
+
+As explained in the introduction to the `Virtual Private Cloud`_ chapter,
+each delegate will have their own "Class C" ``/24`` virtual network, or
+"subnet".
+
+Subnet configuration
+--------------------
+
+Initially, the ``subnets`` stanza of your ``aws.yaml`` file should be empty::
+
+    subnets:
+
+Do not add anything here: the scripting will create subnets automatically based
+on the number of delegates given in the ``delegates`` stanza, e.g.::
+
+    delegates: 12
+
+Validate subnets
+----------------
+
+To ensure that the subnets are created, you can run::
+
+    (virtualenv)$ ho probe-subnets
+
+This will create a ``10.0.0.0/24`` subnet for the Salt Master and one
+additional ``/24`` for each delegate. It will also add the appropriate tags to
+the subnet objects.
 
 Subnet caveat
 -------------
@@ -240,6 +344,6 @@ addresses are not available for use:
 * 10.0.0.1: Reserved by AWS for the VPC router.
 * 10.0.0.2: Reserved by AWS for mapping to the Amazon-provided DNS.
 * 10.0.0.3: Reserved by AWS for future use.
-* 10.0.0.255: Network broadcast address. We do not support broadcast in a VPC, therefore we reserve this address. 
-
+* 10.0.0.255: Network broadcast address. We do not support broadcast in a VPC,
+  therefore we reserve this address. 
 
