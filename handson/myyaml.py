@@ -31,27 +31,26 @@
 import yaml
 import pyaml
 
-_ss = {}  # saved state
-
-
-class YamlError(Exception):
-    pass
-
 
 class MyYaml(object):
 
-    def yaml_file_name(self, fn='./aws.yaml'):
-        if 'file_name' in _ss:
-            return _ss['file_name']
-        _ss['file_name'] = fn
-        return _ss['file_name']
+    def __init__(self, yamlfile):
+        self._ss = {}
+        self.yaml_file_name(yamlfile)
+
+    def yaml_file_name(self, fn=None):
+        if 'file_name' in self._ss:
+            return self._ss['file_name']
+        self._ss['file_name'] = fn
+        return self._ss['file_name']
 
     def tree(self):
-        if 'tree' not in _ss:
+        print "{!r}".format(self._ss)
+        if 'tree' not in self._ss:
             self.load()
-        return _ss['tree']
+        return self._ss['tree']
 
-    def write(self):
+    def write(self):  # pragma: no cover
         fn = self.yaml_file_name()
         tree = self.tree()
         with open(fn, 'w') as outfile:
@@ -62,8 +61,7 @@ class MyYaml(object):
     def load(self, yaml_file=None):
         if yaml_file is None:
             yaml_file = self.yaml_file_name()
+        print "yaml_file is {!r}".format(yaml_file)
         f = open(yaml_file)
-        _ss['tree'] = yaml.safe_load(f)
+        self._ss['tree'] = yaml.safe_load(f)
         f.close()
-
-myyaml = MyYaml()

@@ -29,44 +29,43 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-from boto import connect_ec2, ec2, vpc
-from handson.myyaml import myyaml
+import boto
+import boto.ec2
+import boto.vpc
+import myyaml
 
-_ss = {}  # saved state
 
-
-class AWS(object):
+class AWS(myyaml.MyYaml):
 
     def ping_ec2(self):
-        connect_ec2()
+        print "calling boto.connect_ec2"
+        boto.connect_ec2()
 
     def ec2(self):
-        tree = myyaml.tree()
-        if 'ec2' not in _ss:
-            _ss['ec2'] = ec2.connect_to_region(tree['region'])
-        return _ss['ec2']
+        tree = self.tree()
+        if 'ec2' not in self._ss:
+            self._ss['ec2'] = boto.ec2.connect_to_region(tree['region'])
+        return self._ss['ec2']
 
     def vpc(self):
-        tree = myyaml.tree()
-        if 'vpc' not in _ss:
-            _ss['vpc'] = vpc.connect_to_region(tree['region'])
-        return _ss['vpc']
+        tree = self.tree()
+        if 'vpc' not in self._ss:
+            self._ss['vpc'] = boto.vpc.connect_to_region(tree['region'])
+        return self._ss['vpc']
 
     def vpc_obj(self):
-        if 'vpc_obj' in _ss:
-            return _ss['vpc_obj']
-        tree = myyaml.tree()
+        if 'vpc_obj' in self._ss:
+            return self._ss['vpc_obj']
+        tree = self.tree()
         vpc = self.vpc()
         if 'id' in tree['vpc']:
             vpc_id = tree['vpc']['id']
             vpc_list = vpc.get_all_vpcs(vpc_ids=vpc_id)
-            _ss['vpc_obj'] = vpc_list[0]
-            return _ss['vpc_obj']
-        # create a new 10.0.0.0/16
-        _ss['vpc_obj'] = vpc.create_vpc('10.0.0.0/16')
-        tree['vpc']['id'] = _ss['vpc_obj'].id
-        tree['vpc']['cidr_block'] = _ss['vpc_obj'].cidr_block
-        myyaml.write()
-        return _ss['vpc_obj']
-
-aws = AWS()
+            self._ss['vpc_obj'] = vpc_list[0]
+        else:  # pragma: no cover
+            # create a new 10.0.0.0/16
+            self._ss['vpc_obj'] = vpc.create_vpc('10.0.0.0/16')
+            tree['vpc']['id'] = self._ss['vpc_obj'].id
+            tree['vpc']['cidr_block'] = self._ss['vpc_obj'].cidr_block
+            self.write()
+        return self._ss['vpc_obj']

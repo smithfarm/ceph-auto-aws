@@ -29,15 +29,35 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 import logging
-from mock import patch
 import unittest
 
+from handson.error import YamlError
 from handson import main
-from handson import myyaml
+from mock import patch
+from yaml.parser import ParserError
 
 
-def mock_connect_ec2():
+def mock_connect(*_):
     return 'DummyValue'
+
+
+def mock_connect_ec2(*_):
+    return 'DummyValue'
+
+
+class MockMyYaml(object):
+
+    def write(self):
+        return True
+
+
+class MockVPCConnection(object):
+
+    def create_vpc(self, *_):
+        return {'id': 'DummyID', 'cidr_block': '10.0.0.0/16'}
+
+    def get_all_vpcs(self, *_):
+        return ['DummyValue']
 
 
 class TestHandsOn(unittest.TestCase):
@@ -58,7 +78,7 @@ class TestHandsOn(unittest.TestCase):
         self.assertEqual(cm.exception.code, 0)
 
     @patch('boto.connect_ec2', side_effects=mock_connect_ec2)
-    def test_test_credentials(self, mock_connect_ec2):
+    def test_probe_aws(self, mock_connect_ec2):
         m = main.HandsOn()
 
         self.assertTrue(
@@ -77,29 +97,42 @@ class TestHandsOn(unittest.TestCase):
         )
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.INFO)
-        l.info("Henry VIII")
+
+    def test_probe_vpc(self):
+        m = main.HandsOn()
+
+        self.assertTrue(
+            m.run([
+                'probe-vpc',
+            ])
+        )
 
     def test_probe_yaml(self):
         m = main.HandsOn()
-
-        # yaml file is loaded first time tree() is called
-        self.assertTrue('region' in myyaml.myyaml.tree())
 
         self.assertTrue(
             m.run([
                 'probe-yaml',
             ])
         )
-        self.assertTrue('region' in myyaml.myyaml.tree())
-        self.assertTrue('vpc' in myyaml.myyaml.tree())
-        self.assertTrue('keyname' in myyaml.myyaml.tree())
-        self.assertTrue('nametag' in myyaml.myyaml.tree())
 
-        # reset myyaml state and try another command
-        myyaml._ss = {}
         with self.assertRaises(IOError):
             m.run([
                 '-y',
                 'BogusFileThatDoesNotExist',
+                'probe-yaml',
+            ])
+
+        with self.assertRaises(ParserError):
+            m.run([
+                '-y',
+                './bootstrap',
+                'probe-yaml',
+            ])
+
+        with self.assertRaises(YamlError):
+            m.run([
+                '-y',
+                './data/bogus.yaml',
                 'probe-yaml',
             ])

@@ -33,7 +33,6 @@ import argparse
 import logging
 import textwrap
 
-from handson.myyaml import myyaml
 from handson.probe import ProbeAWS
 from handson.probe import ProbeVPC
 from handson.probe import ProbeYaml
@@ -46,15 +45,6 @@ __version__ = "0.0.12"
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
-
-
-class YamlFileAction(argparse.Action):
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        # print 'option_string: {0!r}'.format(option_string)
-        if option_string == '-y' or option_string == '--yamlfile':
-            # print 'value: {0!r}'.format(values)
-            myyaml.yaml_file_name(values)
 
 
 class HandsOn(object):
@@ -94,7 +84,6 @@ class HandsOn(object):
         self.parser.add_argument(
             '-y', '--yamlfile',
             default='./aws.yaml',
-            action=YamlFileAction,
             help='specify yaml file to read',
         )
 

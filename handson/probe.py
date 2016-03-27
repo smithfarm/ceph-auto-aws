@@ -29,18 +29,18 @@
 #
 
 import argparse
+import aws
 import logging
 
-from handson.aws import AWS
 from handson.error import YamlError
-from handson.myyaml import myyaml
 
 log = logging.getLogger(__name__)
 
 
-class ProbeAWS(object):
+class ProbeAWS(aws.AWS):
 
     def __init__(self, args):
+        super(ProbeAWS, self).__init__(args.yamlfile)
         self.args = args
 
     @staticmethod
@@ -52,14 +52,16 @@ class ProbeAWS(object):
         return parser
 
     def run(self):
-        AWS().ping_ec2()
+        self.ping_ec2()
         print "Successfully connected to AWS EC2!"
         return True
 
 
-class ProbeVPC(object):
+class ProbeVPC(aws.AWS):
 
     def __init__(self, args):
+        super(ProbeVPC, self).__init__(args.yamlfile)
+        self.tree()
         self.args = args
 
     @staticmethod
@@ -71,13 +73,14 @@ class ProbeVPC(object):
         return parser
 
     def run(self):
-        o = AWS().vpc_obj()
+        o = self.vpc_obj()
         print "VPC ID is {0!r}".format(o.id)
 
 
-class ProbeYaml(object):
+class ProbeYaml(aws.AWS):
 
     def __init__(self, args):
+        super(ProbeYaml, self).__init__(args.yamlfile)
         self.args = args
 
     @staticmethod
@@ -89,9 +92,9 @@ class ProbeYaml(object):
         return parser
 
     def run(self):
-        myyaml.load()
-        print "Loaded yaml from {}".format(myyaml.yaml_file_name())
-        tree = myyaml.tree()
+        self.load()
+        print "Loaded yaml from {}".format(self.yaml_file_name())
+        tree = self.tree()
         try:
             fodder = ['region', 'vpc', 'keyname', 'nametag']
             for elem in fodder:

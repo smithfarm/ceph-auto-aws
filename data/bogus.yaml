@@ -1,0 +1,55 @@
+admin:
+  ami-id: ami-61211d16
+  replace-from-environment:
+    - EMAIL
+  type: t2.small
+  user-data: user-data-nodes-frozen
+
+install_subnets:
+  - 1
+
+keyname: ncutler
+
+master:
+  ami-id: ami-e801af9f
+  replace-from-environment:
+    - EMAIL
+    - BETA_PROGRAM_USERNAME
+    - BETA_PROGRAM_PASSWORD
+  type: t2.micro
+  user-data: user-data-master
+
+mon:
+  ami-id: ami-61211d16
+  replace-from-environment:
+    - EMAIL
+  type: t2.small
+  user-data: user-data-nodes-frozen
+  volume: 20
+
+osd:
+  ami-id: ami-61211d16
+  replace-from-environment:
+    - EMAIL
+  type: t2.small
+  user-data: user-data-nodes-frozen
+  volume: 20
+
+region: eu-west-1
+
+subnets:
+  - cidr-block: 10.0.0.0/24
+    delegate: 0
+  - cidr-block: 10.0.1.0/24
+    delegate: 1
+
+vpc:
+  cidr_block: 10.0.0.0/16
+  id: vpc-48eff22d
+  name: handson
+
+windows:
+  ami-id: ami-abe9c9dc
+  replace-from-environment: []
+  type: t2.small
+  user-data: user-data-windows
