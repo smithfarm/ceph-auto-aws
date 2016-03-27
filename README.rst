@@ -96,12 +96,12 @@ Installation is a two-step process. First, run the ``bootstrap`` script::
     $ ./bootstrap
 
 This installs the virtual environment in the ``virtualenv/`` directory. The
-second step is to activate the `virtualenv`_::
+second step is to activate the `virtualenv`_. The shell prompt changes to
+indicate that the virtual environment is active::
 
     $ source virtualenv/bin/activate
     (virtualenv)$
 
-The shell prompt changes to indicate that the virtual environment is active.
 Use the ``deactivate`` command to leave::
 
     (virtualenv)$ deactivate
@@ -167,17 +167,18 @@ Once the VPC has been created, the ``vpc`` stanza will look like this::
       cidr_block: 10.0.0.0/16
       id: c8809dad
 
-You can run ``ho probe-vpc`` as many times as you want: it is idempotent.
 
 Validate VPC setup
 ------------------
 
 Now validate that your VPC is set up properly::
 
-    $ ./list-public-ips.py
+    (virtualenv)$ ho probe-vpc
     Connected to region eu-west-1
     Looking for VPC 10.0.0.0/16
     There are no instances in the master subnet
+
+You can run ``ho probe-vpc`` as many times as you want: it is idempotent.
 
 Any other output (and especially any traceback) probably means your VPC is
 not set up properly.

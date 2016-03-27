@@ -116,7 +116,7 @@ class AWS(myyaml.MyYaml):
             tree['vpc']['id'] = self._aws['vpc_obj'].id
             tree['vpc']['cidr_block'] = self._aws['vpc_obj'].cidr_block
             self.write()
-            log.info("VPC created").format(
+            log.info("VPC created".format(
                 tree['vpc']['id'], tree['vpc']['cidr_block']
             )
         else:
