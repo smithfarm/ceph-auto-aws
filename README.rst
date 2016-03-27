@@ -216,15 +216,18 @@ To remedy this, first create an Internet Gateway and attach it to the VPC. Then
 add a "default route" to the VPC's Route Table, via that gateway. The resulting
 Route Table will looks something like this:
 
+=========== ======= ======= ===========
 Destination Target  Status  Propagated
+=========== ======= ======= ===========
 10.0.0.0/16 local   Active  No
 0.0.0.0/0   igw-... Active  No
+=========== ======= ======= ===========
 
 The second routing table entry is tantamount to a default route. The
 destination must be set to 0.0.0.0/0, otherwise no packets originating 
 from the VPC will ever be routed to the outside.
 
-.. warning: he scripting does not do this step for you!
+**WARNING:** The scripting does not do this step for you!
 
 Subnet caveat
 -------------
