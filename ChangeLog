@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+v0.0.16
+-------
+
+* Bump version: 0.0.15 → 0.0.16
+* tests/: test probe-subnets subcommand
+* aws.py: check that subnet ID really exists
+* update ChangeLog
+
 v0.0.15
 -------
 
