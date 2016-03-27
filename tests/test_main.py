@@ -63,16 +63,16 @@ class MockVPCConnection(object):
 class TestHandsOn(unittest.TestCase):
 
     def test_init(self):
-        w = main.HandsOn()
+        m = main.HandsOn()
 
         with self.assertRaises(SystemExit) as cm:
-            w.parser.parse_args([
+            m.parser.parse_args([
                 '-h',
             ])
         self.assertEqual(cm.exception.code, 0)
 
         with self.assertRaises(SystemExit) as cm:
-            w.parser.parse_args([
+            m.parser.parse_args([
                 '--version',
             ])
         self.assertEqual(cm.exception.code, 0)
@@ -97,6 +97,15 @@ class TestHandsOn(unittest.TestCase):
         )
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.INFO)
+
+    def test_probe_subnets(self):
+        m = main.HandsOn()
+
+        self.assertTrue(
+            m.run([
+                'probe-subnets',
+            ])
+        )
 
     def test_probe_vpc(self):
         m = main.HandsOn()
