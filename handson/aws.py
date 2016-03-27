@@ -34,12 +34,65 @@ import boto.ec2
 import boto.vpc
 import logging
 import myyaml
-import sys
-import time
 
 from handson.error import HandsOnError
+from handson.tag import apply_tag
 
 log = logging.getLogger(__name__)
+
+
+def validate_subnet(delegate, tree=None, vpc=None, vpc_obj=None):
+    """
+        Given delegate number, validates subnet (creates if necessary),
+        populates tree and returns subnet object
+    """
+    cidr_block = '10.0.{}.0/24'.format(delegate)
+    if len(tree['subnets']) < delegate+1:  # pragma: no cover
+        tree['subnets'].append({})
+    sy = tree['subnets'][delegate]  # subnet yaml
+    if (
+            'id' not in sy or
+            sy['id'] is None
+    ):  # pragma: no cover
+        #
+        # create new subnet
+        log.debug("About to create subnet {}".format(cidr_block))
+        s_obj = vpc.create_subnet(vpc_obj.id, cidr_block)
+        log.info(
+            "Created subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
+        )
+        sy['cidr_block'] = s_obj.cidr_block
+        sy['id'] = s_obj.id
+        apply_tag(s_obj, tag='Name', val=tree['nametag'])
+        apply_tag(s_obj, tag='Delegate', val=delegate)
+        return s_obj
+    #
+    # check id exists and cidr_block matches
+    log.debug("Getting subnet id {}".format(sy['id']))
+    s_obj = vpc.get_all_subnets(subnet_ids=[sy['id']])[0]
+    log.info(
+        "Found subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
+    )
+    if (
+         'cidr_block' in sy and
+         sy['cidr_block'] is not None
+    ):  # pragma: no cover
+        #
+        # set cidr_block
+        sy['cidr_block'] = s_obj.cidr_block
+    else:
+        #
+        # validate cidr_block
+        if sy['cidr_block'] == s_obj.cidr_block:
+            log.debug("CIDR block matches expected value {}"
+                      .format(sy['cidr_block']))
+        else:  # pragma: no cover
+            m = ("Delegate {} is supposed to have subnet {}, but that subnet"
+                 "exists with non-matching CIDR block {}")
+            raise HandsOnError(m.format(
+                delegate, sy['cidr_block'], s_obj.cidr_block
+            ))
+    return s_obj
 
 
 class AWS(myyaml.MyYaml):
@@ -93,24 +146,6 @@ class AWS(myyaml.MyYaml):
             raise HandsOnError("Failed to connect to {}".format(region))
         return self._aws['vpc']
 
-    def apply_tag(self, obj, tag='Name', val=None):
-        """
-            tag an AWS object
-        """
-        for x in [1, 1, 2, 4, 8]:
-            error = False
-            try:
-                obj.add_tag(tag, val)
-            except:  # pragma: no cover
-                error = True
-                e = sys.exc_info()[0]
-                log.info("Huh, trying again ({})".format(e))
-                time.sleep(x)
-            if not error:
-                log.info("Object {} successfully tagged.".format(obj))
-                break
-        return None
-
     def vpc_obj(self):
         """
             fetch VPC object, create if necessary
@@ -124,6 +159,7 @@ class AWS(myyaml.MyYaml):
         tree = self.tree()
         vpc = self.vpc()
         if (
+                'vpc' not in tree or
                 tree['vpc'] is None or
                 'id' not in tree['vpc'] or
                 tree['vpc']['id'] is None
@@ -161,5 +197,43 @@ class AWS(myyaml.MyYaml):
             tree['vpc']['id'],
             tree['vpc']['cidr_block'],
         ))
-        self.apply_tag(self._aws['vpc_obj'], tag='Name', val=tree['nametag'])
+        apply_tag(self._aws['vpc_obj'], tag='Name', val=tree['nametag'])
         return self._aws['vpc_obj']
+
+    def subnet_objs(self):
+        """
+            For each delegate and the Salt Master, check the subnets stanza.
+            Create subnets if necessary.
+        """
+        #
+        # cached subnet objects
+        if 'subnet_objs' in self._aws:
+            return self._aws['subnet_objs']
+        #
+        # non-cached
+        self._aws['subnet_objs'] = []
+        tree = self.tree()
+        if (
+                'delegates' not in tree or
+                tree['delegates'] is None
+        ):  # pragma: no cover
+            tree['delegates'] = 1
+        delegates = tree['delegates']
+        if delegates < 1 or delegates > 50:  # pragma: no cover
+            raise HandsOnError("Invalid number of delegates {}".
+                               format(delegates))
+        if (
+                'subnets' not in tree or
+                tree['subnets'] is None
+        ):  # pragma: no cover
+            tree['subnets'] = []
+        for d in range(0, delegates+1):
+            s_obj = validate_subnet(
+                d,
+                tree=tree,
+                vpc=self.vpc(),
+                vpc_obj=self.vpc_obj()
+            )
+            self._aws['subnet_objs'].append(s_obj)
+        self.write()
+        return self._aws['subnet_objs']
