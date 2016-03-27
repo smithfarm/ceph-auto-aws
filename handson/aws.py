@@ -30,6 +30,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 import boto
+from handson.myyaml import myyaml
 
 _ss = {}  # saved state
 

@@ -46,11 +46,9 @@ class MyYaml(object):
         return _ss['file_name']
 
     def tree(self):
-        if 'tree' in _ss:
-            return _ss['tree']
-        raise YamlError(
-            "Detected attempt to access yaml tree before yaml file loaded"
-        )
+        if 'tree' not in _ss:
+            self.load()
+        return _ss['tree']
 
     def load(self, yaml_file=None):
         if yaml_file is None:

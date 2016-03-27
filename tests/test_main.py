@@ -82,8 +82,8 @@ class TestHandsOn(unittest.TestCase):
     def test_test_yaml(self):
         m = main.HandsOn()
 
-        with self.assertRaises(myyaml.YamlError):
-            myyaml.myyaml.tree()
+        # yaml file is loaded first time tree() is called
+        self.assertTrue('region' in myyaml.myyaml.tree())
 
         self.assertTrue(
             m.run([
@@ -94,7 +94,8 @@ class TestHandsOn(unittest.TestCase):
         self.assertTrue('vpc' in myyaml.myyaml.tree())
         self.assertTrue('keyname' in myyaml.myyaml.tree())
 
-        del(myyaml._ss['file_name'])
+        # reset myyaml state and try another command
+        myyaml._ss = {}
         with self.assertRaises(IOError):
             m.run([
                 '-y',
