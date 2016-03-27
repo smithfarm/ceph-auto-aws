@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+v0.0.14
+-------
+
+* Bump version: 0.0.13 → 0.0.14
+* release.sh: tweak release script
+
 v0.0.13
 -------
 
