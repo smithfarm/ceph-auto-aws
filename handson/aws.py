@@ -121,6 +121,7 @@ def validate_vpc(tree=None, vpc=None):
         log.info("New VPC ID {} created with CIDR block {}".format(
             vpc_obj.id, vpc_obj.cidr_block
         ))
+        apply_tag(vpc_obj, tag='Name', val=tree['nametag'])
         return vpc_obj
     #
     # existing VPC
@@ -207,7 +208,6 @@ class AWS(myyaml.MyYaml):
         # non-cached
         tree = self.tree()
         vpc_obj = validate_vpc(tree=self.tree(), vpc=self.vpc())
-        apply_tag(vpc_obj, tag='Name', val=tree['nametag'])
         self._aws['vpc_obj'] = vpc_obj
         return vpc_obj
 
