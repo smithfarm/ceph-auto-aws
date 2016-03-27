@@ -29,7 +29,7 @@
 #
 
 import argparse
-from aws import aws
+from handson.aws import AWS
 import logging
 
 log = logging.getLogger(__name__)
@@ -49,6 +49,6 @@ class TestCredentials(object):
         return parser
 
     def run(self):
-        aws.ec2()
+        AWS().ping_ec2()
         print "Successfully connected to AWS EC2!"
         return True

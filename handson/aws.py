@@ -36,6 +36,9 @@ _ss = {}  # saved state
 
 class AWS(object):
 
+    def ping_ec2(self):
+        boto.connect_ec2()
+
     def ec2(self):
         if 'ec2' not in _ss:
             _ss['ec2'] = boto.connect_ec2()
