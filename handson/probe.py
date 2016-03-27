@@ -29,13 +29,16 @@
 #
 
 import argparse
-from handson.aws import AWS
 import logging
+
+from handson.aws import AWS
+from handson.error import YamlError
+from handson.myyaml import myyaml
 
 log = logging.getLogger(__name__)
 
 
-class TestCredentials(object):
+class ProbeAWS(object):
 
     def __init__(self, args):
         self.args = args
@@ -51,4 +54,50 @@ class TestCredentials(object):
     def run(self):
         AWS().ping_ec2()
         print "Successfully connected to AWS EC2!"
+        return True
+
+
+class ProbeVPC(object):
+
+    def __init__(self, args):
+        self.args = args
+
+    @staticmethod
+    def get_parser():
+        parser = argparse.ArgumentParser(
+            parents=[],
+            conflict_handler='resolve',
+        )
+        return parser
+
+    def run(self):
+        o = AWS().vpc_obj()
+        print "VPC ID is {0!r}".format(o.id)
+
+
+class ProbeYaml(object):
+
+    def __init__(self, args):
+        self.args = args
+
+    @staticmethod
+    def get_parser():
+        parser = argparse.ArgumentParser(
+            parents=[],
+            conflict_handler='resolve',
+        )
+        return parser
+
+    def run(self):
+        myyaml.load()
+        print "Loaded yaml from {}".format(myyaml.yaml_file_name())
+        tree = myyaml.tree()
+        try:
+            fodder = ['region', 'vpc', 'keyname', 'nametag']
+            for elem in fodder:
+                assert elem in tree
+        except AssertionError:
+            raise YamlError(
+                "Missing stanza in yaml file: {}".format(elem)
+            )
         return True
