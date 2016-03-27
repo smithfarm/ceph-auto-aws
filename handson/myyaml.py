@@ -29,6 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 import yaml
+import pyaml
 
 _ss = {}  # saved state
 
@@ -49,6 +50,14 @@ class MyYaml(object):
         if 'tree' not in _ss:
             self.load()
         return _ss['tree']
+
+    def write(self):
+        fn = self.yaml_file_name()
+        tree = self.tree()
+        with open(fn, 'w') as outfile:
+            outfile.write(
+                pyaml.dump(tree, vspacing=[1, 0])
+            )
 
     def load(self, yaml_file=None):
         if yaml_file is None:
