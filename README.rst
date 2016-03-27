@@ -85,27 +85,30 @@ Clone this repo to your local machine::
 All of the following instructions assume you are *in* the directory
 containing the local clone.
 
-Bootstrap and virtualenv
-------------------------
-
-In order to start using ``handson``, run the ``bootstrap`` script and activate
-the `virtualenv`_::
-
-    $ ./bootstrap
-    $ source virtualenv/bin/activate
-
-.. _`virtualenv`: https://virtualenv.pypa.io/en/latest/
-
 Installation
 ------------
 
 This software is designed to be installed in the standalone virtual Python
-environment which was installed in the local directory in the previous step,
-`Bootstrap and virtualenv`_.
+environment, implemented with `virtualenv`_.
 
-Installation includes running the test suite and is triggered by::
+Installation is a two-step process. First, run the ``bootstrap`` script::
 
-    $ tox
+    $ ./bootstrap
+
+This installs the virtual environment in the ``virtualenv/`` directory. The
+second step is to activate the `virtualenv`_::
+
+    $ source virtualenv/bin/activate
+    (virtualenv)$
+
+The shell prompt changes to indicate that the virtual environment is active.
+Use the ``deactivate`` command to leave::
+
+    (virtualenv)$ deactivate
+    $
+
+.. _`virtualenv`: https://virtualenv.pypa.io/en/latest/
+
 
 Get familiar with ho
 --------------------
@@ -113,7 +116,7 @@ Get familiar with ho
 All scripting features are implemented as subcommands of a single script:
 ``ho`` (an abbreviation of "hands-on")::
 
-    $ ho --help
+    (virtualenv)$ ho --help
 
 Test AWS connectivity
 ---------------------
@@ -121,8 +124,16 @@ Test AWS connectivity
 The ``test-credentials`` subcommand tests whether you have your AWS
 credentials in order::
 
-    $ ho test-credentials
-    Successfully connected to AWS EC2!
+    (virtualenv)$ ho probe-aws
+    2016-03-27 20:30:16,554 INFO Connected to AWS EC2
+
+Configuration
+=============
+
+Interaction with AWS is controlled by configuration files . . .
+
+The git repo contains a valid configuration which is sufficient to run "probe"
+subcommands.
 
 Virtual Private Cloud
 =====================
@@ -141,31 +152,22 @@ The Salt Master resides in its own subnet: 10.0.0.0/24.
 Each delegate will be assigned a number, e.g. 12. The subnet of delegate 12
 will be 10.0.12.0/24.
 
-Create a VPC
-------------
-
-In the VPC dashboard, click on ``Your VPCs`` and then ``Create VPC``.
-
-In the form dialog that appears, enter values::
-
-    Name tag:   handson
-    CIDR block: 10.0.0.0/16
-    Tenancy:    Default
-
-Click ``Yes, Create``.
-
 Check YAML
 ----------
 
-All configuration/setup information is placed in the file ``aws.yaml``
-which you are expected to edit to suit your needs.
-
-Check and make sure the ``vpc`` stanza (inside the ``aws.yaml`` file in the
+If you are setting up a VPC for the first time, ``ho probe-vpc`` will create
+it for you, provided the ``vpc`` stanza (inside the ``aws.yaml`` file in the
 current working directory) looks like this::
 
     vpc:
-      cidr-block: 10.0.0.0/16
-      name: handson
+
+Once the VPC has been created, the ``vpc`` stanza will look like this::
+
+    vpc:
+      cidr_block: 10.0.0.0/16
+      id: c8809dad
+
+You can run ``ho probe-vpc`` as many times as you want: it is idempotent.
 
 Validate VPC setup
 ------------------
