@@ -35,20 +35,19 @@ import pyaml
 class MyYaml(object):
 
     def __init__(self, yamlfile):
-        self._ss = {}
+        self._yaml = {}
         self.yaml_file_name(yamlfile)
 
     def yaml_file_name(self, fn=None):
-        if 'file_name' in self._ss:
-            return self._ss['file_name']
-        self._ss['file_name'] = fn
-        return self._ss['file_name']
+        if 'yaml_file_name' not in self._yaml:
+            self._yaml['yaml_file_name'] = fn
+        return self._yaml['yaml_file_name']
 
     def tree(self):
-        print "{!r}".format(self._ss)
-        if 'tree' not in self._ss:
+        print "{!r}".format(self._yaml)
+        if 'tree' not in self._yaml:
             self.load()
-        return self._ss['tree']
+        return self._yaml['tree']
 
     def write(self):  # pragma: no cover
         fn = self.yaml_file_name()
@@ -63,5 +62,5 @@ class MyYaml(object):
             yaml_file = self.yaml_file_name()
         print "yaml_file is {!r}".format(yaml_file)
         f = open(yaml_file)
-        self._ss['tree'] = yaml.safe_load(f)
+        self._yaml['tree'] = yaml.safe_load(f)
         f.close()

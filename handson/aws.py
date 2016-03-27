@@ -37,35 +37,39 @@ import myyaml
 
 class AWS(myyaml.MyYaml):
 
+    def __init__(self, yamlfile):
+        self._aws = {}
+        super(AWS, self).__init__(yamlfile)
+
     def ping_ec2(self):
         print "calling boto.connect_ec2"
         boto.connect_ec2()
 
     def ec2(self):
         tree = self.tree()
-        if 'ec2' not in self._ss:
-            self._ss['ec2'] = boto.ec2.connect_to_region(tree['region'])
-        return self._ss['ec2']
+        if 'ec2' not in self._aws:
+            self._aws['ec2'] = boto.ec2.connect_to_region(tree['region'])
+        return self._aws['ec2']
 
     def vpc(self):
         tree = self.tree()
-        if 'vpc' not in self._ss:
-            self._ss['vpc'] = boto.vpc.connect_to_region(tree['region'])
-        return self._ss['vpc']
+        if 'vpc' not in self._aws:
+            self._aws['vpc'] = boto.vpc.connect_to_region(tree['region'])
+        return self._aws['vpc']
 
     def vpc_obj(self):
-        if 'vpc_obj' in self._ss:
-            return self._ss['vpc_obj']
+        if 'vpc_obj' in self._aws:
+            return self._aws['vpc_obj']
         tree = self.tree()
         vpc = self.vpc()
         if 'id' in tree['vpc']:
             vpc_id = tree['vpc']['id']
             vpc_list = vpc.get_all_vpcs(vpc_ids=vpc_id)
-            self._ss['vpc_obj'] = vpc_list[0]
+            self._aws['vpc_obj'] = vpc_list[0]
         else:  # pragma: no cover
             # create a new 10.0.0.0/16
-            self._ss['vpc_obj'] = vpc.create_vpc('10.0.0.0/16')
-            tree['vpc']['id'] = self._ss['vpc_obj'].id
-            tree['vpc']['cidr_block'] = self._ss['vpc_obj'].cidr_block
+            self._aws['vpc_obj'] = vpc.create_vpc('10.0.0.0/16')
+            tree['vpc']['id'] = self._aws['vpc_obj'].id
+            tree['vpc']['cidr_block'] = self._aws['vpc_obj'].cidr_block
             self.write()
-        return self._ss['vpc_obj']
+        return self._aws['vpc_obj']
