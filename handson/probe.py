@@ -53,7 +53,7 @@ class ProbeAWS(aws.AWS):
 
     def run(self):
         self.ping_ec2()
-        print "Successfully connected to AWS EC2!"
+        log.info("Connected to AWS EC2")
         return True
 
 
@@ -73,8 +73,7 @@ class ProbeVPC(aws.AWS):
         return parser
 
     def run(self):
-        o = self.vpc_obj()
-        print "VPC ID is {0!r}".format(o.id)
+        self.vpc_obj()
 
 
 class ProbeYaml(aws.AWS):
@@ -93,7 +92,6 @@ class ProbeYaml(aws.AWS):
 
     def run(self):
         self.load()
-        print "Loaded yaml from {}".format(self.yaml_file_name())
         tree = self.tree()
         try:
             fodder = ['region', 'vpc', 'keyname', 'nametag']

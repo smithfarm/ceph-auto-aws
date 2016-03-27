@@ -32,3 +32,7 @@
 
 class YamlError(Exception):
     pass
+
+
+class HandsOnError(Exception):
+    pass

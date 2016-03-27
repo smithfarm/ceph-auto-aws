@@ -28,8 +28,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import yaml
+import logging
 import pyaml
+import yaml
+
+log = logging.getLogger(__name__)
 
 
 class MyYaml(object):
@@ -44,7 +47,7 @@ class MyYaml(object):
         return self._yaml['yaml_file_name']
 
     def tree(self):
-        print "{!r}".format(self._yaml)
+        # log.debug("{!r}".format(self._yaml))
         if 'tree' not in self._yaml:
             self.load()
         return self._yaml['tree']
@@ -60,7 +63,8 @@ class MyYaml(object):
     def load(self, yaml_file=None):
         if yaml_file is None:
             yaml_file = self.yaml_file_name()
-        print "yaml_file is {!r}".format(yaml_file)
+        log.debug("yaml_file is {!r}".format(yaml_file))
         f = open(yaml_file)
         self._yaml['tree'] = yaml.safe_load(f)
         f.close()
+        log.info("Loaded yaml from {}".format(yaml_file))
