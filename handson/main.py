@@ -29,30 +29,24 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-import argparse
 import logging
 import textwrap
 
+from argparse import ArgumentParser
 from handson.clusters import Install
-from handson.probe import ProbeAWS
-from handson.probe import ProbeSubnets
-from handson.probe import ProbeVPC
-from handson.probe import ProbeYaml
+from handson.format import CustomFormatter
+from handson.probe import Probe
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
+log = logging.getLogger(__name__)
 
 __version__ = "0.0.16"
-
-
-class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
-                      argparse.RawDescriptionHelpFormatter):
-    pass
 
 
 class HandsOn(object):
 
     def __init__(self):
-        self.parser = argparse.ArgumentParser(
+        self.parser = ArgumentParser(
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
             Scripting for hands-on demonstrations of Ceph.
@@ -63,8 +57,8 @@ class HandsOn(object):
 
             For instance:
 
-               ho probe-aws --help
-               usage: ho probe-aws [-h]
+               ho install --help
+               usage: ho install [-h]
                ...
 
             For more information, refer to the README.rst file at
@@ -92,7 +86,7 @@ class HandsOn(object):
         subparsers = self.parser.add_subparsers(
             title='subcommands',
             description='valid subcommands',
-            help='sub-command -h',
+            help='subcommand -h',
         )
 
         subparsers.add_parser(
@@ -117,112 +111,20 @@ class HandsOn(object):
         )
 
         subparsers.add_parser(
-            'probe-aws',
+            'probe',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
-            Probe AWS (test ability to connect to EC2).
-
-            Once you have set up your AWS credentials in ~/.boto,
-            run this subcommand to check connectivity.
+            Probe AWS connection and cluster configuration.
             """),
             epilog=textwrap.dedent("""
             Examples:
 
-            $ ho probe-aws
-            $ echo $?
-            0
-
-            $ ho probe-aws
-            2016-03-26 01:09:08 ERROR Caught exception reading instance data
-            ...
-            $ echo $?
-            1
+            $ ho probe yaml
 
             """),
-            help='Test ability to connect to AWS EC2',
-            parents=[ProbeAWS.get_parser()],
+            help='Probe AWS connection and cluster configuration',
+            parents=[Probe.get_parser()],
             add_help=False,
-        ).set_defaults(
-            func=ProbeAWS,
-        )
-
-        subparsers.add_parser(
-            'probe-subnets',
-            formatter_class=CustomFormatter,
-            description=textwrap.dedent("""\
-            Probe subnets and create them if they are missing.
-
-            This subcommand checks that each delegate has a subnet in AWS VPC,
-            in accordance with the 'delegate' stanza of the YaML. If any subnet
-            is missing, it is created and the YaML is updated.
-
-            It also checks the Salt Master's dedicated subnet and creates it if
-            necessary.
-
-            """), epilog=textwrap.dedent(""" Examples:
-
-            $ ho probe-subnets
-            $ echo $?
-            0
-
-            """),
-            help='Probe subnets and create if missing',
-            parents=[ProbeSubnets.get_parser()],
-            add_help=False,
-        ).set_defaults(
-            func=ProbeSubnets,
-        )
-
-        subparsers.add_parser(
-            'probe-vpc',
-            formatter_class=CustomFormatter,
-            description=textwrap.dedent("""\
-            Probe VPC and create one if it is missing.
-
-            This subcommand checks the VPC status in AWS, compares it with the
-            YaML. If VPC is missing in AWS, it is created and the YaML is
-            updated.
-
-            """), epilog=textwrap.dedent(""" Examples:
-
-            $ ho probe-vpc
-            $ echo $?
-            0
-
-            """),
-            help='Probe VPC and create if missing',
-            parents=[ProbeVPC.get_parser()],
-            add_help=False,
-        ).set_defaults(
-            func=ProbeVPC,
-        )
-
-        subparsers.add_parser(
-            'probe-yaml',
-            formatter_class=CustomFormatter,
-            description=textwrap.dedent("""\
-            Validate YaML file.
-
-            Use this subcommand to validate the yaml file.
-            """),
-            epilog=textwrap.dedent("""
-            Examples:
-
-            $ ho probe-yaml
-            $ echo $?
-            0
-
-            $ ho --yamlfile bogus probe-yaml
-            ... tracebacks ...
-            $ echo $?
-            1
-
-            """),
-            help='Probe YaML file',
-            parents=[ProbeYaml.get_parser()],
-            add_help=False,
-        ).set_defaults(
-            func=ProbeYaml,
         )
 
     def run(self, argv):
@@ -234,6 +136,7 @@ class HandsOn(object):
             level = logging.INFO
         logging.getLogger('handson').setLevel(level)
 
+        # log.debug("HandsOn self.args {!r}".format(self.args))
         self.args.func(self.args).run()
 
         return True

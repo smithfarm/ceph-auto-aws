@@ -30,11 +30,164 @@
 
 import argparse
 import logging
+import textwrap
 
 from handson.aws import AWS
 from handson.error import YamlError
+from handson.format import CustomFormatter
 
 log = logging.getLogger(__name__)
+
+
+def subcommand_parser():
+    """
+        Necessary for handling -h in, e.g., ho probe aws -h
+    """
+    parser = argparse.ArgumentParser(
+        parents=[],
+        conflict_handler='resolve',
+    )
+    return parser
+
+
+class Probe(AWS):
+
+    def __init__(self, args):
+        log.info("Probe __init__ args {!r}".format(args))
+        self.args = args
+
+    @staticmethod
+    def get_parser():
+        parser = argparse.ArgumentParser(
+            usage='ho probe',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Probe AWS connection and cluster configuration.
+
+            The documentation for each sub-subcommand can be displayed with
+
+               ho probe sub-subcommand --help
+
+            For instance:
+
+               ho probe aws --help
+               usage: ho probe aws [-h]
+               ...
+
+            For more information, refer to the README.rst file at
+            https://github.com/smithfarm/ceph-auto-aws/README.rst
+            """))
+
+        subparsers = parser.add_subparsers(
+            title='probe subcommands',
+            description='valid probe subcommands',
+            help='probe subcommand -h',
+        )
+
+        subparsers.add_parser(
+            'aws',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Probe AWS (test ability to connect to EC2).
+
+            Once you have set up your AWS credentials in ~/.boto,
+            run this subcommand to check connectivity.
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho probe aws
+            $ echo $?
+            0
+
+            """),
+            help='Test ability to connect to AWS EC2',
+            parents=[subcommand_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeAWS,
+        )
+
+        subparsers.add_parser(
+            'subnets',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Probe subnets and create them if they are missing.
+
+            This subcommand checks that each delegate has a subnet in AWS VPC,
+            in accordance with the 'delegate' stanza of the YaML. If any subnet
+            is missing, it is created and the YaML is updated.
+
+            It also checks the Salt Master's dedicated subnet and creates it if
+            necessary.
+
+            """), epilog=textwrap.dedent(""" Examples:
+
+            $ ho probe subnets
+            $ echo $?
+            0
+
+            """),
+            help='Probe subnets and create if missing',
+            parents=[subcommand_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeSubnets,
+        )
+
+        subparsers.add_parser(
+            'vpc',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Probe VPC and create one if it is missing.
+
+            This subcommand checks the VPC status in AWS, compares it with the
+            YaML. If VPC is missing in AWS, it is created and the YaML is
+            updated.
+
+            """), epilog=textwrap.dedent(""" Examples:
+
+            $ ho probe vpc
+            $ echo $?
+            0
+
+            """),
+            help='Probe VPC and create if missing',
+            parents=[subcommand_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeVPC,
+        )
+
+        subparsers.add_parser(
+            'yaml',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Validate YaML file.
+
+            Use this subcommand to validate the yaml file.
+            """),
+            epilog=textwrap.dedent("""
+            Examples:
+
+            $ ho probe yaml
+            $ echo $?
+            0
+
+            $ ho --yamlfile bogus probe-yaml
+            ... tracebacks ...
+            $ echo $?
+            1
+
+            """),
+            help='Probe YaML file',
+            parents=[subcommand_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeYaml,
+        )
+
+        return parser
 
 
 class ProbeAWS(AWS):
@@ -42,14 +195,6 @@ class ProbeAWS(AWS):
     def __init__(self, args):
         super(ProbeAWS, self).__init__(args.yamlfile)
         self.args = args
-
-    @staticmethod
-    def get_parser():
-        parser = argparse.ArgumentParser(
-            parents=[],
-            conflict_handler='resolve',
-        )
-        return parser
 
     def run(self):
         self.ping_ec2()
@@ -103,10 +248,12 @@ class ProbeYaml(AWS):
 
     @staticmethod
     def get_parser():
+
         parser = argparse.ArgumentParser(
             parents=[],
             conflict_handler='resolve',
         )
+
         return parser
 
     def run(self):

@@ -121,10 +121,10 @@ All scripting features are implemented as subcommands of a single script:
 Test AWS connectivity
 ---------------------
 
-The ``test-credentials`` subcommand tests whether you have your AWS
+Run the following command to test whether you have your AWS
 credentials in order::
 
-    (virtualenv)$ ho probe-aws
+    (virtualenv)$ ho probe aws
     2016-03-27 20:30:16,554 INFO Connected to AWS EC2
 
 Configuration
@@ -147,9 +147,9 @@ directory::
 Validate configuration
 ----------------------
 
-At any time, you can run ``ho probe-yaml`` to check your configuration file::
+At any time, you can run ``ho probe yaml`` to check your configuration file::
 
-    (virtualenv)$ ho probe-yaml
+    (virtualenv)$ ho probe yaml
     2016-03-27 22:39:03,898 INFO Loaded yaml from ./aws.yaml
 
 If there is a problem, an exception will be thrown.
@@ -174,7 +174,7 @@ will be 10.0.12.0/24.
 VPC configuration
 -----------------
 
-If you are setting up a VPC for the first time, ``ho probe-vpc`` will create
+If you are setting up a VPC for the first time, ``ho probe vpc`` will create
 it for you, provided the ``vpc`` stanza (inside the ``aws.yaml`` file in the
 current working directory) looks like this::
 
@@ -191,12 +191,12 @@ Validate VPC
 
 Now validate that your VPC is set up properly::
 
-    (virtualenv)$ ho probe-vpc
+    (virtualenv)$ ho probe vpc
     Connected to region eu-west-1
     Looking for VPC 10.0.0.0/16
     There are no instances in the master subnet
 
-You can run ``ho probe-vpc`` as many times as you want: it is idempotent.
+You can run ``ho probe vpc`` as many times as you want: it is idempotent.
 
 Any other output (and especially any traceback) probably means your VPC is
 not set up properly.
@@ -327,7 +327,7 @@ Validate subnets
 
 To ensure that the subnets are created, you can run::
 
-    (virtualenv)$ ho probe-subnets
+    (virtualenv)$ ho probe subnets
 
 This will create a ``10.0.0.0/24`` subnet for the Salt Master and one
 additional ``/24`` for each delegate. It will also add the appropriate tags to

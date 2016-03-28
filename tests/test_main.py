@@ -83,8 +83,7 @@ class TestHandsOn(unittest.TestCase):
 
         self.assertTrue(
             m.run([
-                '-v',
-                'probe-aws',
+                '-v', 'probe', 'aws',
             ])
         )
         l = logging.getLogger('handson')
@@ -92,7 +91,7 @@ class TestHandsOn(unittest.TestCase):
 
         self.assertTrue(
             m.run([
-                'probe-aws',
+                'probe', 'aws',
             ])
         )
         l = logging.getLogger('handson')
@@ -103,7 +102,7 @@ class TestHandsOn(unittest.TestCase):
 
         self.assertTrue(
             m.run([
-                'probe-subnets',
+                'probe', 'subnets',
             ])
         )
 
@@ -112,7 +111,7 @@ class TestHandsOn(unittest.TestCase):
 
         self.assertTrue(
             m.run([
-                'probe-vpc',
+                'probe', 'vpc',
             ])
         )
 
@@ -121,27 +120,24 @@ class TestHandsOn(unittest.TestCase):
 
         self.assertTrue(
             m.run([
-                'probe-yaml',
+                'probe', 'yaml',
             ])
         )
 
         with self.assertRaises(IOError):
             m.run([
-                '-y',
-                'BogusFileThatDoesNotExist',
-                'probe-yaml',
+                '-y', 'BogusFileThatDoesNotExist',
+                'probe', 'yaml',
             ])
 
         with self.assertRaises(ParserError):
             m.run([
-                '-y',
-                './bootstrap',
-                'probe-yaml',
+                '-y', './bootstrap',
+                'probe', 'yaml',
             ])
 
         with self.assertRaises(YamlError):
             m.run([
-                '-y',
-                './data/bogus.yaml',
-                'probe-yaml',
+                '-y', './data/bogus.yaml',
+                'probe', 'yaml',
             ])

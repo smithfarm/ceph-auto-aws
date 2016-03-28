@@ -32,6 +32,8 @@ import argparse
 import logging
 import sys
 
+from handson.aws import AWS
+
 log = logging.getLogger(__name__)
 
 
@@ -106,7 +108,7 @@ def cluster_options_parser():
         return parser
 
 
-class Install(object):
+class Install(AWS):
 
     def __init__(self, args):
         self.args = args
