@@ -1,19 +1,13 @@
-admin:
-  ami-id: ami-61211d16
-  replace-from-environment:
-    - EMAIL
-  type: t2.small
-  user-data: user-data-nodes-frozen
+cluster:
+  - role: admin
+    additional-tags:
+      Henry: VIII
 
 delegates: 1
-
-install_subnets:
-  - 1
 
 keyname: ncutler
 
 master:
-  ami-id: ami-e801af9f
   replace-from-environment:
     - EMAIL
     - BETA_PROGRAM_USERNAME
@@ -21,32 +15,32 @@ master:
   type: t2.micro
   user-data: user-data-master
 
-mon:
-  ami-id: ami-61211d16
-  replace-from-environment:
-    - EMAIL
-  type: t2.small
-  user-data: user-data-nodes-frozen
-  volume: 20
-
 nametag: handson
-
-osd:
-  ami-id: ami-61211d16
-  replace-from-environment:
-    - EMAIL
-  type: t2.small
-  user-data: user-data-nodes-frozen
-  volume: 20
 
 region: eu-west-1
 
+roles:
+  admin:
+  defaults:
+    ami-id: ami-ff63dd8c
+    replace-from-environment:
+      - EMAIL
+    type: t2.micro
+    user-data: user-data-nodes
+    volume:
+  mon:
+  osd:
+  windows:
+    ami-id: ami-abe9c9dc
+    replace-from-environment: []
+    type: t2.small
+    user-data: user-data-windows
+
 subnets:
+
+types:
+  - t2.small
+  - t2.micro
 
 vpc:
 
-windows:
-  ami-id: ami-abe9c9dc
-  replace-from-environment: []
-  type: t2.small
-  user-data: user-data-windows
