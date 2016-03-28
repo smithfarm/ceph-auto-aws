@@ -40,7 +40,7 @@ from handson.probe import Probe
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 log = logging.getLogger(__name__)
 
-__version__ = "0.0.16"
+__version__ = "0.0.17"
 
 
 class HandsOn(object):
