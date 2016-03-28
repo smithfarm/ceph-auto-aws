@@ -184,6 +184,9 @@ class AWS(myyaml.MyYaml):
             raise HandsOnError("Failed to connect to {}".format(region))
         return self._aws['ec2']
 
+    def instance_types(self):
+        return self.tree()['types']
+
     def vpc(self):
         """
             fetch vpc connection, open if necessary

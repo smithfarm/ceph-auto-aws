@@ -136,6 +136,31 @@ class Probe(AWS):
         )
 
         subparsers.add_parser(
+            'types',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Dump 'types' stanza of yaml.
+
+            This subcommand reads the 'types' stanza of the yaml and dumps
+            the values found there in a log message.
+
+            NOTE: this does not currently perform any validation on the values.
+
+            """), epilog=textwrap.dedent(""" Examples:
+
+            $ ho probe types
+            2016-03-29 00:54:04 INFO Loaded yaml from ./aws.yaml
+            2016-03-29 00:54:04 INFO Instance Types ['t2.small', 't2.micro']
+
+            """),
+            help='Validate instance types',
+            parents=[subcommand_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeTypes,
+        )
+
+        subparsers.add_parser(
             'vpc',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
@@ -208,6 +233,15 @@ class ProbeSubnets(AWS):
 
     def run(self):
         self.subnet_objs()
+
+
+class ProbeTypes(AWS):
+
+    def __init__(self, args):
+        super(ProbeTypes, self).__init__(args.yamlfile)
+
+    def run(self):
+        log.info("Instance Types {!r}".format(self.instance_types()))
 
 
 class ProbeVPC(AWS):
