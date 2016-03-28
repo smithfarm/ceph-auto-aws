@@ -29,15 +29,15 @@
 #
 
 import argparse
-import aws
 import logging
 
+from handson.aws import AWS
 from handson.error import YamlError
 
 log = logging.getLogger(__name__)
 
 
-class Install(aws.AWS):
+class Install(AWS):
 
     def __init__(self, args):
         super(Install, self).__init__(args.yamlfile)
@@ -56,7 +56,7 @@ class Install(aws.AWS):
         return True
 
 
-class ProbeAWS(aws.AWS):
+class ProbeAWS(AWS):
 
     def __init__(self, args):
         super(ProbeAWS, self).__init__(args.yamlfile)
@@ -76,7 +76,7 @@ class ProbeAWS(aws.AWS):
         return True
 
 
-class ProbeSubnets(aws.AWS):
+class ProbeSubnets(AWS):
 
     def __init__(self, args):
         super(ProbeSubnets, self).__init__(args.yamlfile)
@@ -95,7 +95,7 @@ class ProbeSubnets(aws.AWS):
         self.subnet_objs()
 
 
-class ProbeVPC(aws.AWS):
+class ProbeVPC(AWS):
 
     def __init__(self, args):
         super(ProbeVPC, self).__init__(args.yamlfile)
@@ -114,7 +114,7 @@ class ProbeVPC(aws.AWS):
         self.vpc_obj()
 
 
-class ProbeYaml(aws.AWS):
+class ProbeYaml(AWS):
 
     def __init__(self, args):
         super(ProbeYaml, self).__init__(args.yamlfile)
