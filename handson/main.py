@@ -33,6 +33,7 @@ import argparse
 import logging
 import textwrap
 
+from handson.clusters import Install
 from handson.probe import ProbeAWS
 from handson.probe import ProbeSubnets
 from handson.probe import ProbeVPC
@@ -92,6 +93,27 @@ class HandsOn(object):
             title='subcommands',
             description='valid subcommands',
             help='sub-command -h',
+        )
+
+        subparsers.add_parser(
+            'install',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Create Ceph clusters in AWS.
+
+            Creates Ceph clusters in AWS according to the yaml configuration.
+            """),
+            epilog=textwrap.dedent("""
+            Examples:
+
+            $ ho install
+
+            """),
+            help='Create Ceph clusters in AWS',
+            parents=[Install.get_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=Install,
         )
 
         subparsers.add_parser(
