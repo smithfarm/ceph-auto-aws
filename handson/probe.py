@@ -194,7 +194,6 @@ class ProbeAWS(AWS):
 
     def __init__(self, args):
         super(ProbeAWS, self).__init__(args.yamlfile)
-        self.args = args
 
     def run(self):
         self.ping_ec2()
@@ -206,16 +205,6 @@ class ProbeSubnets(AWS):
 
     def __init__(self, args):
         super(ProbeSubnets, self).__init__(args.yamlfile)
-        self.tree()
-        self.args = args
-
-    @staticmethod
-    def get_parser():
-        parser = argparse.ArgumentParser(
-            parents=[],
-            conflict_handler='resolve',
-        )
-        return parser
 
     def run(self):
         self.subnet_objs()
@@ -225,16 +214,6 @@ class ProbeVPC(AWS):
 
     def __init__(self, args):
         super(ProbeVPC, self).__init__(args.yamlfile)
-        self.tree()
-        self.args = args
-
-    @staticmethod
-    def get_parser():
-        parser = argparse.ArgumentParser(
-            parents=[],
-            conflict_handler='resolve',
-        )
-        return parser
 
     def run(self):
         self.vpc_obj()
@@ -244,17 +223,6 @@ class ProbeYaml(AWS):
 
     def __init__(self, args):
         super(ProbeYaml, self).__init__(args.yamlfile)
-        self.args = args
-
-    @staticmethod
-    def get_parser():
-
-        parser = argparse.ArgumentParser(
-            parents=[],
-            conflict_handler='resolve',
-        )
-
-        return parser
 
     def run(self):
         self.load()
