@@ -37,25 +37,6 @@ from handson.error import YamlError
 log = logging.getLogger(__name__)
 
 
-class Install(AWS):
-
-    def __init__(self, args):
-        super(Install, self).__init__(args.yamlfile)
-        self.args = args
-
-    @staticmethod
-    def get_parser():
-        parser = argparse.ArgumentParser(
-            parents=[],
-            conflict_handler='resolve',
-        )
-        return parser
-
-    def run(self):
-        log.info("This subcommand is a noop")
-        return True
-
-
 class ProbeAWS(AWS):
 
     def __init__(self, args):
