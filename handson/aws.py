@@ -41,7 +41,7 @@ from handson.tag import apply_tag
 log = logging.getLogger(__name__)
 
 
-def validate_subnet(delegate, tree=None, vpc=None, vpc_obj=None):
+def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None):
     """
         Given delegate number, validates subnet (creates if necessary),
         populates tree and returns subnet object
@@ -100,7 +100,7 @@ def validate_subnet(delegate, tree=None, vpc=None, vpc_obj=None):
     return s_obj
 
 
-def validate_vpc(tree=None, vpc=None):
+def get_vpc_obj(tree=None, vpc=None):
     """
         Validates VPC (creates if necessary), populates tree and returns VPC
         object
@@ -206,9 +206,17 @@ class AWS(myyaml.MyYaml):
             return self._aws['vpc_obj']
         #
         # non-cached
-        vpc_obj = validate_vpc(tree=self.tree(), vpc=self.vpc())
+        vpc_obj = get_vpc_obj(tree=self.tree(), vpc=self.vpc())
         self._aws['vpc_obj'] = vpc_obj
         return vpc_obj
+
+    def subnet_obj(self, delegate):
+        return get_subnet_obj(
+            delegate,
+            tree=self.tree(),
+            vpc=self.vpc(),
+            vpc_obj=self.vpc_obj()
+        )
 
     def subnet_objs(self):
         """
@@ -238,12 +246,7 @@ class AWS(myyaml.MyYaml):
         ):  # pragma: no cover
             tree['subnets'] = []
         for d in range(0, delegates+1):
-            s_obj = validate_subnet(
-                d,
-                tree=tree,
-                vpc=self.vpc(),
-                vpc_obj=self.vpc_obj()
-            )
+            s_obj = self.subnet_obj(d)
             self._aws['subnet_objs'].append(s_obj)
         self.write()
         return self._aws['subnet_objs']
