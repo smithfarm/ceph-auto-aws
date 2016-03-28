@@ -206,7 +206,6 @@ class AWS(myyaml.MyYaml):
             return self._aws['vpc_obj']
         #
         # non-cached
-        tree = self.tree()
         vpc_obj = validate_vpc(tree=self.tree(), vpc=self.vpc())
         self._aws['vpc_obj'] = vpc_obj
         return vpc_obj
