@@ -1,6 +1,22 @@
 CHANGES
 =======
 
+v0.0.17
+-------
+
+* Bump version: 0.0.16 → 0.0.17
+* Implement 'probe types' subcommand
+* aws.py: clean up vpc and subnet functions and methods
+* probe.py: drop unused code
+* Re-implement "ho probe" with a subparser
+* Add "cluster", "roles", "types" stanzas to sample aws.yaml
+* probe.py: drop earlier Install implementation attempt
+* probe.py: import AWS class directly
+* clusters.py: process delegate lists
+* Block out install subcommand
+* aws.py: refrain from tagging VPC if it's already there
+* update ChangeLog
+
 v0.0.16
 -------
 
