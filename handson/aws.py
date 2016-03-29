@@ -79,8 +79,8 @@ def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None):
         "Found subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
     )
     if (
-         'cidr_block' in sy and
-         sy['cidr_block'] is not None
+         'cidr_block' not in sy or
+         sy['cidr_block'] is None
     ):  # pragma: no cover
         #
         # set cidr_block
