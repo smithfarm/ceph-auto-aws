@@ -30,16 +30,15 @@
 
 import argparse
 import logging
-import sys
 
 from handson.aws import AWS
+from handson.error import HandsOnError
 
 log = logging.getLogger(__name__)
 
 
 def error_exit(e):
-    print "HandsOnError: {}".format(e)
-    sys.exit(1)
+    raise HandsOnError(e)
 
 
 def expand_delegate_list(raw_input):
@@ -60,11 +59,16 @@ def expand_delegate_list(raw_input):
             intermediate_list.extend(ti)
             continue
         if len(ti) == 2:
-            if ti[1] > ti[0] and (ti[1] - ti[0]) < 50:
+            if (
+                    ti[1] > ti[0] and
+                    (ti[1] - ti[0]) < 50
+            ):
                 intermediate_list.extend(range(ti[0], ti[1]+1))
                 continue
         error_exit("Illegal delegate list")
     final_list = list(set(sorted(intermediate_list)))
+    if final_list[0] < 1:
+        error_exit("detected too-low delegate (min. 1)")
     if final_list[-1] > 50:
         error_exit("detected too-high delegate (max. 50)")
     return final_list
@@ -111,18 +115,30 @@ def cluster_options_parser():
 class Install(AWS):
 
     def __init__(self, args):
+        super(Install, self).__init__(args.yamlfile)
         self.args = args
 
-    @staticmethod
-    def get_parser():
-        parser = argparse.ArgumentParser(
-            parents=[cluster_options_parser()],
-            conflict_handler='resolve',
-        )
-        return parser
+    def report_options(self):
+        dr = "ON" if self.args.dry_run else "OFF"
+        log.debug("Dry run is {}".format(dr))
+        log.debug("Delegate list is {!r}".format(self.args.delegate_list))
+
+    def validate_delegate_list(self):
+        if self.args.delegate_list is None:
+            return True
+        max_delegates = self.tree()['delegates']
+        log.debug("Maximum number of delegates is {!r}".format(max_delegates))
+        if (
+                max_delegates is None or
+                max_delegates < 1 or
+                max_delegates > 50
+        ):  # pragma: no cover
+            error_exit("Bad number of delegates in yaml: {!r}".
+                       format(max_delegates))
+        if self.args.delegate_list[-1] > max_delegates:
+            error_exit(("Delegate list exceeds {!r} (maximum number of " +
+                        "delegates in yaml)").format(max_delegates))
 
     def run(self):
-        dr = "ON" if self.args.dry_run else "OFF"
-        log.info("Dry run is {}".format(dr))
-        log.info("Delegate list is {!r}".format(self.args.delegate_list))
-        return True
+        self.report_options()
+        self.validate_delegate_list()
