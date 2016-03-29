@@ -100,12 +100,13 @@ class MyYaml(object):
 
     def validate_role_definitions(self):  # pragma: no cover
         tree = self.tree()
+        types = tree['types']
         stanza = tree['role-definitions']
         if type(stanza) is not dict:
             error_exit("role-definitions stanza is not a mapping")
         roles = []
         for role in stanza:
-            log.debug("Considering role definition {!r}".format(role))
+            log.debug("Detected definition stanza of role {!r}".format(role))
             roles.append(role)
             role_def = stanza[role]
             if role_def is None:
@@ -114,6 +115,7 @@ class MyYaml(object):
                 error_exit("Role definition {!r} is not a mapping"
                            .format(role))
             for key in role_def:
+                log.debug("Considering role definition {!r}".format(role_def))
                 log.debug("Considering whether key {!r} is in {!r}"
                           .format(key, role_definition_keys))
                 if key not in role_definition_keys:
@@ -121,6 +123,13 @@ class MyYaml(object):
                         "Role definition {!r} contains illegal attribute {!r}"
                         .format(role, key)
                     )
+                val = role_def[key]
+                if key == 'type' and val not in types:
+                    error_exit(
+                        "Illegal type {!r} detected in role definition {!r}"
+                        .format(val, role)
+                    )
+                keys.append(key)
         log.info("Detected roles {!r}".format(roles))
         return roles
 
