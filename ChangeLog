@@ -1,6 +1,22 @@
 CHANGES
 =======
 
+v0.0.18
+-------
+
+* Bump version: 0.0.17 → 0.0.18
+* Implement "probe cluster-definition" and "probe role-definitions"
+* main.py: explicitly exit with status code 0
+* Use error_exit() function instead of raising HandsOnError
+* data/aws.yaml-sample: rename "roles" -> "role-definitions"
+* Implement --retag option for "probe subnets" and "probe vpc"
+* data/: update sample yaml file
+* README.rst: write about cluster and role definitions
+* Add tests and clean up code to improve coverage
+* clusters.py: validate delegate list in Install class
+* aws.py: fix logic in get_subnet_obj()
+* update ChangeLog
+
 v0.0.17
 -------
 
