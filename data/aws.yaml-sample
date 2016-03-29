@@ -1,11 +1,14 @@
-cluster:
+cluster-definition:
   - role: admin
-    additional-tags:
-      Henry: VIII
+  - role: mon1
+  - role: mon2
+  - role: mon3
+  - role: osd1
+  - role: windows
 
-delegates: 1
+delegates: 12
 
-keyname: ncutler
+keyname: bardoun
 
 master:
   replace-from-environment:
