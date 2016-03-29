@@ -32,6 +32,7 @@ import logging
 import pyaml
 import yaml
 
+from handson.aws import AWS
 from handson.error import error_exit
 
 log = logging.getLogger(__name__)
@@ -57,11 +58,10 @@ role_definition_keys = [
 ]
 
 
-class MyYaml(object):
+class MyYaml(AWS):
 
-    def __init__(self, yamlfile):
-        self._yaml = {}
-        self.yaml_file_name(yamlfile)
+    def __init__(self, args):
+        super(AWS, self).__init__(args)
 
     def yaml_file_name(self, fn=None):
         if 'yaml_file_name' not in self._yaml:

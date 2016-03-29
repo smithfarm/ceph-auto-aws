@@ -32,9 +32,9 @@ import argparse
 import logging
 import textwrap
 
-from handson.aws import AWS
 from handson.error import YamlError
 from handson.format import CustomFormatter
+from handson.myyaml import MyYaml
 
 log = logging.getLogger(__name__)
 
@@ -277,11 +277,10 @@ class Probe(object):
         return parser
 
 
-class ProbeAWS(AWS):
+class ProbeAWS(MyYaml):
 
     def __init__(self, args):
-        super(ProbeAWS, self).__init__(args.yamlfile)
-        self.args = args
+        super(ProbeAWS, self).__init__(args)
 
     def run(self):
         self.ping_ec2()
@@ -289,63 +288,57 @@ class ProbeAWS(AWS):
         return True
 
 
-class ProbeClusterDefinition(AWS):
+class ProbeClusterDefinition(MyYaml):
 
     def __init__(self, args):
-        super(ProbeClusterDefinition, self).__init__(args.yamlfile)
-        self.args = args
+        super(ProbeClusterDefinition, self).__init__(args)
 
     def run(self):
         self.validate_cluster_definition()
         return True
 
 
-class ProbeRoleDefinition(AWS):
+class ProbeRoleDefinition(MyYaml):
 
     def __init__(self, args):
-        super(ProbeRoleDefinition, self).__init__(args.yamlfile)
-        self.args = args
+        super(ProbeRoleDefinition, self).__init__(args)
 
     def run(self):
         self.validate_role_definitions()
         return True
 
 
-class ProbeSubnets(AWS):
+class ProbeSubnets(MyYaml):
 
     def __init__(self, args):
-        super(ProbeSubnets, self).__init__(args.yamlfile)
-        self.args = args
+        super(ProbeSubnets, self).__init__(args)
 
     def run(self):
         self.subnet_objs()
 
 
-class ProbeTypes(AWS):
+class ProbeTypes(MyYaml):
 
     def __init__(self, args):
-        super(ProbeTypes, self).__init__(args.yamlfile)
-        self.args = args
+        super(ProbeTypes, self).__init__(args)
 
     def run(self):
         log.info("Instance Types {!r}".format(self.instance_types()))
 
 
-class ProbeVPC(AWS):
+class ProbeVPC(MyYaml):
 
     def __init__(self, args):
-        super(ProbeVPC, self).__init__(args.yamlfile)
-        self.args = args
+        super(ProbeVPC, self).__init__(args)
 
     def run(self):
         self.vpc_obj()
 
 
-class ProbeYaml(AWS):
+class ProbeYaml(MyYaml):
 
     def __init__(self, args):
-        super(ProbeYaml, self).__init__(args.yamlfile)
-        self.args = args
+        super(ProbeYaml, self).__init__(args)
 
     def run(self):
         self.load()

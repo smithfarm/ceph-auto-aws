@@ -32,71 +32,15 @@
 import boto
 import boto.ec2
 import boto.vpc
+import boto.vpc.subnet
 import logging
 import myyaml
 
 from handson.error import error_exit
 from handson.tag import apply_tag
+from handson.util import read_user_data
 
 log = logging.getLogger(__name__)
-
-
-def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None, args=None):
-    """
-        Given delegate number, validates subnet (creates if necessary),
-        populates tree and returns subnet object
-    """
-    cidr_block = '10.0.{}.0/24'.format(delegate)
-    if len(tree['subnets']) < delegate+1:  # pragma: no cover
-        tree['subnets'].append({})
-    sy = tree['subnets'][delegate]  # subnet yaml
-    if (
-            'id' not in sy or
-            sy['id'] is None
-    ):  # pragma: no cover
-        #
-        # create new subnet
-        log.debug("About to create subnet {}".format(cidr_block))
-        s_obj = vpc.create_subnet(vpc_obj.id, cidr_block)
-        log.info(
-            "Created subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
-        )
-        sy['cidr_block'] = s_obj.cidr_block
-        sy['id'] = s_obj.id
-        apply_tag(s_obj, tag='Name', val=tree['nametag'])
-        apply_tag(s_obj, tag='Delegate', val=delegate)
-        return s_obj
-    #
-    # check id exists and cidr_block matches
-    log.debug("Getting subnet id {}".format(sy['id']))
-    s_list = vpc.get_all_subnets(subnet_ids=[sy['id']])
-    if len(s_list) == 0:  # pragma: no cover
-        error_exit("Subnet ID {} does not exist".format(sy['id']))
-    s_obj = s_list[0]
-    log.info(
-        "Found subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
-    )
-    if (
-         'cidr_block' not in sy or
-         sy['cidr_block'] is None
-    ):  # pragma: no cover
-        #
-        # set cidr_block
-        sy['cidr_block'] = s_obj.cidr_block
-    else:
-        #
-        # validate cidr_block
-        if sy['cidr_block'] == s_obj.cidr_block:
-            log.debug("CIDR block matches expected value {}"
-                      .format(sy['cidr_block']))
-        else:  # pragma: no cover
-            m = ("Delegate {} is supposed to have subnet {}, but that subnet"
-                 "exists with non-matching CIDR block {}")
-            error_exit(m.format(delegate, sy['cidr_block'], s_obj.cidr_block))
-    if args.retag:
-        apply_tag(s_obj, tag='Name', val=tree['nametag'])
-        apply_tag(s_obj, tag='Delegate', val=delegate)
-    return s_obj
 
 
 def get_vpc_obj(tree=None, vpc=None):
@@ -142,11 +86,11 @@ def get_vpc_obj(tree=None, vpc=None):
     return vpc_obj
 
 
-class AWS(myyaml.MyYaml):
+class AWS(object):
 
-    def __init__(self, yamlfile):
+    def __init__(self, args):
+        self.args = args
         self._aws = {}
-        super(AWS, self).__init__(yamlfile)
 
     def ping_ec2(self):
         """
@@ -210,14 +154,94 @@ class AWS(myyaml.MyYaml):
         self._aws['vpc_obj'] = vpc_obj
         return vpc_obj
 
+    def subnet_cached(self, delegate):
+        if (
+                'subnets' in self._aws and
+                delegate in self._aws['subnets'] and
+                'subnet_obj' in self._aws['subnets'][delegate]
+        ):
+            s_obj = self._aws['subnets'][delegate]['subnet_obj']
+        else:
+            return None
+        if isinstance(s_obj, boto.vpc.subnet.Subnet):
+            return s_obj
+        else:
+            return None
+
+    def cache_subnet(self, delegate, subnet_obj):
+        if 'subnets' not in self._aws:
+            self._aws['subnets'] = {}
+        if delegate not in self._aws['subnets']:
+            self._aws['subnets'][delegate] = {}
+        self._aws['subnets'][delegate] = subnet_obj
+        
     def subnet_obj(self, delegate):
-        return get_subnet_obj(
-            delegate,
-            tree=self.tree(),
-            vpc=self.vpc(),
-            vpc_obj=self.vpc_obj(),
-            args=self.args,
+        """
+            Takes delegate number, returns subnet object.
+            Subnet object is returned from cache if cached.
+            Otherwise, the method validates the subnet, creates it if
+            necessary, populates tree, and returns subnet object.
+        """
+        s_obj = self.subnet_cached(delegate)
+        if s_obj:
+            return s_obj
+        tree = self.tree()
+        vpc = self.vpc()
+        vpc_obj = self.vpc_obj()
+        args = self.args
+        cidr_block = '10.0.{}.0/24'.format(delegate)
+        if len(tree['subnets']) < delegate+1:  # pragma: no cover
+            tree['subnets'].append({})
+        sy = tree['subnets'][delegate]  # subnet yaml
+        if (
+                'id' not in sy or
+                sy['id'] is None
+        ):  # pragma: no cover
+            #
+            # create new subnet
+            log.debug("About to create subnet {}".format(cidr_block))
+            s_obj = vpc.create_subnet(vpc_obj.id, cidr_block)
+            log.info(
+                "Created subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
+            )
+            sy['cidr_block'] = s_obj.cidr_block
+            sy['id'] = s_obj.id
+            apply_tag(s_obj, tag='Name', val=tree['nametag'])
+            apply_tag(s_obj, tag='Delegate', val=delegate)
+            self.cache_subnet(s_obj)
+            return s_obj
+        #
+        # check id exists and cidr_block matches
+        log.debug("Getting subnet id {}".format(sy['id']))
+        s_list = vpc.get_all_subnets(subnet_ids=[sy['id']])
+        if len(s_list) == 0:  # pragma: no cover
+            error_exit("Subnet ID {} does not exist".format(sy['id']))
+        s_obj = s_list[0]
+        log.info(
+            "Found subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
         )
+        if (
+             'cidr_block' not in sy or
+             sy['cidr_block'] is None
+        ):  # pragma: no cover
+            #
+            # set cidr_block
+            sy['cidr_block'] = s_obj.cidr_block
+        else:
+            #
+            # validate cidr_block
+            if sy['cidr_block'] == s_obj.cidr_block:
+                log.debug("CIDR block matches expected value {}"
+                          .format(sy['cidr_block']))
+            else:  # pragma: no cover
+                m = ("Delegate {} is supposed to have subnet {}, but that subnet"
+                     "exists with non-matching CIDR block {}")
+                error_exit(m.format(delegate, sy['cidr_block'], s_obj.cidr_block))
+        self.cache_subnet(delegate, s_obj)
+        if args.retag:
+            apply_tag(s_obj, tag='Name', val=tree['nametag'])
+            apply_tag(s_obj, tag='Delegate', val=delegate)
+        return s_obj
 
     def subnet_objs(self):
         """
