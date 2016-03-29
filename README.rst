@@ -173,9 +173,6 @@ If there is a problem, an exception will be thrown.
 Virtual Private Cloud
 =====================
 
-Introduction
-------------
-
 To ensure that our demo clusters do not interfere with other AWS projects,
 we use a Virtual Private Cloud (VPC) containing a number of subnets.
 
@@ -318,9 +315,6 @@ the public network segments from which people will be accessing your VPC.
 
 Subnets
 =======
-
-Introduction
-------------
 
 As explained in the introduction to the `Virtual Private Cloud`_ chapter,
 each delegate will have their own "Class C" ``/24`` virtual network, or
