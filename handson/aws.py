@@ -35,7 +35,7 @@ import boto.vpc
 import logging
 import myyaml
 
-from handson.error import HandsOnError
+from handson.error import error_exit
 from handson.tag import apply_tag
 
 log = logging.getLogger(__name__)
@@ -71,9 +71,7 @@ def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None, args=None):
     log.debug("Getting subnet id {}".format(sy['id']))
     s_list = vpc.get_all_subnets(subnet_ids=[sy['id']])
     if len(s_list) == 0:  # pragma: no cover
-        raise HandsOnError(
-            "Subnet ID {} does not exist".format(sy['id'])
-        )
+        error_exit("Subnet ID {} does not exist".format(sy['id']))
     s_obj = s_list[0]
     log.info(
         "Found subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
@@ -94,9 +92,7 @@ def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None, args=None):
         else:  # pragma: no cover
             m = ("Delegate {} is supposed to have subnet {}, but that subnet"
                  "exists with non-matching CIDR block {}")
-            raise HandsOnError(m.format(
-                delegate, sy['cidr_block'], s_obj.cidr_block
-            ))
+            error_exit(m.format(delegate, sy['cidr_block'], s_obj.cidr_block))
     if args.retag:
         apply_tag(s_obj, tag='Name', val=tree['nametag'])
         apply_tag(s_obj, tag='Delegate', val=delegate)
@@ -133,15 +129,13 @@ def get_vpc_obj(tree=None, vpc=None):
     log.info("VPC ID according to yaml is {}".format(vpc_id))
     vpc_list = vpc.get_all_vpcs(vpc_ids=vpc_id)
     if len(vpc_list) == 0:  # pragma: no cover
-        raise HandsOnError(
-            "VPC ID {} does not exist".format(vpc_id)
-        )
+        error_exit("VPC ID {} does not exist".format(vpc_id))
     vpc_obj = vpc_list[0]
     cidr_block = vpc_obj.cidr_block
     if cidr_block != '10.0.0.0/16':  # pragma: no cover
         m = ("VPC ID {} exists, but has wrong CIDR block {} "
              "(should be 10.0.0.0/16)")
-        raise HandsOnError(m.format(vpc_id, cidr_block))
+        error_exit(m.format(vpc_id, cidr_block))
     log.info("VPC ID is {}, CIDR block is {}".format(
         tree['vpc']['id'], tree['vpc']['cidr_block'],
     ))
@@ -184,7 +178,7 @@ class AWS(myyaml.MyYaml):
             log.debug("Connecting to EC2 region {}".format(region))
             self._aws['ec2'] = boto.ec2.connect_to_region(region)
         if self._aws['ec2'] is None:  # pragma: no cover
-            raise HandsOnError("Failed to connect to {}".format(region))
+            error_exit("Failed to connect to {}".format(region))
         return self._aws['ec2']
 
     def instance_types(self):
@@ -199,7 +193,7 @@ class AWS(myyaml.MyYaml):
             log.debug("Connecting to VPC region {}".format(region))
             self._aws['vpc'] = boto.vpc.connect_to_region(region)
         if self._aws['vpc'] is None:  # pragma: no cover
-            raise HandsOnError("Failed to connect to {}".format(region))
+            error_exit("Failed to connect to {}".format(region))
         return self._aws['vpc']
 
     def vpc_obj(self):
@@ -245,8 +239,7 @@ class AWS(myyaml.MyYaml):
             tree['delegates'] = 1
         delegates = tree['delegates']
         if delegates < 1 or delegates > 50:  # pragma: no cover
-            raise HandsOnError("Invalid number of delegates {}".
-                               format(delegates))
+            error_exit("Invalid number of delegates {}".format(delegates))
         if (
                 'subnets' not in tree or
                 tree['subnets'] is None

@@ -36,3 +36,7 @@ class YamlError(Exception):
 
 class HandsOnError(Exception):
     pass
+
+
+def error_exit(e):
+    raise HandsOnError(e)

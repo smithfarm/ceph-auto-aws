@@ -32,13 +32,9 @@ import argparse
 import logging
 
 from handson.aws import AWS
-from handson.error import HandsOnError
+from handson.error import error_exit
 
 log = logging.getLogger(__name__)
-
-
-def error_exit(e):
-    raise HandsOnError(e)
 
 
 def expand_delegate_list(raw_input):
