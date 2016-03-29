@@ -48,6 +48,6 @@ def apply_tag(obj, tag='Name', val=None):
             log.info("Huh, trying again ({})".format(e))
             time.sleep(x)
         if not error:
-            log.info("Object {} successfully tagged.".format(obj))
+            log.info("Object {} tagged with {}={}".format(obj, tag, val))
             break
     return None

@@ -39,13 +39,29 @@ from handson.format import CustomFormatter
 log = logging.getLogger(__name__)
 
 
-def subcommand_parser():
+def probe_subcommand_parser():
     """
         Necessary for handling -h in, e.g., ho probe aws -h
     """
     parser = argparse.ArgumentParser(
         parents=[],
         conflict_handler='resolve',
+    )
+    return parser
+
+
+def probe_subcommand_parser_with_retag():
+    """
+        Necessary for handling -h in, e.g., ho probe aws -h
+    """
+    parser = argparse.ArgumentParser(
+        parents=[probe_subcommand_parser()],
+        conflict_handler='resolve',
+    )
+    parser.add_argument(
+        '-r', '--retag',
+        action='store_true', default=None,
+        help='retag all objects we touch',
     )
     return parser
 
@@ -98,7 +114,7 @@ class Probe(object):
 
             """),
             help='Test ability to connect to AWS EC2',
-            parents=[subcommand_parser()],
+            parents=[probe_subcommand_parser()],
             add_help=False,
         ).set_defaults(
             func=ProbeAWS,
@@ -125,7 +141,7 @@ class Probe(object):
 
             """),
             help='Probe subnets and create if missing',
-            parents=[subcommand_parser()],
+            parents=[probe_subcommand_parser_with_retag()],
             add_help=False,
         ).set_defaults(
             func=ProbeSubnets,
@@ -150,7 +166,7 @@ class Probe(object):
 
             """),
             help='Validate instance types',
-            parents=[subcommand_parser()],
+            parents=[probe_subcommand_parser()],
             add_help=False,
         ).set_defaults(
             func=ProbeTypes,
@@ -174,7 +190,7 @@ class Probe(object):
 
             """),
             help='Probe VPC and create if missing',
-            parents=[subcommand_parser()],
+            parents=[probe_subcommand_parser_with_retag()],
             add_help=False,
         ).set_defaults(
             func=ProbeVPC,
@@ -202,7 +218,7 @@ class Probe(object):
 
             """),
             help='Probe YaML file',
-            parents=[subcommand_parser()],
+            parents=[probe_subcommand_parser()],
             add_help=False,
         ).set_defaults(
             func=ProbeYaml,
@@ -215,6 +231,7 @@ class ProbeAWS(AWS):
 
     def __init__(self, args):
         super(ProbeAWS, self).__init__(args.yamlfile)
+        self.args = args
 
     def run(self):
         self.ping_ec2()
@@ -226,6 +243,7 @@ class ProbeSubnets(AWS):
 
     def __init__(self, args):
         super(ProbeSubnets, self).__init__(args.yamlfile)
+        self.args = args
 
     def run(self):
         self.subnet_objs()
@@ -235,6 +253,7 @@ class ProbeTypes(AWS):
 
     def __init__(self, args):
         super(ProbeTypes, self).__init__(args.yamlfile)
+        self.args = args
 
     def run(self):
         log.info("Instance Types {!r}".format(self.instance_types()))
@@ -244,6 +263,7 @@ class ProbeVPC(AWS):
 
     def __init__(self, args):
         super(ProbeVPC, self).__init__(args.yamlfile)
+        self.args = args
 
     def run(self):
         self.vpc_obj()
@@ -253,6 +273,7 @@ class ProbeYaml(AWS):
 
     def __init__(self, args):
         super(ProbeYaml, self).__init__(args.yamlfile)
+        self.args = args
 
     def run(self):
         self.load()

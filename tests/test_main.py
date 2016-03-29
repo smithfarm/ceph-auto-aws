@@ -140,6 +140,12 @@ class TestHandsOn(unittest.TestCase):
             ])
         )
 
+        self.assertTrue(
+            m.run([
+                'probe', 'subnets', '--retag',
+            ])
+        )
+
     def test_probe_types(self):
         m = main.HandsOn()
 

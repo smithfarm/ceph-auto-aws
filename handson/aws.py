@@ -41,7 +41,7 @@ from handson.tag import apply_tag
 log = logging.getLogger(__name__)
 
 
-def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None):
+def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None, args=None):
     """
         Given delegate number, validates subnet (creates if necessary),
         populates tree and returns subnet object
@@ -97,6 +97,9 @@ def get_subnet_obj(delegate, tree=None, vpc=None, vpc_obj=None):
             raise HandsOnError(m.format(
                 delegate, sy['cidr_block'], s_obj.cidr_block
             ))
+    if args.retag:
+        apply_tag(s_obj, tag='Name', val=tree['nametag'])
+        apply_tag(s_obj, tag='Delegate', val=delegate)
     return s_obj
 
 
@@ -218,7 +221,8 @@ class AWS(myyaml.MyYaml):
             delegate,
             tree=self.tree(),
             vpc=self.vpc(),
-            vpc_obj=self.vpc_obj()
+            vpc_obj=self.vpc_obj(),
+            args=self.args,
         )
 
     def subnet_objs(self):
