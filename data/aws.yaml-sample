@@ -10,19 +10,11 @@ delegates: 12
 
 keyname: bardoun
 
-master:
-  replace-from-environment:
-    - EMAIL
-    - BETA_PROGRAM_USERNAME
-    - BETA_PROGRAM_PASSWORD
-  type: t2.micro
-  user-data: user-data-master
-
 nametag: handson
 
 region: eu-west-1
 
-roles:
+role-definitions:
   admin:
   defaults:
     ami-id: ami-ff63dd8c
@@ -31,6 +23,13 @@ roles:
     type: t2.micro
     user-data: user-data-nodes
     volume:
+  master:
+    replace-from-environment:
+      - EMAIL
+      - BETA_PROGRAM_USERNAME
+      - BETA_PROGRAM_PASSWORD
+    type: t2.micro
+    user-data: user-data-master
   mon:
   osd:
   windows:
