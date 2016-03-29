@@ -121,6 +121,56 @@ class Probe(object):
         )
 
         subparsers.add_parser(
+            'cluster-definition',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Validate cluster definition.
+
+            This subcommand checks the 'cluster-definition' stanza
+            of the yaml file. Errors are reported, e.g., if the
+            cluster definition is not an array, if a role attribute is missing,
+            or if a role attribute points to a non-existent role.
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho probe cluster-definition
+            $ echo $?
+            0
+
+            """),
+            help='Validate cluster definition',
+            parents=[probe_subcommand_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeClusterDefinition,
+        )
+
+        subparsers.add_parser(
+            'role-definitions',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Validate role definitions.
+
+            This subcommand checks the 'role-definitions' stanza
+            of the yaml file. Various errors are detected and reported.
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho probe role-definitions
+            $ echo $?
+            0
+
+            """),
+            help='Validate role definitions',
+            parents=[probe_subcommand_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeRoleDefinition,
+        )
+
+        subparsers.add_parser(
             'subnets',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
@@ -236,6 +286,28 @@ class ProbeAWS(AWS):
     def run(self):
         self.ping_ec2()
         log.info("Connected to AWS EC2")
+        return True
+
+
+class ProbeClusterDefinition(AWS):
+
+    def __init__(self, args):
+        super(ProbeClusterDefinition, self).__init__(args.yamlfile)
+        self.args = args
+
+    def run(self):
+        self.validate_cluster_definition()
+        return True
+
+
+class ProbeRoleDefinition(AWS):
+
+    def __init__(self, args):
+        super(ProbeRoleDefinition, self).__init__(args.yamlfile)
+        self.args = args
+
+    def run(self):
+        self.validate_role_definitions()
         return True
 
 

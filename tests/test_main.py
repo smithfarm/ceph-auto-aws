@@ -105,73 +105,89 @@ class TestHandsOn(unittest.TestCase):
                 'install', '1,3-2',
             ])
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 'install',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
 
     @patch('boto.connect_ec2', side_effects=mock_connect_ec2)
     def test_probe_aws(self, mock_connect_ec2):
         m = main.HandsOn()
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 '-v', 'probe', 'aws',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.DEBUG)
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 'probe', 'aws',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.INFO)
+
+    def test_probe_cluster_definition(self):
+        m = main.HandsOn()
+        with self.assertRaises(SystemExit) as cm:
+            m.run([
+                'probe', 'cluster-definition',
+            ])
+        self.assertEqual(cm.exception.code, 0)
+
+    def test_probe_role_definitions(self):
+        m = main.HandsOn()
+        with self.assertRaises(SystemExit) as cm:
+            m.run([
+                'probe', 'role-definitions',
+            ])
+        self.assertEqual(cm.exception.code, 0)
 
     def test_probe_subnets(self):
         m = main.HandsOn()
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 'probe', 'subnets',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 'probe', 'subnets', '--retag',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
 
     def test_probe_types(self):
         m = main.HandsOn()
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 'probe', 'types',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
 
     def test_probe_vpc(self):
         m = main.HandsOn()
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 'probe', 'vpc',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
 
     def test_probe_yaml(self):
         m = main.HandsOn()
 
-        self.assertTrue(
+        with self.assertRaises(SystemExit) as cm:
             m.run([
                 'probe', 'yaml',
             ])
-        )
+        self.assertEqual(cm.exception.code, 0)
 
         with self.assertRaises(IOError):
             m.run([
