@@ -30,6 +30,7 @@
 #
 
 import logging
+import sys
 import textwrap
 
 from argparse import ArgumentParser
@@ -139,4 +140,4 @@ class HandsOn(object):
         # log.debug("HandsOn self.args {!r}".format(self.args))
         self.args.func(self.args).run()
 
-        return True
+        sys.exit(0)
