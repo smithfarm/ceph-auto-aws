@@ -347,3 +347,79 @@ addresses are not available for use:
 * 10.0.0.255: Network broadcast address. We do not support broadcast in a VPC,
   therefore we reserve this address. 
 
+Instances
+=========
+
+Once the subnets are set up, the next step is to install a set of
+clusters/delegates.
+
+This software assumes that each delegate will have one cluster and all the
+clusters will be identical.
+
+Each cluster consists of some number of instances, and each instance has a role
+that it plays in the cluster.
+
+Before you can install a cluster (or twelve!), you must first edit the `cluster
+definition`_ and `role definitions`_ in the yaml.
+
+Cluster definition
+------------------
+
+The cluster is defined in the ``cluster-definition`` stanza of the yaml. This
+stanza consists of an array of instance definitions. Each instance definition
+must contain a ``role`` attribute defining the *instance role*, which should be
+a very short string (e.g., "mon1") describing the role this instance will play
+in the cluster. 
+
+The value of each ``role`` attribute must match one of roles defined in the
+``roles`` yaml stanza.
+
+To validate the cluster definition, do::
+
+    (virtualenv)$ ho probe cluster-definition
+
+This command loads the yaml file and performs various checks on the
+``cluster-definition`` attribute.
+
+Role definitions
+----------------
+
+The roles themselves are defined in the ``roles`` section of the yaml, which
+contains a set of name-value pairs. The name is the role name, and the
+value is the role definition.
+
+Each role definition may contain one or more of the following attributes:
+
+========================= ====================================================
+Role definition attribute Description
+========================= ====================================================
+ami-id                    the AMI ID of the image from which to create the instance
+replace-from-environment  FIXME
+type                      the Instance Type 
+user-data                 file containing user-data
+volume                    disk volume to be attached to the instance (optional)
+========================= ====================================================
+
+If an attribute is missing, the default is taken. Defaults are defined in a
+special role called ``defaults``.
+
+To validate the role definitions, do::
+
+    (virtualenv)$ ho probe roles
+
+This command loads the yaml file and performs various checks on the
+``roles`` attribute.
+
+Instance tagging
+----------------
+
+Automatically, each cluster instance will be tagged as follows:
+
+======== ===========================================
+Tag      Description
+======== ===========================================
+Name     the value of the ``nametag`` yaml attribute
+Delegate the delegate number
+Role     the instance role
+======== ===========================================
+
