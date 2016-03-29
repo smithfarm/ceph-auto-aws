@@ -12,22 +12,38 @@ Automate deployment of Ceph clusters in AWS
 Introduction
 ============
 
-This document describes how its authors automated deployment of Ceph
-clusters in virtual machines on virtual machines provisioned in Amazon Web
-Services (AWS) Elastic Computing Cloud (EC2). 
+This document describes the `ceph-auto-aws`_ software for automating deployment
+of Ceph clusters in Amazon Web Services (AWS) - specifically the Elastic
+Computing Cloud (EC2) and Virtual Private Cloud (VPC) services. 
 
-The clusters are intended for use in "hands-on" demonstrations. Attendees
-of the hands-on session are referred to herein as "delegates".  Each
-delegate gets their own Ceph cluster.
+.. _`ceph-auto-aws`: https://github.com/smithfarm/ceph-auto-aws
 
-Scripting is provided for automating common tasks such as creating and
-wiping out a cluster.
+The software enables an arbitrary number of identical clusters from 1 to 251 to
+be so deployed.
 
-The scripting is written in Python and relies on `boto`_, "An integrated
+So far, the software has been used in "hands-on" sessions, to provide each attendee
+with their own cluster to play with. It could also facilitate deployment of one-off
+clusters to test various Ceph configurations.
+
+Scripting is provided for automating the provisioning of:
+
+* a VPC instance
+* subnets within the VPC
+* cluster instances (nodes) within each subnet
+* Salt Master instance (used to control the cluster instances)
+
+The scripting is written in Python and relies on `boto`_ ("An integrated
 interface to current and future infrastructural services offered by Amazon Web
-Services."
+Services") and `SaltStack`_ (a configuration management and distributed remote
+execution system).
+
+Configuration and state are stored in `YAML`_ file. `YAML`_ is a human friendly
+data serialization standard for all programming languages.
 
 .. _`boto`: http://boto.cloudhackers.com/en/latest/index.html
+.. _`SaltStack`: https://docs.saltstack.com/en/latest/topics/
+.. _`YAML`: http://yaml.org/
+
 
 Prerequisites and assumptions
 =============================
