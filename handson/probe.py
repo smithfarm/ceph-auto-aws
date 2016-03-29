@@ -50,11 +50,7 @@ def subcommand_parser():
     return parser
 
 
-class Probe(AWS):
-
-    def __init__(self, args):
-        log.info("Probe __init__ args {!r}".format(args))
-        self.args = args
+class Probe(object):
 
     @staticmethod
     def get_parser():

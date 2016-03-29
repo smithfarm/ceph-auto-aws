@@ -31,7 +31,7 @@
 import logging
 import unittest
 
-from handson.error import YamlError
+from handson.error import HandsOnError, YamlError
 from handson import main
 from mock import patch
 from yaml.parser import ParserError
@@ -77,6 +77,40 @@ class TestHandsOn(unittest.TestCase):
             ])
         self.assertEqual(cm.exception.code, 0)
 
+    def test_install(self):
+        m = main.HandsOn()
+
+        with self.assertRaises(HandsOnError):
+            m.run([
+                '-v', 'install', '1-50',
+            ])
+
+        with self.assertRaises(HandsOnError):
+            m.run([
+                'install', '51',
+            ])
+
+        with self.assertRaises(HandsOnError):
+            m.run([
+                'install', 'FartOnTheWater',
+            ])
+
+        with self.assertRaises(HandsOnError):
+            m.run([
+                'install', '0,1,3',
+            ])
+
+        with self.assertRaises(HandsOnError):
+            m.run([
+                'install', '1,3-2',
+            ])
+
+        self.assertTrue(
+            m.run([
+                'install',
+            ])
+        )
+
     @patch('boto.connect_ec2', side_effects=mock_connect_ec2)
     def test_probe_aws(self, mock_connect_ec2):
         m = main.HandsOn()
@@ -103,6 +137,15 @@ class TestHandsOn(unittest.TestCase):
         self.assertTrue(
             m.run([
                 'probe', 'subnets',
+            ])
+        )
+
+    def test_probe_types(self):
+        m = main.HandsOn()
+
+        self.assertTrue(
+            m.run([
+                'probe', 'types',
             ])
         )
 
