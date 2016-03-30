@@ -146,29 +146,54 @@ credentials in order::
 Configuration
 =============
 
-aws.yaml
---------
+YAML file
+---------
 
 Interaction with AWS is controlled by a configuration file called ``aws.yaml``.
-By default, this file is searched for in the current directory.
+By default, this file is searched for in the current directory. If it is not
+found, a new one will be created.
 
-The git repo contains a valid configuration which is sufficient to run "probe"
-subcommands. This is a good starting point, so copy it into the current
-directory::
+We assume that you are starting from scratch. To get started, run the following
+command::
 
-    (virtualenv)$ cp data/aws.yaml-sample aws.yaml
+    (virtualenv)$ ho probe yaml
+    2016-03-30 21:35:12,105 INFO Probing 'subnets' stanza
+    2016-03-30 21:35:12,105 INFO Loaded yaml tree from './aws.yaml'
+    2016-03-30 21:35:12,106 INFO Probing 'keyname' stanza
+    2016-03-30 21:35:12,106 INFO Probing 'vpc' stanza
+    2016-03-30 21:35:12,108 INFO Probing 'role-definitions' stanza
+    2016-03-30 21:35:12,111 INFO Detected roles ['admin', 'windows', 'master', 'mon', 'defaults', 'osd']
+    2016-03-30 21:35:12,111 INFO Probing 'region' stanza
+    2016-03-30 21:35:12,113 INFO Probing 'cluster-definition' stanza
+    2016-03-30 21:35:12,115 INFO Detected cluster-definition stanza
+    2016-03-30 21:35:12,115 INFO Detected role 'admin' in cluster definition
+    2016-03-30 21:35:12,115 INFO Probing 'delegates' stanza
+    2016-03-30 21:35:12,117 INFO Probing 'types' stanza
+    2016-03-30 21:35:12,117 INFO YAML tree is sane
+
+You can see that the YAML file has been created::
+
     (virtualenv)$ file aws.yaml
     aws.yaml: ASCII text
 
-Validate configuration
-----------------------
+You can run ``ho probe yaml`` anytime to check your configuration file, and
+especially after any manual modifications.
 
-At any time, you can run ``ho probe yaml`` to check your configuration file::
+Region
+------
 
-    (virtualenv)$ ho probe yaml
-    2016-03-27 22:39:03,898 INFO Loaded yaml from ./aws.yaml
+The next step is to configure the AWS Region. The default is ``eu-west-1``,
+i.e. "EU (Ireland)". If you want to use a different region, edit the YAML file
+(``aws.yaml`` in current directory) and edit the following line::
 
-If there is a problem, an exception will be thrown.
+    region: eu-west-1
+
+Next, verify that you can connect to that region by running the command::
+
+    (virtualenv)$ ho probe region
+    2016-03-30 21:54:34,545 INFO Loaded yaml tree from './aws.yaml'
+    2016-03-30 21:54:34,545 INFO Testing connectivity to AWS Region 'eu-west-1'
+    2016-03-30 23:02:52,146 INFO Detected 1 VPCs
 
 Virtual Private Cloud
 =====================
@@ -187,29 +212,27 @@ will be 10.0.12.0/24.
 VPC configuration
 -----------------
 
-If you are setting up a VPC for the first time, ``ho probe vpc`` will create
-it for you, provided the ``vpc`` stanza (inside the ``aws.yaml`` file in the
-current working directory) looks like this::
+If you are setting up a VPC for the first time, run the following command to
+create one::
 
-    vpc:
+    (virtualenv)$ ho probe vpc
+    2016-03-30 23:20:34,407 INFO Loaded yaml tree from './aws.yaml'
+    2016-03-30 23:20:34,686 INFO New VPC ID vpc-cfd7c9aa created with CIDR block 10.0.0.0/16
+    2016-03-30 23:20:34,816 INFO Object VPC:vpc-cfd7c9aa tagged with Name=handson
 
 Once the VPC has been created, the ``vpc`` stanza will look like this::
 
     vpc:
       cidr_block: 10.0.0.0/16
-      id: c8809dad
+      id: cfd7c9aa
 
-Validate VPC
-------------
-
-Now validate that your VPC is set up properly::
+Note that ``ho probe vpc`` is idempotent: you can run it as many times as you
+want. Try running it a second time::
 
     (virtualenv)$ ho probe vpc
-    Connected to region eu-west-1
-    Looking for VPC 10.0.0.0/16
-    There are no instances in the master subnet
-
-You can run ``ho probe vpc`` as many times as you want: it is idempotent.
+    2016-03-30 23:22:00,612 INFO Loaded yaml tree from './aws.yaml'
+    2016-03-30 23:22:00,613 INFO VPC ID according to yaml is vpc-cfd7c9aa
+    2016-03-30 23:22:00,907 INFO VPC ID is vpc-cfd7c9aa, CIDR block is 10.0.0.0/16
 
 Any other output (and especially any traceback) probably means your VPC is
 not set up properly.
@@ -325,23 +348,41 @@ Subnet configuration
 
 Initially, the ``subnets`` stanza of your ``aws.yaml`` file should be empty::
 
-    subnets:
+    subnets: {}
 
 Do not add anything here: the scripting will create subnets automatically based
 on the number of delegates given in the ``delegates`` stanza, e.g.::
 
-    delegates: 12
+    delegates: 1
+
+If you want more than one cluster, change the ``delegates`` stanza in the YAML
+file now.
 
 Validate subnets
 ----------------
 
-To ensure that the subnets are created, you can run::
+To ensure that the subnets are created for each delegate plus the Salt Master,
+you should run::
 
     (virtualenv)$ ho probe subnets
+    2016-03-31 00:02:15,915 INFO Loaded yaml tree from './aws.yaml'
+    2016-03-31 00:02:15,916 INFO Probing 1 subnets
+    2016-03-31 00:02:15,916 INFO VPC ID according to yaml is vpc-cfd7c9aa
+    2016-03-31 00:02:16,175 INFO VPC ID is vpc-cfd7c9aa, CIDR block is 10.0.0.0/16
+    2016-03-31 00:02:16,379 INFO Created subnet subnet-6bfb121d (10.0.0.0/24)
+    2016-03-31 00:02:16,520 INFO Object Subnet:subnet-6bfb121d tagged with Name=handson
+    2016-03-31 00:02:16,643 INFO Object Subnet:subnet-6bfb121d tagged with Delegate=0
+    2016-03-31 00:02:16,644 INFO VPC ID according to yaml is vpc-cfd7c9aa
+    2016-03-31 00:02:16,912 INFO VPC ID is vpc-cfd7c9aa, CIDR block is 10.0.0.0/16
+    2016-03-31 00:02:17,097 INFO Created subnet subnet-68fb121e (10.0.1.0/24)
+    2016-03-31 00:02:17,230 INFO Object Subnet:subnet-68fb121e tagged with Name=handson
+    2016-03-31 00:02:17,358 INFO Object Subnet:subnet-68fb121e tagged with Delegate=1
+    ...
 
 This will create a ``10.0.0.0/24`` subnet for the Salt Master and one
 additional ``/24`` for each delegate. It will also add the appropriate tags to
 the subnet objects.
+
 
 Subnet caveat
 -------------
