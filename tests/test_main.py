@@ -32,7 +32,7 @@ import handson.myyaml
 import logging
 import unittest
 
-from handson.error import HandsOnError, YamlError
+from handson.error import HandsOnError
 from handson import main
 from mock import patch
 from yaml.parser import ParserError

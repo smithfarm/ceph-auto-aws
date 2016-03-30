@@ -1,6 +1,19 @@
 CHANGES
 =======
 
+* Redesign
+* aws.py: drop deprecated module
+* data/bogus.yaml: new YAML validation code makes these changes
+* myyaml.py: more rewriting
+* README.rst: update to current state
+* Rename clusters.py -> cluster.py
+* myyaml.py: rewrite
+* README.rst: drop superfluous Introduction subsection headings
+* README.rst: work on the Introduction
+* util.py: add a module for utility functions
+* myyaml.py: make validate_role_definitions() validate type
+* update ChangeLog
+
 v0.0.18
 -------
 
