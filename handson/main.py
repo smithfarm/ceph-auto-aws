@@ -34,7 +34,7 @@ import sys
 import textwrap
 
 from argparse import ArgumentParser
-from handson.clusters import Install, cluster_options_parser
+from handson.cluster import Cluster, cluster_options_parser
 from handson.format import CustomFormatter
 from handson.probe import Probe
 
@@ -108,7 +108,7 @@ class HandsOn(object):
             parents=[cluster_options_parser()],
             add_help=False,
         ).set_defaults(
-            func=Install,
+            func=Cluster,
         )
 
         subparsers.add_parser(

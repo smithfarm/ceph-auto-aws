@@ -31,8 +31,9 @@
 import argparse
 import logging
 
-from handson.aws import AWS
 from handson.error import error_exit
+from handson.myyaml import stanza
+from handson.subnet import Subnet
 
 log = logging.getLogger(__name__)
 
@@ -108,7 +109,7 @@ def cluster_options_parser():
         return parser
 
 
-class Install(AWS):
+class Cluster(Subnet):
 
     def __init__(self, args):
         super(Install, self).__init__(args.yamlfile)
