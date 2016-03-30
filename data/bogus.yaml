@@ -5,6 +5,11 @@ admin:
   type: t2.small
   user-data: user-data-nodes-frozen
 
+cluster-definition:
+  - role: admin
+
+delegates: 1
+
 install_subnets:
   - 1
 
@@ -27,6 +32,8 @@ mon:
   user-data: user-data-nodes-frozen
   volume: 20
 
+nametag: handson
+
 osd:
   ami-id: ami-61211d16
   replace-from-environment:
@@ -37,11 +44,27 @@ osd:
 
 region: eu-west-1
 
+role-definitions:
+  admin:
+  defaults:
+    ami-id:
+    replace-from-environment: []
+    type: t2.small
+    user-data:
+    volume:
+  master:
+  mon:
+  osd:
+  windows:
+
 subnets:
   - cidr-block: 10.0.0.0/24
     delegate: 0
   - cidr-block: 10.0.1.0/24
     delegate: 1
+
+types:
+  - t2.small
 
 vpc:
   cidr_block: 10.0.0.0/16
