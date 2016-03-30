@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+v0.1.0
+------
+
+* Bump version: 0.0.18 → 0.1.0
+* update ChangeLog
 * Redesign
 * aws.py: drop deprecated module
 * data/bogus.yaml: new YAML validation code makes these changes
