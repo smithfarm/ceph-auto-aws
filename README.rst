@@ -427,7 +427,7 @@ The value of each ``role`` attribute must match one of roles defined in the
 
 To validate the cluster definition, do::
 
-    (virtualenv)$ ho probe cluster-definition
+    (virtualenv)$ ho probe yaml
 
 This command loads the yaml file and performs various checks on the
 ``cluster-definition`` attribute.
@@ -456,7 +456,7 @@ special role called ``defaults``.
 
 To validate the role definitions, do::
 
-    (virtualenv)$ ho probe roles
+    (virtualenv)$ ho probe yaml
 
 This command loads the yaml file and performs various checks on the
 ``roles`` attribute.
