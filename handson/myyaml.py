@@ -31,7 +31,6 @@
 import logging
 import os
 
-from handson.error import error_exit
 from yaml import safe_load
 from pyaml import dump
 
@@ -41,6 +40,7 @@ tree_stanzas = {
     'cluster-definition': {'default': [{'role': 'admin'}], 'type': list},
     'delegates': {'default': 1, 'type': int},
     'keyname': {'default': '', 'type': str},
+    'nametag': {'default': 'handson', 'type': str},
     'region': {'default': 'eu-west-1', 'type': str},
     'role-definitions': {'default': {
         'admin': None,
@@ -48,16 +48,17 @@ tree_stanzas = {
             'ami-id': '',
             'replace-from-environment': [],
             'type': 't2.small',
-            'user-data': ''
+            'user-data': '',
+            'volume': ''
         },
         'master': None,
         'mon': None,
         'osd': None,
         'windows': None
     }, 'type': dict},
-    'subnets': {'default': [], 'type': list},
+    'subnets': {'default': {}, 'type': dict},
     'types': {'default': ['t2.small'], 'type': list},
-    'vpc': {'default': [], 'type': list}
+    'vpc': {'default': {}, 'type': dict}
 }
 
 role_definition_keys = [
@@ -73,24 +74,10 @@ _cache_populated = False
 _yfn = None
 
 
-def tree():
-    # log.debug("{!r}".format(self._yaml))
-    global _cache
-    if _cache is None:
-        _cache = load()
-        if type(_cache) is not dict:  # pragma: no cover
-            error_exit("yaml file is totally munged")
-        for stanza in tree_stanzas:
-            if stanza not in _cache:  # pragma: no cover
-                error_exit("{!r} stanza missing in yaml file"
-                           .format(stanza))
-    return _cache
-
-
 def yaml_file_name(fn=None):
     global _yfn
-    if _yfn is None and fn is None:
-        error_exit("YAML file name not initialized")
+    if _yfn is None:
+        assert fn is not None, "YAML file name not initialized"
     if fn is None:
         return _yfn
     _yfn = fn
@@ -131,8 +118,7 @@ def write():  # pragma: no cover
 
 def stanza_is_present(s):
     global _cache
-    if s not in _cache:
-        error_exit("No stanza {!r} in YAML file".format(s))
+    assert s in _cache, "No stanza {!r} in YAML file".format(s)
 
 
 def apply_default(k):
@@ -148,9 +134,8 @@ def apply_default(k):
 def check_if_malformed(k):
     global _cache
     t = tree_stanzas[k]['type']
-    if type(_cache[k]) is not t:
-        log.fatal("Malformed YAML stanza {!r} is not {!r}".format(k, t))
-        assert 1 == 0
+    assert type(_cache[k]) is t, (
+           "YAML stanza {!r} is malformed (should be a {!r})".format(k, t))
 
 
 def stanza_is_sane(k):
@@ -158,43 +143,49 @@ def stanza_is_sane(k):
     check_if_malformed(k)
 
 
-def stanza(k):
+def stanza(k, new_val=None):
     global _cache
     load()
+    if new_val:
+        _cache[k] = new_val
+        write()
     stanza_is_sane(k)
     return _cache[k]
 
 
 def probe_yaml():
-    load()
     for key in tree_stanzas:
-        stanza_is_sane(key)
+        log.info("Probing {!r} stanza".format(key))
+        stanza(key)
+        if key == 'cluster-definition':
+            validate_cluster_definition()
+        if key == 'role-definitions':
+            validate_role_definitions()
+    log.info("YAML tree is sane")
 
 
-def role_def_valid(role, rd):
-    if type(rd) is not dict:
-        error_exit("Role definition {!r} is not a mapping"
-                   .format(role))
+def role_def_valid(role):
+    rd = stanza('role-definitions')[role]
+    if rd is None:
+        return True
+    assert type(rd) is dict,(
+           "Role definition {!r} is not a mapping".format(role))
     for key in rd:
         log.debug("Considering attribute {!r}".format(key))
-        if key not in role_definition_keys:
-            error_exit(
-                "Role definition {!r} contains illegal attribute {!r}"
-                .format(role, key)
-            )
-        val = role_def[key]
-        if key == 'type' and val not in stanza('type'):
-            error_exit(
-                "Illegal type {!r} detected in role definition {!r}"
-                .format(val, role)
-            )
+        assert key in role_definition_keys, (
+               ("Role definition {!r} contains illegal attribute {!r}"
+                .format(role, key)))
+        val = rd[key]
+        if key == 'type':
+            assert val in stanza('types'), (
+                   ("Illegal type {!r} detected in role definition {!r}"
+                    .format(val, role)))
+    return True
 
 
 def validate_role_definitions():  # pragma: no cover
     types = stanza('types')
     rd = stanza('role-definitions')
-    if type(rd) is not dict:
-        error_exit("role-definitions stanza is not a mapping")
     roles = []
     for role in rd:
         log.debug("Detected definition stanza of role {!r}".format(role))
@@ -202,55 +193,44 @@ def validate_role_definitions():  # pragma: no cover
         role_def = rd[role]
         if role_def is None:
             continue
-        assert role_def_valid(role, role_def)
+        assert role_def_valid(role), (
+            "Role definition {!r} is invalid".format(role))
     log.info("Detected roles {!r}".format(roles))
     return roles
 
 
 def role_exists(role):
-    stanza = tree['role-definitions']
-    return True if role in stanza else False
+    return True if role in stanza('role-definitions') else False
 
 
 def validate_cluster_definition():  # pragma: no cover
-    cluster_def = tree['cluster-definition']
-    if cluster_def is None:
-        error_exit("cluster-definition stanza is empty")
-    if type(cluster_def) is not list:
-        error_exit("cluster-definition is not a sequence")
-    if len(cluster_def) < 1:
-        error_exit("cluster-definition stanza is empty")
+    cluster_def = stanza('cluster-definition')
+    assert len(cluster_def) >= 1, "cluster-definition stanza is empty"
     log.info("Detected cluster-definition stanza")
     roles = []
     for instance_def in cluster_def:
         log.debug("Considering instance definition {!r}"
                   .format(instance_def))
-        if type(instance_def) is not dict:
-            error_exit("Instance definition is not a mapping")
-        if len(instance_def.items()) < 0:
-            error_exit("Instance definition is empty")
-        if len(instance_def.items()) > 1:
-            error_exit("Instance definition contains more than one "
-                       "attribute")
+        assert type(instance_def) is dict, (
+               ("Instance definition {!r} is not a mapping"
+                .format(instance_def)))
+        assert len(instance_def.items()) > 0, "Instance definition is empty"
+        assert len(instance_def.items()) < 2, (
+               ("Instance definition {!r} contains more than one attribute",
+                format(instance_def)))
         log.debug("Instance definition {!r}".format(instance_def.items()))
-        key = instance_def.items()[0][0]
-        if key != 'role':
-            error_exit("Instance definition key is not 'role'")
-        val = instance_def[key]
-        if val is None:
-            error_exit("Detected empty 'role' attribute in cluster "
-                       "definition")
-        if type(val) is not str:
-            error_exit("Detected non-string 'role' attribute in cluster "
-                       "definition")
-        if val in roles:
-            error_exit("Detected duplicate role {!r} in cluster definition"
-                       .format(val))
+        (key, val) = instance_def.items()[0]
+        assert key == 'role', (
+               "Instance definition key {!r} is not 'role'".format(key))
+        assert type(val) is not None, "Detected missing 'role' attribute"
+        assert type(val) is str, (
+               "Detected non-string 'role' attribute {!r}".format(type(val)))
+        assert val not in roles, (
+               ("Detected duplicate role {!r} in cluster definition"
+                .format(val)))
+        assert val.lower() != "defaults", (
+               "Detected bogus role {!r} in cluster definition".format(val))
         log.info("Detected role {!r} in cluster definition".format(val))
-        if val.lower() == "defaults":
-            error_exit("Detected bogus role {!r} in cluster definition"
-                       .format(val))
         roles.append(val)
-        if not self.role_exists(val):
-            error_exit("Role {!r} is undefined".format(val))
+        assert role_exists(val), "Role {!r} is undefined".format(val)
     return True
