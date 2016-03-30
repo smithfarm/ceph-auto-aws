@@ -29,11 +29,10 @@
 #
 
 import argparse
+import handson.myyaml
 import logging
 
 from handson.error import error_exit
-from handson.myyaml import stanza
-from handson.subnet import Subnet
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ def expand_delegate_list(raw_input):
                 intermediate_list.extend(range(ti[0], ti[1]+1))
                 continue
         error_exit("Illegal delegate list")
-    final_list = list(set(sorted(intermediate_list)))
+    final_list = list(sorted(set(intermediate_list), key=int))
     if final_list[0] < 1:
         error_exit("detected too-low delegate (min. 1)")
     if final_list[-1] > 50:
@@ -109,21 +108,27 @@ def cluster_options_parser():
         return parser
 
 
-class Cluster(Subnet):
+class InitArgs(object):
 
     def __init__(self, args):
-        super(Install, self).__init__(args.yamlfile)
+        handson.myyaml._yfn = args.yamlfile
+
+
+class Install(InitArgs):
+
+    def __init__(self, args):
+        super(Install, self).__init__(args)
         self.args = args
 
     def report_options(self):
         dr = "ON" if self.args.dry_run else "OFF"
         log.debug("Dry run is {}".format(dr))
-        log.debug("Delegate list is {!r}".format(self.args.delegate_list))
+        log.info("Delegate list is {!r}".format(self.args.delegate_list))
 
     def validate_delegate_list(self):
         if self.args.delegate_list is None:
             return True
-        max_delegates = self.tree()['delegates']
+        max_delegates = handson.myyaml.stanza('delegates')
         log.debug("Maximum number of delegates is {!r}".format(max_delegates))
         if (
                 max_delegates is None or

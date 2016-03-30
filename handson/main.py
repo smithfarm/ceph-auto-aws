@@ -34,7 +34,7 @@ import sys
 import textwrap
 
 from argparse import ArgumentParser
-from handson.cluster import Cluster, cluster_options_parser
+from handson.cluster import Install, cluster_options_parser
 from handson.format import CustomFormatter
 from handson.probe import Probe
 
@@ -108,7 +108,7 @@ class HandsOn(object):
             parents=[cluster_options_parser()],
             add_help=False,
         ).set_defaults(
-            func=Cluster,
+            func=Install,
         )
 
         subparsers.add_parser(
@@ -137,7 +137,7 @@ class HandsOn(object):
             level = logging.INFO
         logging.getLogger('handson').setLevel(level)
 
-        # log.debug("HandsOn self.args {!r}".format(self.args))
+        log.info("HandsOn self.args {!r}".format(self.args))
         self.args.func(self.args).run()
 
         sys.exit(0)

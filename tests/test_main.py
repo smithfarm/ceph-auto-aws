@@ -28,6 +28,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+import handson.myyaml
 import logging
 import unittest
 
@@ -131,22 +132,6 @@ class TestHandsOn(unittest.TestCase):
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.INFO)
 
-    def test_probe_cluster_definition(self):
-        m = main.HandsOn()
-        with self.assertRaises(SystemExit) as cm:
-            m.run([
-                'probe', 'cluster-definition',
-            ])
-        self.assertEqual(cm.exception.code, 0)
-
-    def test_probe_role_definitions(self):
-        m = main.HandsOn()
-        with self.assertRaises(SystemExit) as cm:
-            m.run([
-                'probe', 'role-definitions',
-            ])
-        self.assertEqual(cm.exception.code, 0)
-
     def test_probe_subnets(self):
         m = main.HandsOn()
 
@@ -159,15 +144,6 @@ class TestHandsOn(unittest.TestCase):
         with self.assertRaises(SystemExit) as cm:
             m.run([
                 'probe', 'subnets', '--retag',
-            ])
-        self.assertEqual(cm.exception.code, 0)
-
-    def test_probe_types(self):
-        m = main.HandsOn()
-
-        with self.assertRaises(SystemExit) as cm:
-            m.run([
-                'probe', 'types',
             ])
         self.assertEqual(cm.exception.code, 0)
 
@@ -189,19 +165,19 @@ class TestHandsOn(unittest.TestCase):
             ])
         self.assertEqual(cm.exception.code, 0)
 
-        with self.assertRaises(IOError):
-            m.run([
-                '-y', 'BogusFileThatDoesNotExist',
-                'probe', 'yaml',
-            ])
-
+        handson.myyaml._cache = {}
+        handson.myyaml._cache_populated = False
+        handson.myyaml._yfn = None
         with self.assertRaises(ParserError):
             m.run([
                 '-y', './bootstrap',
                 'probe', 'yaml',
             ])
 
-        with self.assertRaises(YamlError):
+        handson.myyaml._cache = {}
+        handson.myyaml._cache_populated = False
+        handson.myyaml._yfn = None
+        with self.assertRaises(AssertionError):
             m.run([
                 '-y', './data/bogus.yaml',
                 'probe', 'yaml',

@@ -1,3 +1,4 @@
+#
 # Copyright (c) 2016, SUSE LLC
 # All rights reserved.
 #
@@ -27,17 +28,30 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+import boto
+import boto.ec2
 import logging
+
+# from handson.tag import apply_tag
+# from handson.util import read_user_data
 
 log = logging.getLogger(__name__)
 
 
-def read_user_data(fn):
-    """
-        Given a filename, returns the file's contents in a string.
-    """
-    r = ''
-    with open(fn) as fh:
-        r = fh.read()
-        fh.close()
-    return r
+class Instances(object):
+
+    def __init__(self, args):
+        self.args = args
+        self._aws = {}
+
+    def ec2(self):
+        """
+            fetch ec2 connection, open if necessary
+        """
+        region = self.region()
+        if 'ec2' not in self._aws or self._aws['ec2'] is None:
+            log.debug("Connecting to EC2 region {}".format(region))
+            self._aws['ec2'] = boto.ec2.connect_to_region(region)
+        assert self._aws['ec2'] is not None, (
+               "Failed to connect to {}".format(region))
+        return self._aws['ec2']

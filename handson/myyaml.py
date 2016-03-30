@@ -168,7 +168,7 @@ def role_def_valid(role):
     rd = stanza('role-definitions')[role]
     if rd is None:
         return True
-    assert type(rd) is dict,(
+    assert type(rd) is dict, (
            "Role definition {!r} is not a mapping".format(role))
     for key in rd:
         log.debug("Considering attribute {!r}".format(key))
@@ -184,7 +184,6 @@ def role_def_valid(role):
 
 
 def validate_role_definitions():  # pragma: no cover
-    types = stanza('types')
     rd = stanza('role-definitions')
     roles = []
     for role in rd:

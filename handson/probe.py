@@ -29,12 +29,15 @@
 #
 
 import argparse
+import handson.myyaml
 import logging
 import textwrap
 
-from handson.error import YamlError
+from boto import connect_ec2
 from handson.format import CustomFormatter
-from handson.myyaml import MyYaml
+from handson.region import Region
+from handson.subnet import Subnet
+from handson.vpc import VPC
 
 log = logging.getLogger(__name__)
 
@@ -51,9 +54,6 @@ def probe_subcommand_parser():
 
 
 def probe_subcommand_parser_with_retag():
-    """
-        Necessary for handling -h in, e.g., ho probe aws -h
-    """
     parser = argparse.ArgumentParser(
         parents=[probe_subcommand_parser()],
         conflict_handler='resolve',
@@ -121,53 +121,29 @@ class Probe(object):
         )
 
         subparsers.add_parser(
-            'cluster-definition',
+            'region',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
-            Validate cluster definition.
+            Test connect to the region defined in YAML.
 
-            This subcommand checks the 'cluster-definition' stanza
-            of the yaml file. Errors are reported, e.g., if the
-            cluster definition is not an array, if a role attribute is missing,
-            or if a role attribute points to a non-existent role.
+            This subcommand reads the "region" stanza of the YAML
+            file to determine which region to connect to. Then it
+            attempts to open a connection to the VPC service in that
+            region.
             """),
             epilog=textwrap.dedent("""
             Example:
 
-            $ ho probe cluster-definition
+            $ ho probe region
             $ echo $?
             0
 
             """),
-            help='Validate cluster definition',
+            help='Test region connectivity',
             parents=[probe_subcommand_parser()],
             add_help=False,
         ).set_defaults(
-            func=ProbeClusterDefinition,
-        )
-
-        subparsers.add_parser(
-            'role-definitions',
-            formatter_class=CustomFormatter,
-            description=textwrap.dedent("""\
-            Validate role definitions.
-
-            This subcommand checks the 'role-definitions' stanza
-            of the yaml file. Various errors are detected and reported.
-            """),
-            epilog=textwrap.dedent("""
-            Example:
-
-            $ ho probe role-definitions
-            $ echo $?
-            0
-
-            """),
-            help='Validate role definitions',
-            parents=[probe_subcommand_parser()],
-            add_help=False,
-        ).set_defaults(
-            func=ProbeRoleDefinition,
+            func=ProbeRegion,
         )
 
         subparsers.add_parser(
@@ -183,7 +159,8 @@ class Probe(object):
             It also checks the Salt Master's dedicated subnet and creates it if
             necessary.
 
-            """), epilog=textwrap.dedent(""" Examples:
+            """),
+            epilog=textwrap.dedent(""" Examples:
 
             $ ho probe subnets
             $ echo $?
@@ -198,31 +175,6 @@ class Probe(object):
         )
 
         subparsers.add_parser(
-            'types',
-            formatter_class=CustomFormatter,
-            description=textwrap.dedent("""\
-            Dump 'types' stanza of yaml.
-
-            This subcommand reads the 'types' stanza of the yaml and dumps
-            the values found there in a log message.
-
-            NOTE: this does not currently perform any validation on the values.
-
-            """), epilog=textwrap.dedent(""" Examples:
-
-            $ ho probe types
-            2016-03-29 00:54:04 INFO Loaded yaml from ./aws.yaml
-            2016-03-29 00:54:04 INFO Instance Types ['t2.small', 't2.micro']
-
-            """),
-            help='Validate instance types',
-            parents=[probe_subcommand_parser()],
-            add_help=False,
-        ).set_defaults(
-            func=ProbeTypes,
-        )
-
-        subparsers.add_parser(
             'vpc',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
@@ -232,7 +184,8 @@ class Probe(object):
             YaML. If VPC is missing in AWS, it is created and the YaML is
             updated.
 
-            """), epilog=textwrap.dedent(""" Examples:
+            """),
+            epilog=textwrap.dedent(""" Examples:
 
             $ ho probe vpc
             $ echo $?
@@ -277,78 +230,62 @@ class Probe(object):
         return parser
 
 
-class ProbeAWS(MyYaml):
+class InitArgs(object):
 
     def __init__(self, args):
-        super(ProbeAWS, self).__init__(args)
+        handson.myyaml._yfn = args.yamlfile
+
+
+class ProbeAWS(InitArgs):
 
     def run(self):
-        self.ping_ec2()
+        connect_ec2()
         log.info("Connected to AWS EC2")
-        return True
 
 
-class ProbeClusterDefinition(MyYaml):
-
-    def __init__(self, args):
-        super(ProbeClusterDefinition, self).__init__(args)
-
-    def run(self):
-        self.validate_cluster_definition()
-        return True
-
-
-class ProbeRoleDefinition(MyYaml):
+class ProbeRegion(InitArgs):
 
     def __init__(self, args):
-        super(ProbeRoleDefinition, self).__init__(args)
+        super(ProbeRegion, self).__init__(args)
+        self.region = handson.myyaml.stanza('region')
+        self.args = args
 
     def run(self):
-        self.validate_role_definitions()
-        return True
+        log.info("Testing connectivity to AWS Region {!r}"
+                 .format(self.region))
+        vpc_conn = Region(self.args).vpc()
+        vpc_count = len(vpc_conn.get_all_vpcs())
+        log.info("Detected {!r} VPCs".format(vpc_count))
 
 
-class ProbeSubnets(MyYaml):
+class ProbeSubnets(InitArgs):
 
     def __init__(self, args):
         super(ProbeSubnets, self).__init__(args)
+        self.args = args
 
     def run(self):
-        self.subnet_objs()
+        delegates = handson.myyaml.stanza('delegates')
+        log.info('Probing {!r} subnets'.format(delegates + 1))
+        for d in range(0, delegates + 1):
+            c = Subnet(self.args, d)
+            c.subnet_obj()
 
 
-class ProbeTypes(MyYaml):
-
-    def __init__(self, args):
-        super(ProbeTypes, self).__init__(args)
-
-    def run(self):
-        log.info("Instance Types {!r}".format(self.instance_types()))
-
-
-class ProbeVPC(MyYaml):
+class ProbeVPC(InitArgs):
 
     def __init__(self, args):
         super(ProbeVPC, self).__init__(args)
+        self.args = args
 
     def run(self):
-        self.vpc_obj()
+        VPC(self.args).vpc_obj()
 
 
-class ProbeYaml(MyYaml):
+class ProbeYaml(InitArgs):
 
     def __init__(self, args):
         super(ProbeYaml, self).__init__(args)
 
     def run(self):
-        self.load()
-        tree = self.tree()
-        try:
-            fodder = ['region', 'vpc', 'keyname', 'nametag']
-            for elem in fodder:
-                assert elem in tree
-        except AssertionError:
-            raise YamlError(
-                "Missing stanza in yaml file: {}".format(elem)
-            )
-        return True
+        handson.myyaml.probe_yaml()
