@@ -183,7 +183,7 @@ def role_def_valid(role):
     return True
 
 
-def validate_role_definitions():  # pragma: no cover
+def validate_role_definitions():
     rd = stanza('role-definitions')
     roles = []
     for role in rd:
@@ -202,7 +202,7 @@ def role_exists(role):
     return True if role in stanza('role-definitions') else False
 
 
-def validate_cluster_definition():  # pragma: no cover
+def validate_cluster_definition():
     cluster_def = stanza('cluster-definition')
     assert len(cluster_def) >= 1, "cluster-definition stanza is empty"
     log.info("Detected cluster-definition stanza")
@@ -218,7 +218,7 @@ def validate_cluster_definition():  # pragma: no cover
                ("Instance definition {!r} contains more than one attribute",
                 format(instance_def)))
         log.debug("Instance definition {!r}".format(instance_def.items()))
-        (key, val) = instance_def.items()[0]
+        (key, val) = list(instance_def.items())[0]
         assert key == 'role', (
                "Instance definition key {!r} is not 'role'".format(key))
         assert type(val) is not None, "Detected missing 'role' attribute"
