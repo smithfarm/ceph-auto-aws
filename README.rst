@@ -52,7 +52,17 @@ We assume that you have access to Amazon Web Services (AWS) Elastic
 Computing Cloud (EC2) and Virtual Private Cloud (VPC). That means you can login
 via a web browser and access the EC2 and VPC dashboards.
 
-Nothing in this document is guaranteed to work (see the licenses, above).
+We further assume that you have a relatively recent version of Python and
+`virtualenv`_ installed on your system. On openSUSE, Python should already be
+installed and installing `virtualenv`_ should be as simple as running the
+following command as root::
+
+    # zypper install python-virtualenv
+
+If something in this software (or this document) doesn't work for you, open a
+bug report in the `GitHub issue tracker`_:
+
+.. _`GitHub issue tracker`: https://github.com/smithfarm/ceph-auto-aws/issues
 
 Early steps
 ===========
