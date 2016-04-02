@@ -67,7 +67,10 @@ class Region(object):
         region = self.region()
         if self._region['ec2_conn'] is None:
             log.debug("Connecting to EC2 region {}".format(region))
-            self._region['ec2_conn'] = boto.ec2.connect_to_region(region)
+            self._region['ec2_conn'] = boto.ec2.connect_to_region(
+                region,
+                is_secure=False
+            )
         assert self._region['ec2_conn'] is not None, (
                ("Failed to connect to EC2 service in region {!r}"
                 .format(region)))
@@ -82,7 +85,10 @@ class Region(object):
         region = self.region()
         if self._region['vpc_conn'] is None:
             log.debug("Connecting to VPC region {}".format(region))
-            self._region['vpc_conn'] = boto.vpc.connect_to_region(region)
+            self._region['vpc_conn'] = boto.vpc.connect_to_region(
+                region,
+                is_secure=False
+            )
         assert self._region['vpc_conn'] is not None, (
                ("Failed to connect to VPC service in region {!r}"
                 .format(region)))

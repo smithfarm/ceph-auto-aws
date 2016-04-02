@@ -5,6 +5,7 @@ if ! sh -c "which virtualenv > /dev/null 2>&1" ; then
 fi
 set -ex
 rm -rf virtualenv .tox
+#virtualenv -p python3.4 virtualenv
 virtualenv virtualenv
 source virtualenv/bin/activate
 pip install --upgrade pip 

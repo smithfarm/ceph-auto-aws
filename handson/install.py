@@ -31,8 +31,10 @@
 import argparse
 import handson.myyaml
 import logging
+import textwrap
 
 from handson.error import error_exit
+from handson.format import CustomFormatter
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +50,8 @@ def expand_delegate_list(raw_input):
     for item in raw_input.split(','):
         t = item.split('-')
         try:
-            ti = map(int, t)
+            ti = list(map(int, t))
+            # ti = map(int, t) <- SEGFAULT
         except ValueError as e:
             error_exit(e)
         if len(ti) == 1:
@@ -108,16 +111,71 @@ def cluster_options_parser():
         return parser
 
 
+class Install(object):
+
+    @staticmethod
+    def get_parser():
+        parser = argparse.ArgumentParser(
+            usage='ho install',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Install delegats.
+
+            The documentation for each sub-subcommand can be displayed with
+
+               ho install sub-subcommand --help
+
+            For instance:
+
+               ho install delegate --help
+               usage: ho install delegate [-h]
+               ...
+
+            For more information, refer to the README.rst file at
+            https://github.com/smithfarm/ceph-auto-aws/README.rst
+            """))
+
+        subparsers = parser.add_subparsers(
+            title='install subcommands',
+            description='valid install subcommands',
+            help='install subcommand -h',
+        )
+
+        subparsers.add_parser(
+            'delegates',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Install delegate cluster(s) in AWS.
+
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho install delegates 1-12
+            $ echo $?
+            0
+
+            """),
+            help='Install delegate cluster(s) in AWS',
+            parents=[cluster_options_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=InstallDelegate,
+        )
+
+        return parser
+
+
 class InitArgs(object):
 
     def __init__(self, args):
         handson.myyaml._yfn = args.yamlfile
 
 
-class Install(InitArgs):
+class InstallDelegate(InitArgs):
 
     def __init__(self, args):
-        super(Install, self).__init__(args)
+        super(InstallDelegate, self).__init__(args)
         self.args = args
 
     def report_options(self):

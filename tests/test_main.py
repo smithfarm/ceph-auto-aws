@@ -35,7 +35,7 @@ from handson.error import HandsOnError
 from handson import main
 from handson.test_setup import SetUp
 from mock import patch
-# from yaml.parser import ParserError
+from yaml.parser import ParserError
 
 
 def mock_connect(*_):
@@ -78,37 +78,52 @@ class TestHandsOn(SetUp, unittest.TestCase):
             ])
         self.assertEqual(cm.exception.code, 0)
 
-    def test_install(self):
+    def test_install_01(self):
         m = main.HandsOn()
 
         with self.assertRaises(HandsOnError):
             m.run([
-                '-v', 'install', '1-50',
+                '-v', 'install', 'delegates', '1-50',
             ])
+
+    def test_install_02(self):
+        m = main.HandsOn()
 
         with self.assertRaises(HandsOnError):
             m.run([
-                'install', '51',
+                'install', 'delegates', '51',
             ])
+
+    def test_install_03(self):
+        m = main.HandsOn()
 
         with self.assertRaises(HandsOnError):
             m.run([
-                'install', 'FartOnTheWater',
+                'install', 'delegates', 'FartOnTheWater',
             ])
+
+    def test_install_04(self):
+        m = main.HandsOn()
 
         with self.assertRaises(HandsOnError):
             m.run([
-                'install', '0,1,3',
+                'install', 'delegates', '0,1,3',
             ])
+
+    def test_install_05(self):
+        m = main.HandsOn()
 
         with self.assertRaises(HandsOnError):
             m.run([
-                'install', '1,3-2',
+                'install', 'delegates', '1,3-2',
             ])
+
+    def test_install_06(self):
+        m = main.HandsOn()
 
         with self.assertRaises(SystemExit) as cm:
             m.run([
-                'install',
+                'install', 'delegates'
             ])
         self.assertEqual(cm.exception.code, 0)
 
@@ -174,7 +189,7 @@ class TestHandsOn(SetUp, unittest.TestCase):
             ])
         self.assertEqual(cm.exception.code, 0)
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ParserError):
             m.run([
                 '-y', './bootstrap',
                 'probe', 'yaml',

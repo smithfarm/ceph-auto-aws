@@ -35,7 +35,7 @@ import sys
 import textwrap
 
 from argparse import ArgumentParser
-from handson.cluster import Install, cluster_options_parser
+from handson.install import Install
 from handson.format import CustomFormatter
 from handson.probe import Probe
 from handson.wipeout import WipeOut
@@ -107,10 +107,8 @@ class HandsOn(object):
 
             """),
             help='Create Ceph clusters in AWS',
-            parents=[cluster_options_parser()],
+            parents=[Install.get_parser()],
             add_help=False,
-        ).set_defaults(
-            func=Install,
         )
 
         subparsers.add_parser(
