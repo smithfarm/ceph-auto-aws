@@ -38,6 +38,7 @@ from argparse import ArgumentParser
 from handson.cluster import Install, cluster_options_parser
 from handson.format import CustomFormatter
 from handson.probe import Probe
+from handson.wipeout import WipeOut
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 log = logging.getLogger(__name__)
@@ -126,6 +127,23 @@ class HandsOn(object):
             """),
             help='Probe AWS connection and cluster configuration',
             parents=[Probe.get_parser()],
+            add_help=False,
+        )
+
+        subparsers.add_parser(
+            'wipeout',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Wipe out (completely remove) AWS entities.
+            """),
+            epilog=textwrap.dedent("""
+            Examples:
+
+            $ ho wipeout vpc
+
+            """),
+            help='Wipe out (completely remove) AWS entities',
+            parents=[WipeOut.get_parser()],
             add_help=False,
         )
 
