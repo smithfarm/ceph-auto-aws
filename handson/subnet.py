@@ -58,7 +58,7 @@ class Subnet(VPC):
             return self._subnet['s_obj']
         s_stanza = stanza('subnets')
         vpc = self.vpc()
-        vpc_obj = self.vpc_obj()
+        vpc_obj = self.vpc_obj(create=False)
         args = self.args
         delegate = self._subnet['delegate']
         cidr_block = '10.0.{}.0/24'.format(delegate)

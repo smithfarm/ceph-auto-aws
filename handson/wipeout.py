@@ -34,9 +34,9 @@ import logging
 import textwrap
 
 from handson.format import CustomFormatter
-from handson.delegate import Delegate
-from handson.region import Region
-from handson.subnet import Subnet
+# from handson.delegate import Delegate
+# from handson.region import Region
+# from handson.subnet import Subnet
 from handson.vpc import VPC
 
 log = logging.getLogger(__name__)
@@ -173,4 +173,4 @@ class WipeOutVPC(InitArgs):
         self.args = args
 
     def run(self):
-        pass
+        VPC(self.args).wipeout()

@@ -43,8 +43,15 @@ class TestMyYaml(SetUp, unittest.TestCase):
             myyaml.stanza_is_present('bogus_stanza')
 
     def test_stanza_assignment(self):
+        # existing stanza
         self.reset_yaml()
         self.assertEqual(myyaml.stanza('delegates'), 1)
         new_val = 90125
         myyaml.stanza('delegates', new_val)
         self.assertEqual(myyaml.stanza('delegates'), new_val)
+        # non-existing stanza
+        self.reset_yaml()
+        self.assertEqual(myyaml.stanza('prd'), None)
+        new_val = {}
+        myyaml.stanza('prd', new_val)
+        self.assertEqual(myyaml.stanza('prd'), new_val)

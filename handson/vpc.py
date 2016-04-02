@@ -47,7 +47,7 @@ class VPC(Region):
             'vpc_obj': None
         }
 
-    def vpc_obj(self):
+    def vpc_obj(self, create=False):
         """
             fetch VPC object, create if necessary
         """
@@ -62,19 +62,23 @@ class VPC(Region):
         if len(vpc_stanza) == 0:  # pragma: no cover
             #
             # create VPC
-            log.debug("VPC ID not specified in yaml: creating VPC")
-            vpc_obj = vpc_conn.create_vpc('10.0.0.0/16')
-            vpc_stanza['id'] = vpc_obj.id
-            vpc_stanza['cidr_block'] = vpc_obj.cidr_block
-            log.info("New VPC ID {} created with CIDR block {}".format(
-                vpc_obj.id, vpc_obj.cidr_block
-            ))
-            apply_tag(vpc_obj, tag='Name', val=stanza('nametag'))
-            self._vpc['vpc_obj'] = vpc_obj
-            stanza('vpc', {
-                'cidr_block': vpc_obj.cidr_block,
-                'id': vpc_obj.id
-            })
+            if create:
+                log.info("VPC ID not specified in yaml: creating VPC")
+                vpc_obj = vpc_conn.create_vpc('10.0.0.0/16')
+                vpc_stanza['id'] = vpc_obj.id
+                vpc_stanza['cidr_block'] = vpc_obj.cidr_block
+                log.info("New VPC ID {} created with CIDR block {}".format(
+                    vpc_obj.id, vpc_obj.cidr_block
+                ))
+                apply_tag(vpc_obj, tag='Name', val=stanza('nametag'))
+                self._vpc['vpc_obj'] = vpc_obj
+                stanza('vpc', {
+                    'cidr_block': vpc_obj.cidr_block,
+                    'id': vpc_obj.id
+                })
+            else:
+                log.info("VPC ID not specified in yaml: nothing to do")
+                vpc_obj = None
             return vpc_obj
         #
         # existing VPC
@@ -94,3 +98,12 @@ class VPC(Region):
         ))
         self._vpc['vpc_obj'] = vpc_obj
         return vpc_obj
+
+    def wipeout(self):
+        vpc_obj = self.vpc_obj(create=False)
+        if vpc_obj:
+            log.info("Wiping out VPC ID {}".format(vpc_obj.id))
+            self.vpc().delete_vpc(vpc_obj.id)
+            stanza('vpc', {})
+        else:
+            log.info("No VPC in YAML; nothing to do")

@@ -279,7 +279,7 @@ class ProbeVPC(InitArgs):
         self.args = args
 
     def run(self):
-        VPC(self.args).vpc_obj()
+        VPC(self.args).vpc_obj(create=True)
 
 
 class ProbeYaml(InitArgs):
