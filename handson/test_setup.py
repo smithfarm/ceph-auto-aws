@@ -28,21 +28,20 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import handson.myyaml
+import handson.myyaml as myyaml
 # import logging
 import os
-import unittest
-
-from handson.test_setup import SetUp
-from handson.vpc import VPC
 
 
-class TestVPC(SetUp, unittest.TestCase):
+class SetUp(object):
 
-    def test_vpc_cache(self):
-        self.reset_yaml()
-        handson.myyaml.yaml_file_name('./aws.yaml')
-        handson.myyaml.load()
-        v = VPC({})
-        v.vpc_obj()  # loads from yaml
-        v.vpc_obj()  # loads from cache
+    def setUp(self):
+        try:
+            os.remove('./aws.yaml')
+        except OSError:
+            pass
+
+    def reset_yaml(self):
+        myyaml.reset()
+        myyaml.yaml_file_name('./aws.yaml')
+        myyaml.load()

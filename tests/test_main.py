@@ -28,14 +28,15 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import handson.myyaml
 import logging
+import os
 import unittest
 
 from handson.error import HandsOnError
 from handson import main
+from handson.test_setup import SetUp
 from mock import patch
-from yaml.parser import ParserError
+# from yaml.parser import ParserError
 
 
 def mock_connect(*_):
@@ -61,7 +62,7 @@ class MockVPCConnection(object):
         return ['DummyValue']
 
 
-class TestHandsOn(unittest.TestCase):
+class TestHandsOn(SetUp, unittest.TestCase):
 
     def test_init(self):
         m = main.HandsOn()
@@ -132,6 +133,15 @@ class TestHandsOn(unittest.TestCase):
         l = logging.getLogger('handson')
         self.assertIs(l.getEffectiveLevel(), logging.INFO)
 
+    def test_probe_region(self):
+        m = main.HandsOn()
+
+        with self.assertRaises(SystemExit) as cm:
+            m.run([
+                'probe', 'region',
+            ])
+        self.assertEqual(cm.exception.code, 0)
+
     def test_probe_subnets(self):
         m = main.HandsOn()
 
@@ -165,18 +175,12 @@ class TestHandsOn(unittest.TestCase):
             ])
         self.assertEqual(cm.exception.code, 0)
 
-        handson.myyaml._cache = {}
-        handson.myyaml._cache_populated = False
-        handson.myyaml._yfn = None
-        with self.assertRaises(ParserError):
+        with self.assertRaises(AssertionError):
             m.run([
                 '-y', './bootstrap',
                 'probe', 'yaml',
             ])
 
-        handson.myyaml._cache = {}
-        handson.myyaml._cache_populated = False
-        handson.myyaml._yfn = None
         with self.assertRaises(AssertionError):
             m.run([
                 '-y', './data/bogus.yaml',

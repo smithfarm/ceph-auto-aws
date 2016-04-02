@@ -28,21 +28,24 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import handson.myyaml
+import handson.myyaml as myyaml
 # import logging
 import os
 import unittest
 
 from handson.test_setup import SetUp
-from handson.vpc import VPC
 
 
-class TestVPC(SetUp, unittest.TestCase):
+class TestMyYaml(SetUp, unittest.TestCase):
 
-    def test_vpc_cache(self):
+    def test_stanza_missing(self):
         self.reset_yaml()
-        handson.myyaml.yaml_file_name('./aws.yaml')
-        handson.myyaml.load()
-        v = VPC({})
-        v.vpc_obj()  # loads from yaml
-        v.vpc_obj()  # loads from cache
+        with self.assertRaises(AssertionError):
+            myyaml.stanza_is_present('bogus_stanza')
+
+    def test_stanza_assignment(self):
+        self.reset_yaml()
+        self.assertEqual(myyaml.stanza('delegates'), 1)
+        new_val = 90125
+        myyaml.stanza('delegates', new_val)
+        self.assertEqual(myyaml.stanza('delegates'), new_val)
