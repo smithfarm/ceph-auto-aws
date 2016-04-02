@@ -32,13 +32,14 @@ import boto
 import boto.ec2
 import logging
 
+from handson.subnet import Subnet
 # from handson.tag import apply_tag
 # from handson.util import read_user_data
 
 log = logging.getLogger(__name__)
 
 
-class Instances(object):
+class Delegate(Subnet):
 
     def __init__(self, args):
         self.args = args

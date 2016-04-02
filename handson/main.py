@@ -29,6 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+import handson.myyaml
 import logging
 import sys
 import textwrap
@@ -137,7 +138,9 @@ class HandsOn(object):
             level = logging.INFO
         logging.getLogger('handson').setLevel(level)
 
-        log.info("HandsOn self.args {!r}".format(self.args))
+        # log.info("HandsOn self.args {!r}".format(self.args))
+
+        handson.myyaml.reset()
         self.args.func(self.args).run()
 
         sys.exit(0)

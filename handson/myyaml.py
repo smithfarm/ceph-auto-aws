@@ -74,6 +74,13 @@ _cache_populated = False
 _yfn = None
 
 
+def reset():
+    global _cache, _cache_populated, _yfn
+    _cache = {}
+    _cache_populated = False
+    _yfn = None
+
+
 def yaml_file_name(fn=None):
     global _yfn
     if _yfn is None:
@@ -102,6 +109,9 @@ def load():
     touch(yfn)
     with open(yfn) as f:
         _cache = safe_load(f)
+    if _cache is None:
+        _cache = {}
+    assert type(_cache) is dict, "YAML file is not a mapping"
     _cache_populated = True
     log.info("Loaded yaml tree from {!r}".format(yfn))
     return None
@@ -123,8 +133,6 @@ def stanza_is_present(s):
 
 def apply_default(k):
     global _cache
-    if _cache is None:
-        _cache = {}
     if k not in _cache or _cache[k] is None:
         _cache[k] = tree_stanzas[k]['default']
         write()
@@ -166,8 +174,6 @@ def probe_yaml():
 
 def role_def_valid(role):
     rd = stanza('role-definitions')[role]
-    if rd is None:
-        return True
     assert type(rd) is dict, (
            "Role definition {!r} is not a mapping".format(role))
     for key in rd:
