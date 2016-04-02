@@ -30,7 +30,6 @@
 #
 import handson.myyaml
 # import logging
-import os
 import unittest
 
 from handson.test_setup import SetUp

@@ -29,7 +29,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 import logging
-import os
 import unittest
 
 from handson.error import HandsOnError
