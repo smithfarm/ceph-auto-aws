@@ -154,7 +154,7 @@ def stanza_is_sane(k):
 def stanza(k, new_val=None):
     global _cache
     load()
-    if new_val:
+    if new_val is not None:
         _cache[k] = new_val
         write()
     stanza_is_sane(k)
