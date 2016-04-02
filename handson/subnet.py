@@ -48,7 +48,7 @@ class Subnet(VPC):
             's_obj': None
         }
 
-    def subnet_obj(self):
+    def subnet_obj(self, create=False):
         """
             Subnet object is returned from cache if cached.
             Otherwise, the method validates the subnet, creates it if
@@ -66,16 +66,20 @@ class Subnet(VPC):
             s_stanza[delegate] = {}
             #
             # create new subnet
-            log.debug("About to create subnet {}".format(cidr_block))
-            s_obj = vpc.create_subnet(vpc_obj.id, cidr_block)
-            log.info(
-                "Created subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
-            )
-            s_stanza[delegate]['cidr_block'] = s_obj.cidr_block
-            s_stanza[delegate]['id'] = s_obj.id
-            stanza('subnets', s_stanza)
-            apply_tag(s_obj, tag='Name', val=stanza('nametag'))
-            apply_tag(s_obj, tag='Delegate', val=delegate)
+            if create:
+                log.debug("About to create subnet {}".format(cidr_block))
+                s_obj = vpc.create_subnet(vpc_obj.id, cidr_block)
+                log.info(
+                    "Created subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
+                )
+                s_stanza[delegate]['cidr_block'] = s_obj.cidr_block
+                s_stanza[delegate]['id'] = s_obj.id
+                stanza('subnets', s_stanza)
+                apply_tag(s_obj, tag='Name', val=stanza('nametag'))
+                apply_tag(s_obj, tag='Delegate', val=delegate)
+            else:
+                log.info("Subnet ID not specified in yaml: nothing to do")
+                s_obj = None
             self._subnet['s_obj'] = s_obj
             return s_obj
         #
@@ -106,7 +110,23 @@ class Subnet(VPC):
                     s_obj.cidr_block
                 ))
         self._subnet['s_obj'] = s_obj
-        if args.retag:
-            apply_tag(s_obj, tag='Name', val=stanza('nametag'))
-            apply_tag(s_obj, tag='Delegate', val=delegate)
+        # if args.retag:
+        #     apply_tag(s_obj, tag='Name', val=stanza('nametag'))
+        #     apply_tag(s_obj, tag='Delegate', val=delegate)
         return s_obj
+
+    def wipeout(self, dry_run=False):
+        s_obj = self.subnet_obj(create=False)
+        if s_obj:
+            log.info("Wiping out Subnet ID {}".format(s_obj.id))
+            if dry_run:
+                log.info("Dry run: doing nothing")
+                return None
+            self.vpc().delete_subnet(s_obj.id)
+            s_stanza = stanza('subnets')
+            d = self._subnet['delegate']
+            del(s_stanza[d])
+            stanza('subnets', s_stanza)
+        else:
+            log.info("No VPC in YAML; nothing to do")
+        return None

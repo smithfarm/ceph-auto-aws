@@ -34,9 +34,17 @@ import textwrap
 
 from handson.cluster_options import (
     cluster_options_parser,
-    validate_delegate_list,
+    ClusterOptions,
+    dry_run_only_parser,
 )
-from handson.misc import CustomFormatter, InitArgs
+from handson.misc import (
+    CustomFormatter,
+    InitArgs,
+    subcommand_parser_with_retag,
+)
+from handson.myyaml import stanza
+from handson.subnet import Subnet
+from handson.vpc import VPC
 
 log = logging.getLogger(__name__)
 
@@ -93,15 +101,98 @@ class Install(object):
             func=InstallDelegate,
         )
 
+        subparsers.add_parser(
+            'subnets',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Install delegate subnet(s) in AWS.
+
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho install subnets 1-12
+            $ ho install subnets --all
+            $ ho install subnets --all --dry-run
+
+            """),
+            help='Install delegate subnet(s) in AWS',
+            parents=[cluster_options_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=InstallSubnets,
+        )
+
+        subparsers.add_parser(
+            'vpc',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Install Virtual Private Cloud (VPC).
+
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho install vpc
+            $ ho install --dry-run
+
+            """),
+            help='Install Virtual Private Cloud (VPC)',
+            parents=[dry_run_only_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=InstallVPC,
+        )
+
         return parser
 
 
-class InstallDelegate(InitArgs):
+class InstallDelegate(InitArgs, ClusterOptions):
 
     def __init__(self, args):
         super(InstallDelegate, self).__init__(args)
         self.args = args
 
     def run(self):
-        log.info("Delegate list is {!r}".format(self.args.delegate_list))
-        validate_delegate_list(self.args.delegate_list)
+        self.process_delegate_list()
+        if self.args.dry_run:
+            return None
+
+
+class InstallSubnets(InitArgs, ClusterOptions):
+
+    def __init__(self, args):
+        super(InstallSubnets, self).__init__(args)
+        self.args = args
+
+    def run(self):
+        if self.args.all:
+            max_d = stanza('delegates')
+            self.args.delegate_list = range(1, max_d + 1)
+        self.process_delegate_list()
+        for d in self.args.delegate_list:
+            log.info("Installing subnet for delegate {}".format(d))
+            if self.args.dry_run:
+                log.info("Dry run: doing nothing")
+                continue
+            c = Subnet(self.args, d)
+            c.subnet_obj(create=True)
+
+
+class InstallVPC(InitArgs):
+
+    def __init__(self, args):
+        super(InstallVPC, self).__init__(args)
+        self.args = args
+
+    def run(self):
+        log.info("Probing VPC")
+        vpc_obj = VPC(self.args).vpc_obj(create=False)
+        if vpc_obj.id:
+            log.info("VPC already installed")
+            return None
+        log.info("Creating VPC")
+        if self.args.dry_run:
+            log.info("Dry run: do nothing")
+            return None
+        vpc_obj = VPC(self.args).vpc_obj(create=True)

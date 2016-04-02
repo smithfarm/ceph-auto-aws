@@ -99,11 +99,15 @@ class VPC(Region):
         self._vpc['vpc_obj'] = vpc_obj
         return vpc_obj
 
-    def wipeout(self):
+    def wipeout(self, dry_run=False):
         vpc_obj = self.vpc_obj(create=False)
         if vpc_obj:
             log.info("Wiping out VPC ID {}".format(vpc_obj.id))
+            if dry_run:
+                log.info("Dry run: doing nothing")
+                return None
             self.vpc().delete_vpc(vpc_obj.id)
             stanza('vpc', {})
         else:
             log.info("No VPC in YAML; nothing to do")
+        return None

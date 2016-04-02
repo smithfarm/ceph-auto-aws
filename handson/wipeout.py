@@ -36,6 +36,7 @@ import textwrap
 from handson.cluster_options import (
     cluster_options_parser,
     dry_run_only_parser,
+    ClusterOptions,
 )
 # from handson.delegate import Delegate
 from handson.misc import (
@@ -119,7 +120,7 @@ class WipeOut(object):
             parents=[cluster_options_parser()],
             add_help=False,
         ).set_defaults(
-            func=WipeOutSubnet,
+            func=WipeOutSubnets,
         )
 
         subparsers.add_parser(
@@ -154,24 +155,33 @@ class InitArgs(object):
         handson.myyaml._yfn = args.yamlfile
 
 
-class WipeOutDelegates(InitArgs):
+class WipeOutDelegates(InitArgs, ClusterOptions):
 
     def __init__(self, args):
         super(WipeOutDelegates, self).__init__(args)
         self.args = args
 
     def run(self):
-        pass
+        self.process_delegate_list()
+        if self.args.dry_run:
+            return None
 
 
-class WipeOutSubnet(InitArgs):
+class WipeOutSubnets(InitArgs, ClusterOptions):
 
     def __init__(self, args):
-        super(WipeOutSubnet, self).__init__(args)
+        super(WipeOutSubnets, self).__init__(args)
         self.args = args
 
     def run(self):
-        Subnet(self.args).wipeout()
+        if self.args.all:
+            max_d = stanza('delegates')
+            self.args.delegate_list = range(1, max_d + 1)
+        self.process_delegate_list()
+        for d in self.args.delegate_list:
+            s = Subnet(self.args, d)
+            s.subnet_obj(create=False)
+            s.wipeout(dry_run=self.args.dry_run)
 
 
 class WipeOutVPC(InitArgs):
@@ -181,7 +191,6 @@ class WipeOutVPC(InitArgs):
         self.args = args
 
     def run(self):
-        if self.args.dry_run:
-            log.info("Dry run: do nothing")
-            return None
-        VPC(self.args).wipeout()
+        v = VPC(self.args)
+        v.vpc_obj(create=False)
+        v.wipeout(dry_run=self.args.dry_run)

@@ -49,7 +49,7 @@ def expand_delegate_list(raw_input):
         t = item.split('-')
         try:
             ti = list(map(int, t))
-            # ti = map(int, t) <- SEGFAULT
+            # ti = map(int, t)  # <- SEGFAULT
         except ValueError as e:
             error_exit(e)
         if len(ti) == 1:
@@ -141,3 +141,10 @@ def dry_run_only_parser():
         )
 
         return parser
+
+
+class ClusterOptions(object):
+
+    def process_delegate_list(self):
+        log.info("Delegate list is {!r}".format(self.args.delegate_list))
+        validate_delegate_list(self.args.delegate_list)

@@ -249,7 +249,7 @@ class ProbeSubnets(InitArgs):
         log.info('Probing {!r} subnets'.format(delegates + 1))
         for d in range(0, delegates + 1):
             c = Subnet(self.args, d)
-            c.subnet_obj()
+            c.subnet_obj(create=False)
 
 
 class ProbeVPC(InitArgs):
@@ -259,7 +259,7 @@ class ProbeVPC(InitArgs):
         self.args = args
 
     def run(self):
-        VPC(self.args).vpc_obj(create=True)
+        VPC(self.args).vpc_obj(create=False)
 
 
 class ProbeYaml(InitArgs):

@@ -233,7 +233,7 @@ VPC configuration
 If you are setting up a VPC for the first time, run the following command to
 create one::
 
-    (virtualenv)$ ho probe vpc
+    (virtualenv)$ ho install vpc
     2016-03-30 23:20:34,407 INFO Loaded yaml tree from './aws.yaml'
     2016-03-30 23:20:34,686 INFO New VPC ID vpc-cfd7c9aa created with CIDR block 10.0.0.0/16
     2016-03-30 23:20:34,816 INFO Object VPC:vpc-cfd7c9aa tagged with Name=handson
@@ -244,10 +244,10 @@ Once the VPC has been created, the ``vpc`` stanza will look like this::
       cidr_block: 10.0.0.0/16
       id: cfd7c9aa
 
-Note that ``ho probe vpc`` is idempotent: you can run it as many times as you
+Note that ``ho install vpc`` is idempotent: you can run it as many times as you
 want. Try running it a second time::
 
-    (virtualenv)$ ho probe vpc
+    (virtualenv)$ ho install vpc
     2016-03-30 23:22:00,612 INFO Loaded yaml tree from './aws.yaml'
     2016-03-30 23:22:00,613 INFO VPC ID according to yaml is vpc-cfd7c9aa
     2016-03-30 23:22:00,907 INFO VPC ID is vpc-cfd7c9aa, CIDR block is 10.0.0.0/16
@@ -382,7 +382,7 @@ Validate subnets
 To ensure that the subnets are created for each delegate plus the Salt Master,
 you should run::
 
-    (virtualenv)$ ho probe subnets
+    (virtualenv)$ ho install subnets --all
     2016-03-31 00:02:15,915 INFO Loaded yaml tree from './aws.yaml'
     2016-03-31 00:02:15,916 INFO Probing 1 subnets
     2016-03-31 00:02:15,916 INFO VPC ID according to yaml is vpc-cfd7c9aa
