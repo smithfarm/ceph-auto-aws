@@ -9,6 +9,14 @@ Automate deployment of Ceph clusters in AWS
 .. contents::
    :depth: 3
 
+Acknowledgements
+================
+
+Several parts of this application - especially the command-line interface
+design and code - are derived from Loic Dachary's work in `ceph-workbench`_.
+
+.. _`ceph-workbench`: http://ceph-workbench.readthedocs.org/en/latest/
+
 Introduction
 ============
 
