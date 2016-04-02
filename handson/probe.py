@@ -34,36 +34,16 @@ import logging
 import textwrap
 
 from boto import connect_ec2
-from handson.format import CustomFormatter
+from handson.misc import (
+    CustomFormatter,
+    subcommand_parser,
+    subcommand_parser_with_retag
+)
 from handson.region import Region
 from handson.subnet import Subnet
 from handson.vpc import VPC
 
 log = logging.getLogger(__name__)
-
-
-def probe_subcommand_parser():
-    """
-        Necessary for handling -h in, e.g., ho probe aws -h
-    """
-    parser = argparse.ArgumentParser(
-        parents=[],
-        conflict_handler='resolve',
-    )
-    return parser
-
-
-def probe_subcommand_parser_with_retag():
-    parser = argparse.ArgumentParser(
-        parents=[probe_subcommand_parser()],
-        conflict_handler='resolve',
-    )
-    parser.add_argument(
-        '-r', '--retag',
-        action='store_true', default=None,
-        help='retag all objects we touch',
-    )
-    return parser
 
 
 class Probe(object):
@@ -114,7 +94,7 @@ class Probe(object):
 
             """),
             help='Test ability to connect to AWS EC2',
-            parents=[probe_subcommand_parser()],
+            parents=[subcommand_parser()],
             add_help=False,
         ).set_defaults(
             func=ProbeAWS,
@@ -140,7 +120,7 @@ class Probe(object):
 
             """),
             help='Test region connectivity',
-            parents=[probe_subcommand_parser()],
+            parents=[subcommand_parser()],
             add_help=False,
         ).set_defaults(
             func=ProbeRegion,
@@ -168,7 +148,7 @@ class Probe(object):
 
             """),
             help='Probe subnets and create if missing',
-            parents=[probe_subcommand_parser_with_retag()],
+            parents=[subcommand_parser_with_retag()],
             add_help=False,
         ).set_defaults(
             func=ProbeSubnets,
@@ -193,7 +173,7 @@ class Probe(object):
 
             """),
             help='Probe VPC and create if missing',
-            parents=[probe_subcommand_parser_with_retag()],
+            parents=[subcommand_parser_with_retag()],
             add_help=False,
         ).set_defaults(
             func=ProbeVPC,
@@ -221,7 +201,7 @@ class Probe(object):
 
             """),
             help='Probe YaML file',
-            parents=[probe_subcommand_parser()],
+            parents=[subcommand_parser()],
             add_help=False,
         ).set_defaults(
             func=ProbeYaml,

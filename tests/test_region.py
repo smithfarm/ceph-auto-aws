@@ -1,5 +1,6 @@
 #
-# Copyright (c) 2016, SUSE LLC All rights reserved.
+# Copyright (c) 2016, SUSE LLC
+# All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -27,9 +28,20 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import argparse
+import handson.myyaml
+# import logging
+import unittest
+
+from handson.test_setup import SetUp
+from handson.region import Region
 
 
-class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
-                      argparse.RawDescriptionHelpFormatter):
-    pass
+class TestRegion(SetUp, unittest.TestCase):
+
+    def test_region_cache(self):
+        self.reset_yaml()
+        handson.myyaml.yaml_file_name('./aws.yaml')
+        handson.myyaml.load()
+        r = Region({})
+        r.region()  # loads from yaml
+        r.region()  # loads from cache

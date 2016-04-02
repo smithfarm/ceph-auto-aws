@@ -36,7 +36,7 @@ import textwrap
 
 from argparse import ArgumentParser
 from handson.install import Install
-from handson.format import CustomFormatter
+from handson.misc import CustomFormatter
 from handson.probe import Probe
 from handson.wipeout import WipeOut
 

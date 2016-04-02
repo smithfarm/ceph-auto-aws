@@ -31,8 +31,8 @@
 import logging
 import unittest
 
-from handson.error import HandsOnError
 from handson import main
+from handson.misc import HandsOnError
 from handson.test_setup import SetUp
 from mock import patch
 from yaml.parser import ParserError

@@ -33,37 +33,19 @@ import handson.myyaml
 import logging
 import textwrap
 
-from handson.format import CustomFormatter
+from handson.cluster_options import (
+    cluster_options_parser,
+    dry_run_only_parser,
+)
 # from handson.delegate import Delegate
+from handson.misc import (
+    CustomFormatter,
+)
 # from handson.region import Region
-# from handson.subnet import Subnet
+from handson.subnet import Subnet
 from handson.vpc import VPC
 
 log = logging.getLogger(__name__)
-
-
-def wipeout_subcommand_parser():
-    """
-        Necessary for handling -h in, e.g., ho wipeout vpc -h
-    """
-    parser = argparse.ArgumentParser(
-        parents=[],
-        conflict_handler='resolve',
-    )
-    return parser
-
-
-def wipeout_subcommand_parser_with_retag():
-    parser = argparse.ArgumentParser(
-        parents=[wipeout_subcommand_parser()],
-        conflict_handler='resolve',
-    )
-    parser.add_argument(
-        '-r', '--retag',
-        action='store_true', default=None,
-        help='retag all objects we touch',
-    )
-    return parser
 
 
 class WipeOut(object):
@@ -100,14 +82,7 @@ class WipeOut(object):
             'delegates',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
-            Probe subnets and create them if they are missing.
-
-            This subcommand checks that each delegate has a subnet in AWS VPC,
-            in accordance with the 'delegate' stanza of the YaML. If any subnet
-            is missing, it is created and the YaML is updated.
-
-            It also checks the Salt Master's dedicated subnet and creates it if
-            necessary.
+            Wipe out (completely delete) delegate clusters.
 
             """),
             epilog=textwrap.dedent(""" Examples:
@@ -117,11 +92,34 @@ class WipeOut(object):
             0
 
             """),
-            help='Probe subnets and create if missing',
-            parents=[wipeout_subcommand_parser_with_retag()],
+            help='Wipe out (completely delete) delegate clusters',
+            parents=[cluster_options_parser()],
             add_help=False,
         ).set_defaults(
             func=WipeOutDelegates,
+        )
+
+        subparsers.add_parser(
+            'subnets',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Wipe out (completely delete) one or more subnets.
+
+            Ipsum dolum
+
+            """),
+            epilog=textwrap.dedent(""" Examples:
+
+            $ ho wipeout subnets 3
+            $ ho wipeout subnets 1,5
+            $ ho wipeout subnets 1-3,6
+
+            """),
+            help='Wipe out (completely delete) one or more subnets',
+            parents=[cluster_options_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=WipeOutSubnet,
         )
 
         subparsers.add_parser(
@@ -141,7 +139,7 @@ class WipeOut(object):
 
             """),
             help='Wipe out (completely delete) VPC',
-            parents=[wipeout_subcommand_parser_with_retag()],
+            parents=[dry_run_only_parser()],
             add_help=False,
         ).set_defaults(
             func=WipeOutVPC,
@@ -166,6 +164,16 @@ class WipeOutDelegates(InitArgs):
         pass
 
 
+class WipeOutSubnet(InitArgs):
+
+    def __init__(self, args):
+        super(WipeOutSubnet, self).__init__(args)
+        self.args = args
+
+    def run(self):
+        Subnet(self.args).wipeout()
+
+
 class WipeOutVPC(InitArgs):
 
     def __init__(self, args):
@@ -173,4 +181,7 @@ class WipeOutVPC(InitArgs):
         self.args = args
 
     def run(self):
+        if self.args.dry_run:
+            log.info("Dry run: do nothing")
+            return None
         VPC(self.args).wipeout()
