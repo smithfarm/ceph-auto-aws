@@ -30,16 +30,17 @@
 #
 import handson.myyaml as myyaml
 # import logging
-import os
+# import os
 
 
 class SetUp(object):
 
     def setUp(self):
-        try:
-            os.remove('./aws.yaml')
-        except OSError:
-            pass
+        # try:
+        #     os.remove('./aws.yaml')
+        # except OSError:
+        #     pass
+        pass
 
     def reset_yaml(self):
         myyaml.reset()
