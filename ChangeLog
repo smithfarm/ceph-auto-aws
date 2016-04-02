@@ -1,6 +1,27 @@
 CHANGES
 =======
 
+v0.1.1
+------
+
+* Bump version: 0.1.0 → 0.1.1
+* tests/: adapt to current state
+* Implement "wipeout vpc" subcommand
+* myyaml.py: check for None on assignment
+* Parse wipeout subcommands
+* docker/: add code for building docker testing environments
+* tests/: refrain from importing os module
+* myyaml: add reset(
+* tests: add test cases, improve coverage, inherit setup
+* tox: add tox to dependencies and enable Python 3
+* README.rst: acknowledge Loic
+* tests/test_vpc.py: add test for VPC cache
+* bootstrap: check for virtualenv and exit on error
+* myyaml.py: wrap dict_items object in a list()
+* README.rst: clarify python-virtualenv dependency
+* README.rst: probe cluster-definition and probe roles are no more
+* update ChangeLog
+
 v0.1.0
 ------
 
