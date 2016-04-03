@@ -1,6 +1,19 @@
 CHANGES
 =======
 
+v0.1.2
+------
+
+* Bump version: 0.1.1 → 0.1.2
+* Tweak install/wipeout operations on subnets and VPC
+* README: write about defining and instantiating clusters
+* Derive permissible role definition attributes from tree defaults
+* README: write proper Role definitions section
+* Implement install and wipeout for subnets and vpc
+* Preparatory work for "install" and "wipeout" commands
+* Convert "install 1-50" to "install delegates 1-50"
+* update ChangeLog
+
 v0.1.1
 ------
 
@@ -11,7 +24,7 @@ v0.1.1
 * Parse wipeout subcommands
 * docker/: add code for building docker testing environments
 * tests/: refrain from importing os module
-* myyaml: add reset(
+* myyaml: add reset() routine for use in unit tests
 * tests: add test cases, improve coverage, inherit setup
 * tox: add tox to dependencies and enable Python 3
 * README.rst: acknowledge Loic
