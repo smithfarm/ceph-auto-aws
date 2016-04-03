@@ -43,31 +43,30 @@ tree_stanzas = {
     'nametag': {'default': 'handson', 'type': str},
     'region': {'default': 'eu-west-1', 'type': str},
     'role-definitions': {'default': {
-        'admin': None,
+        'admin': {'last-octet': 10},
         'defaults': {
             'ami-id': '',
+            'last-octet': '',
             'replace-from-environment': [],
             'type': 't2.small',
             'user-data': '',
             'volume': ''
         },
-        'master': None,
-        'mon': None,
-        'osd': None,
-        'windows': None
+        'master': {'last-octet': 10},
+        'mon1': {'last-octet': 11},
+        'mon2': {'last-octet': 12},
+        'mon3': {'last-octet': 13},
+        'osd': {'last-octet': 14},
+        'windows': {'last-octet': 15},
     }, 'type': dict},
     'subnets': {'default': {}, 'type': dict},
     'types': {'default': ['t2.small'], 'type': list},
     'vpc': {'default': {}, 'type': dict}
 }
 
-role_definition_keys = [
-    'ami-id',
-    'replace-from-environment',
-    'type',
-    'user-data',
-    'volume',
-]
+role_definition_keys = list(
+    tree_stanzas['role-definitions']['default']['defaults'].keys()
+)
 
 _cache = {}
 _cache_populated = False
@@ -178,6 +177,7 @@ def role_def_valid(role):
            "Role definition {!r} is not a mapping".format(role))
     for key in rd:
         log.debug("Considering attribute {!r}".format(key))
+        log.debug("Legal values are {!r}".format(role_definition_keys))
         assert key in role_definition_keys, (
                ("Role definition {!r} contains illegal attribute {!r}"
                 .format(role, key)))
@@ -210,7 +210,7 @@ def role_exists(role):
 
 def validate_cluster_definition():
     cluster_def = stanza('cluster-definition')
-    assert len(cluster_def) >= 1, "cluster-definition stanza is empty"
+    assert type(cluster_def) is list, "cluster-definition stanza is not a collection"
     log.info("Detected cluster-definition stanza")
     roles = []
     for instance_def in cluster_def:

@@ -166,9 +166,13 @@ class InstallSubnets(InitArgs, ClusterOptions):
         self.args = args
 
     def run(self):
+        max_d = stanza('delegates')
+        if self.args.delegate_list is None:
+            self.args.delegate_list = []
         if self.args.all:
-            max_d = stanza('delegates')
             self.args.delegate_list = range(1, max_d + 1)
+        if self.args.master:
+            self.args.delegate_list.insert(0, 0)
         self.process_delegate_list()
         for d in self.args.delegate_list:
             log.info("Installing subnet for delegate {}".format(d))
