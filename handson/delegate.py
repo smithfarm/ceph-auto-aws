@@ -32,6 +32,7 @@ import boto
 import boto.ec2
 import logging
 
+from handson.region import Region
 from handson.subnet import Subnet
 # from handson.tag import apply_tag
 # from handson.util import read_user_data
@@ -39,20 +40,28 @@ from handson.subnet import Subnet
 log = logging.getLogger(__name__)
 
 
-class Delegate(Subnet):
+class Delegate(Region):
 
-    def __init__(self, args):
+    def __init__(self, args, delegate):
+        super(Delegate, self).__init__(args)
         self.args = args
-        self._aws = {}
+        s = Subnet(self.args, delegate)
+        s_obj = s.subnet_obj(create=True, dry_run=self.args.dry_run)
+        self._delegate = {
+            'delegate': delegate,
+            'ec2': None,
+            'subnet_obj': s_obj,
+        }
+        self.ec2()
 
     def ec2(self):
         """
             fetch ec2 connection, open if necessary
         """
         region = self.region()
-        if 'ec2' not in self._aws or self._aws['ec2'] is None:
+        if self._delegate['ec2'] is None:
             log.debug("Connecting to EC2 region {}".format(region))
-            self._aws['ec2'] = boto.ec2.connect_to_region(region)
-        assert self._aws['ec2'] is not None, (
+            self._delegate['ec2'] = boto.ec2.connect_to_region(region)
+        assert self._delegate['ec2'] is not None, (
                "Failed to connect to {}".format(region))
-        return self._aws['ec2']
+        return self._delegate['ec2']

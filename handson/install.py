@@ -37,6 +37,7 @@ from handson.cluster_options import (
     ClusterOptions,
     dry_run_only_parser,
 )
+from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
     InitArgs,
@@ -153,8 +154,9 @@ class InstallDelegates(InitArgs, ClusterOptions):
 
     def run(self):
         self.process_delegate_list()
-        if self.args.dry_run:
-            return None
+        for d in self.args.delegate_list:
+            log.info("Installing cluster for delegate {}".format(d))
+            d = Delegate(self.args, d)
 
 
 class InstallSubnets(InitArgs, ClusterOptions):
