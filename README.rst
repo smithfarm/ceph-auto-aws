@@ -521,35 +521,101 @@ volume is created.
 Cluster definition
 ------------------
 
+Once you have defined the roles, the next step is to stipulate the set of roles
+that will constitute a cluster. Remember, each delegate will get one cluster
+(one set of roles).
+
 The cluster is defined in the ``cluster-definition`` stanza of the yaml. This
-stanza consists of an array of instance definitions. Each instance definition
-must contain a ``role`` attribute defining the *instance role*, which should be
-a very short string (e.g., "mon1") describing the role this instance will play
-in the cluster. 
+stanza consists of a "collection" (list, array) of instance definitions. Each
+instance definition must contain a ``role`` attribute defining the *instance
+role*, which should be a very short string (e.g., "mon1") describing the role
+this instance will play in the cluster. 
 
 The value of each ``role`` attribute must match one of roles defined in the
-``roles`` yaml stanza.
+``role-definitions`` YAML stanza (see `Role definitions`_).
 
-To validate the cluster definition, do::
+For example, a reasonable demo cluster might consist of three MON/OSD nodes
+(roles ``mon1``, ``mon2``, and ``mon3``, respectively) and an "admin node" with
+a public IP address::
+
+    cluster-definition:
+      - role: admin
+      - role: mon1
+      - role: mon2
+      - role: mon3
+
+Provided the roles are properly defined in the ``role-definitions`` stanza,
+this is a legal cluster definition.
+
+Validation of role and cluster definitions
+------------------------------------------
+
+Before you actually try to spin up a cluster, it's a good idea to validate your
+YAML::
 
     (virtualenv)$ ho probe yaml
 
-This command loads the yaml file and performs various checks on the
-``cluster-definition`` attribute.
+This command loads the YAML file and performs various validations checks,
+including basic sanity checks on the ``cluster-definition`` and
+``role-definitions`` stanzas.
 
-Role definitions
-----------------
+Install clusters
+================
 
-To validate the roles and role definitions, do::
+In its current form, this software's functionality is limited to instantiating
+nodes in AWS, starting and stopping them, and deleting them ("wipeout"). 
 
-    (virtualenv)$ ho probe yaml
+The ``user-data`` scripts should bring the nodes into a "Salt-ready" state -
+i.e. Salt Master service running on the Salt Master node, and Salt Minion
+services running on the Delegate Cluster nodes.
 
-The roles themselves are defined in the ``roles`` section of the yaml, which
-contains a set of name-value pairs. The name is the role name, and the
-value is the role definition.
+To actually get a cluster (or clusters) up and running, additional steps are
+necessary, but these are accomplished by running `SaltStack`_ commands on the
+Salt Master node.
 
-This command loads the yaml file and performs various checks on the
-``roles`` and ``role-definitions`` attributes.
+Install Salt Master
+-------------------
+
+To instantiate the Salt Master node, do::
+
+    $ ho install delegate --master
+
+This is rather cryptic, but the logic is that the Salt Master node is "Delegate
+Number Zero" (i.e. it exists in a ``10.0.x.0/24`` subnet just like the Delegate
+Clusters, but its delegate number is 0).
+
+If you know what you're doing, you can instantiate the Salt Master node and all
+the Delegate Cluster nodes at once by doing, e.g.::
+
+    $ ho install delegate 1-12 --master
+
+This is not recommended, however, because it's a good idea to let the Salt
+Master node "settle" and verify its proper functioning before instantiating any
+Delegate Cluster nodes, since these nodes will typically have ``user-data``
+scripts that automate registration of minion keys with the Salt Master.
+
+Install Delegate Clusters
+-------------------------
+
+Once you have proper role and cluster definitions, you can try to instantiate
+some nodes. I recommend starting small and working up from there. By "starting
+small" I mean, for example, the following YAML file::
+
+    cluster-definition:
+      - role: admin
+
+    delegates: 1
+
+    ...
+
+The ``delegates`` stanza limits the number of clusters that can be instantiated
+at once (or at all). A value of 1 means that the ``ho install delegates``
+command will only take an argument of 1. Any other argument will fail.
+
+With the above YAML a single cluster, consisting of a single admin node, will
+be instantiated in the ``10.0.1.0/24`` subnet when you run::
+
+    $ ho install delegates 1
 
 Instance tagging
 ----------------
@@ -563,4 +629,24 @@ Name     the value of the ``nametag`` yaml attribute
 Delegate the delegate number
 Role     the instance role
 ======== ===========================================
+
+Wipeout Delegate Clusters
+-------------------------
+
+When you are finished with a cluster (or clusters), you can delete it/them
+by::
+
+    $ ho wipeout delegates [DELEGATE_LIST]
+
+where ``[DELEGATE_LIST]`` is something like ``1-12`` for Delegate Clusters one
+through twelve, ``5`` for Delegate Cluster five, or ``1,3,7-9`` for Delegate
+Clusers one, three, seven, eight, and nine.
+
+Sticking to our minimal example from `Install Delegate Clusters`_, we could
+wipe out that cluster by::
+
+    $ ho wipeout delegates 1
+
+**NOTE:** Wiping out delegates only removes the cluster nodes and EBS volumes,
+not the subnets or the VPC.
 
