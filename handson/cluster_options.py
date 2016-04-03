@@ -33,6 +33,7 @@ import handson.myyaml
 import logging
 
 from handson.misc import error_exit, subcommand_parser
+from handson.myyaml import stanza
 
 log = logging.getLogger(__name__)
 
@@ -69,23 +70,6 @@ def expand_delegate_list(raw_input):
     if final_list[-1] > 50:
         error_exit("detected too-high delegate (max. 50)")
     return final_list
-
-
-def validate_delegate_list(delegate_list):
-    if delegate_list is None:
-        return True
-    max_delegates = handson.myyaml.stanza('delegates')
-    log.debug("Maximum number of delegates is {!r}".format(max_delegates))
-    if (
-            max_delegates is None or
-            max_delegates < 1 or
-            max_delegates > 50
-    ):  # pragma: no cover
-        error_exit("Bad number of delegates in yaml: {!r}".
-                   format(max_delegates))
-    if delegate_list[-1] > max_delegates:
-        error_exit(("Delegate list exceeds {!r} (maximum number of " +
-                    "delegates in yaml)").format(max_delegates))
 
 
 class ParseDelegateList(argparse.Action):
@@ -145,6 +129,30 @@ def dry_run_only_parser():
 
 class ClusterOptions(object):
 
+    def validate_delegate_list(self):
+        dl = self.args.delegate_list
+        if dl is None or len(dl) == 0:
+            return True
+        max_delegates = handson.myyaml.stanza('delegates')
+        log.debug("Maximum number of delegates is {!r}".format(max_delegates))
+        if (
+                max_delegates is None or
+                max_delegates < 1 or
+                max_delegates > 50
+        ):  # pragma: no cover
+            error_exit("Bad number of delegates in yaml: {!r}".
+                       format(max_delegates))
+        if dl[-1] > max_delegates:
+            error_exit(("Delegate list exceeds {!r} (maximum number of " +
+                        "delegates in yaml)").format(max_delegates))
+
     def process_delegate_list(self):
         log.info("Delegate list is {!r}".format(self.args.delegate_list))
-        validate_delegate_list(self.args.delegate_list)
+        max_d = stanza('delegates')
+        if self.args.delegate_list is None:
+            self.args.delegate_list = []
+        if self.args.all:
+            self.args.delegate_list = range(1, max_d + 1)
+        if self.args.master:
+            self.args.delegate_list.insert(0, 0)
+        self.validate_delegate_list()

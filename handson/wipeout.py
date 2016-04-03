@@ -174,14 +174,12 @@ class WipeOutSubnets(InitArgs, ClusterOptions):
         self.args = args
 
     def run(self):
-        if self.args.all:
-            max_d = stanza('delegates')
-            self.args.delegate_list = range(1, max_d + 1)
         self.process_delegate_list()
         for d in self.args.delegate_list:
             s = Subnet(self.args, d)
-            s.subnet_obj(create=False)
-            s.wipeout(dry_run=self.args.dry_run)
+            s_obj = s.subnet_obj(create=False)
+            if s_obj:
+                s.wipeout(dry_run=self.args.dry_run)
 
 
 class WipeOutVPC(InitArgs):

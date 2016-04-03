@@ -647,6 +647,6 @@ wipe out that cluster by::
 
     $ ho wipeout delegates 1
 
-**NOTE:** Wiping out delegates only removes the cluster nodes and EBS volumes,
-not the subnets or the VPC.
+**NOTE:** Wiping out delegates only removes cluster nodes and EBS volumes,
+not subnets or the VPC.
 

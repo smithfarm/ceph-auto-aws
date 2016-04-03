@@ -48,7 +48,7 @@ class Subnet(VPC):
             's_obj': None
         }
 
-    def subnet_obj(self, create=False):
+    def subnet_obj(self, create=False, dry_run=False):
         """
             Subnet object is returned from cache if cached.
             Otherwise, the method validates the subnet, creates it if
@@ -57,30 +57,41 @@ class Subnet(VPC):
         if self._subnet['s_obj']:
             return self._subnet['s_obj']
         s_stanza = stanza('subnets')
+        log.debug("Subnet stanza {!r}".format(s_stanza))
         vpc = self.vpc()
-        vpc_obj = self.vpc_obj(create=False)
-        args = self.args
+        vpc_obj = self.vpc_obj(create=False, quiet=True)
         delegate = self._subnet['delegate']
         cidr_block = '10.0.{}.0/24'.format(delegate)
         if delegate not in s_stanza:  # pragma: no cover
-            s_stanza[delegate] = {}
             #
             # create new subnet
             if create:
+                s_stanza[delegate] = {}
                 log.debug("About to create subnet {}".format(cidr_block))
-                s_obj = vpc.create_subnet(vpc_obj.id, cidr_block)
-                log.info(
-                    "Created subnet {} ({})".format(s_obj.id, s_obj.cidr_block)
-                )
-                s_stanza[delegate]['cidr_block'] = s_obj.cidr_block
-                s_stanza[delegate]['id'] = s_obj.id
-                stanza('subnets', s_stanza)
-                apply_tag(s_obj, tag='Name', val=stanza('nametag'))
-                apply_tag(s_obj, tag='Delegate', val=delegate)
+                if dry_run:
+                    log.info("Dry run: doing nothing")
+                    s_obj = None
+                else:
+                    s_obj = vpc.create_subnet(
+                        vpc_obj.id,
+                        cidr_block,
+                        dry_run=dry_run
+                    )
+                    log.info(
+                        "Created subnet {} ({})".format(
+                            s_obj.id,
+                            s_obj.cidr_block
+                        )
+                    )
+                    s_stanza[delegate]['cidr_block'] = s_obj.cidr_block
+                    s_stanza[delegate]['id'] = s_obj.id
+                    stanza('subnets', s_stanza)
+                    apply_tag(s_obj, tag='Name', val=stanza('nametag'))
+                    apply_tag(s_obj, tag='Delegate', val=delegate)
             else:
-                log.info("Subnet ID not specified in yaml: nothing to do")
+                log.info("Delegate {} subnet ID missing in yaml"
+                         .format(delegate))
                 s_obj = None
-            self._subnet['s_obj'] = s_obj
             return s_obj
         #
         # check id exists and cidr_block matches
@@ -110,23 +121,23 @@ class Subnet(VPC):
                     s_obj.cidr_block
                 ))
         self._subnet['s_obj'] = s_obj
-        # if args.retag:
+        # if self.args.retag:
         #     apply_tag(s_obj, tag='Name', val=stanza('nametag'))
         #     apply_tag(s_obj, tag='Delegate', val=delegate)
         return s_obj
 
     def wipeout(self, dry_run=False):
-        s_obj = self.subnet_obj(create=False)
+        s_obj = self.subnet_obj(create=False, dry_run=dry_run)
         if s_obj:
-            log.info("Wiping out Subnet ID {}".format(s_obj.id))
-            if dry_run:
-                log.info("Dry run: doing nothing")
-                return None
-            self.vpc().delete_subnet(s_obj.id)
-            s_stanza = stanza('subnets')
-            d = self._subnet['delegate']
-            del(s_stanza[d])
-            stanza('subnets', s_stanza)
+            if not dry_run:
+                log.info("Wiping out Subnet ID {}".format(s_obj.id))
+                self.vpc().delete_subnet(s_obj.id)
+                s_stanza = stanza('subnets')
+                d = self._subnet['delegate']
+                del(s_stanza[d])
+                stanza('subnets', s_stanza)
+            else:
+                log.info("Dry run: nothing to do")
         else:
-            log.info("No VPC in YAML; nothing to do")
+            log.info("No VPC in YAML: nothing to do")
         return None

@@ -47,7 +47,7 @@ class VPC(Region):
             'vpc_obj': None
         }
 
-    def vpc_obj(self, create=False):
+    def vpc_obj(self, create=False, dry_run=False, quiet=False):
         """
             fetch VPC object, create if necessary
         """
@@ -63,19 +63,23 @@ class VPC(Region):
             #
             # create VPC
             if create:
-                log.info("VPC ID not specified in yaml: creating VPC")
-                vpc_obj = vpc_conn.create_vpc('10.0.0.0/16')
-                vpc_stanza['id'] = vpc_obj.id
-                vpc_stanza['cidr_block'] = vpc_obj.cidr_block
-                log.info("New VPC ID {} created with CIDR block {}".format(
-                    vpc_obj.id, vpc_obj.cidr_block
-                ))
-                apply_tag(vpc_obj, tag='Name', val=stanza('nametag'))
-                self._vpc['vpc_obj'] = vpc_obj
-                stanza('vpc', {
-                    'cidr_block': vpc_obj.cidr_block,
-                    'id': vpc_obj.id
-                })
+                if dry_run:
+                    log.info("Dry run: do nothing")
+                    vpc_obj = None
+                else:
+                    log.info("VPC ID not specified in yaml: creating VPC")
+                    vpc_obj = vpc_conn.create_vpc('10.0.0.0/16')
+                    vpc_stanza['id'] = vpc_obj.id
+                    vpc_stanza['cidr_block'] = vpc_obj.cidr_block
+                    log.info("New VPC ID {} created with CIDR block {}".format(
+                        vpc_obj.id, vpc_obj.cidr_block
+                    ))
+                    apply_tag(vpc_obj, tag='Name', val=stanza('nametag'))
+                    self._vpc['vpc_obj'] = vpc_obj
+                    stanza('vpc', {
+                        'cidr_block': vpc_obj.cidr_block,
+                        'id': vpc_obj.id
+                    })
             else:
                 log.info("VPC ID not specified in yaml: nothing to do")
                 vpc_obj = None
@@ -84,7 +88,8 @@ class VPC(Region):
         # existing VPC
         log.debug("VPD ID specified in yaml: fetching it")
         vpc_id = vpc_stanza['id']
-        log.info("VPC ID according to yaml is {}".format(vpc_id))
+        if not quiet:
+            log.info("VPC ID according to yaml is {}".format(vpc_id))
         vpc_list = vpc_conn.get_all_vpcs(vpc_ids=vpc_id)
         assert len(vpc_list) == 1, (
                "VPC ID {} does not exist".format(vpc_id))
@@ -93,19 +98,17 @@ class VPC(Region):
         assert cidr_block == '10.0.0.0/16', (
                ("VPC ID {} exists, but has wrong CIDR block {} "
                 "(should be 10.0.0.0/16)").format(vpc_id, cidr_block))
-        log.info("VPC ID is {}, CIDR block is {}".format(
-            vpc_stanza['id'], vpc_stanza['cidr_block'],
-        ))
+        if not quiet:
+            log.info("VPC ID is {}, CIDR block is {}".format(
+                vpc_stanza['id'], vpc_stanza['cidr_block'],
+            ))
         self._vpc['vpc_obj'] = vpc_obj
         return vpc_obj
 
     def wipeout(self, dry_run=False):
-        vpc_obj = self.vpc_obj(create=False)
-        if vpc_obj:
+        vpc_obj = self.vpc_obj(create=False, dry_run=dry_run)
+        if vpc_obj and not dry_run:
             log.info("Wiping out VPC ID {}".format(vpc_obj.id))
-            if dry_run:
-                log.info("Dry run: doing nothing")
-                return None
             self.vpc().delete_vpc(vpc_obj.id)
             stanza('vpc', {})
         else:

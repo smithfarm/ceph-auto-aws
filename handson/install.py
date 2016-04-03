@@ -40,9 +40,7 @@ from handson.cluster_options import (
 from handson.misc import (
     CustomFormatter,
     InitArgs,
-    subcommand_parser_with_retag,
 )
-from handson.myyaml import stanza
 from handson.subnet import Subnet
 from handson.vpc import VPC
 
@@ -98,7 +96,7 @@ class Install(object):
             parents=[cluster_options_parser()],
             add_help=False,
         ).set_defaults(
-            func=InstallDelegate,
+            func=InstallDelegates,
         )
 
         subparsers.add_parser(
@@ -147,10 +145,10 @@ class Install(object):
         return parser
 
 
-class InstallDelegate(InitArgs, ClusterOptions):
+class InstallDelegates(InitArgs, ClusterOptions):
 
     def __init__(self, args):
-        super(InstallDelegate, self).__init__(args)
+        super(InstallDelegates, self).__init__(args)
         self.args = args
 
     def run(self):
@@ -166,21 +164,11 @@ class InstallSubnets(InitArgs, ClusterOptions):
         self.args = args
 
     def run(self):
-        max_d = stanza('delegates')
-        if self.args.delegate_list is None:
-            self.args.delegate_list = []
-        if self.args.all:
-            self.args.delegate_list = range(1, max_d + 1)
-        if self.args.master:
-            self.args.delegate_list.insert(0, 0)
         self.process_delegate_list()
         for d in self.args.delegate_list:
             log.info("Installing subnet for delegate {}".format(d))
-            if self.args.dry_run:
-                log.info("Dry run: doing nothing")
-                continue
             c = Subnet(self.args, d)
-            c.subnet_obj(create=True)
+            c.subnet_obj(create=True, dry_run=self.args.dry_run)
 
 
 class InstallVPC(InitArgs):
@@ -190,13 +178,6 @@ class InstallVPC(InitArgs):
         self.args = args
 
     def run(self):
-        log.info("Probing VPC")
-        vpc_obj = VPC(self.args).vpc_obj(create=False)
-        if vpc_obj.id:
-            log.info("VPC already installed")
-            return None
         log.info("Creating VPC")
-        if self.args.dry_run:
-            log.info("Dry run: do nothing")
-            return None
-        vpc_obj = VPC(self.args).vpc_obj(create=True)
+        v = VPC(self.args)
+        v.vpc_obj(create=True, dry_run=self.args.dry_run)

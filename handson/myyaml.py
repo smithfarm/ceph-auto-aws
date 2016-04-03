@@ -210,7 +210,9 @@ def role_exists(role):
 
 def validate_cluster_definition():
     cluster_def = stanza('cluster-definition')
-    assert type(cluster_def) is list, "cluster-definition stanza is not a collection"
+    assert type(cluster_def) is list, (
+        "cluster-definition stanza is not a collection"
+    )
     log.info("Detected cluster-definition stanza")
     roles = []
     for instance_def in cluster_def:
