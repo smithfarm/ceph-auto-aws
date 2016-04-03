@@ -585,9 +585,9 @@ Number Zero" (i.e. it exists in a ``10.0.x.0/24`` subnet just like the Delegate
 Clusters, but its delegate number is 0).
 
 If you know what you're doing, you can instantiate the Salt Master node and all
-the Delegate Cluster nodes at once by doing, e.g.::
+the Delegate Cluster nodes at once by doing::
 
-    $ ho install delegate 1-12 --master
+    $ ho install delegate --all --master
 
 This is not recommended, however, because it's a good idea to let the Salt
 Master node "settle" and verify its proper functioning before instantiating any
@@ -630,8 +630,31 @@ Delegate the delegate number
 Role     the instance role
 ======== ===========================================
 
-Wipeout Delegate Clusters
--------------------------
+Stop and start clusters
+=======================
+
+You can stop and start clusters using the ``ho stop delegates`` and ``ho start
+delegates`` commands, respectively. "Stop" in this context triggers an orderly
+shutdown, so it involves a transition to "powered-off" state. "Start", then, is
+conceptually similar to powering up.
+
+For example::
+
+    $ ho stop delegates 1
+    $ ho stop delegates 1,3,5-7
+    $ ho stop delegates --all
+    $ ho stop delegates --all --master
+
+    $ ho start delegates 1
+    $ ho start delegates 1,3,5-7
+    $ ho start delegates --all
+    $ ho start delegates --all --master
+
+The ``--master`` option adds delegate 0 (the Salt Master) to the list of
+delegates to which the operation (start or stop) is applied.
+
+Wipeout clusters
+================
 
 When you are finished with a cluster (or clusters), you can delete it/them
 by::
@@ -647,6 +670,17 @@ wipe out that cluster by::
 
     $ ho wipeout delegates 1
 
-**NOTE:** Wiping out delegates only removes cluster nodes and EBS volumes,
-not subnets or the VPC.
+When you are finished with the Salt Master, you can delete it by adding
+the ``--master`` option, e.g.::
+
+    $ ho wipeout delegates --master
+
+You can wipe out all instances, i.e all Delegate Clusters and the Salt
+Master, like so::
+
+    $ ho wipeout delegates --all --master
+
+**NOTE:** The wipeout commands discussed in this section remove cluster nodes
+and EBS volumes only. They do not have any effect on subnets or the VPC. (If
+needed, those must be wiped out separately.)
 

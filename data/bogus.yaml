@@ -8,6 +8,8 @@ admin:
 cluster-definition:
   - role: admin
 
+clusters: {}
+
 delegates: 1
 
 install_subnets:

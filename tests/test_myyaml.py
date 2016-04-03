@@ -54,5 +54,5 @@ class TestMyYaml(SetUp, unittest.TestCase):
         self.assertEqual(myyaml.stanza('delegates'), orig_val)
         # non-existing stanza
         self.reset_yaml()
-        with self.assertRaises(KeyError):
+        with self.assertRaises(AssertionError):
             myyaml.stanza('prd', {})

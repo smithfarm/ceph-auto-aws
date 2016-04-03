@@ -38,6 +38,8 @@ from argparse import ArgumentParser
 from handson.install import Install
 from handson.misc import CustomFormatter
 from handson.probe import Probe
+from handson.start import Start
+from handson.stop import Stop
 from handson.wipeout import WipeOut
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
@@ -125,6 +127,40 @@ class HandsOn(object):
             """),
             help='Probe AWS connection and cluster configuration',
             parents=[Probe.get_parser()],
+            add_help=False,
+        )
+
+        subparsers.add_parser(
+            'start',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Start (revive) stopped Delegate Clusters
+            """),
+            epilog=textwrap.dedent("""
+            Examples:
+
+            $ ho start delegate 1
+
+            """),
+            help='Start (revive) stopped Delegate Clusters',
+            parents=[Start.get_parser()],
+            add_help=False,
+        )
+
+        subparsers.add_parser(
+            'stop',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Stop (suspend) Delegate Clusters
+            """),
+            epilog=textwrap.dedent("""
+            Examples:
+
+            $ ho stop delegate 1
+
+            """),
+            help='Stop (suspend) Delegate Clusters',
+            parents=[Stop.get_parser()],
             add_help=False,
         )
 

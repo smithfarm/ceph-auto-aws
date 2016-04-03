@@ -34,6 +34,8 @@ import logging
 import textwrap
 
 from boto import connect_ec2
+from handson.cluster_options import cluster_options_parser
+from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
     subcommand_parser,
@@ -98,6 +100,28 @@ class Probe(object):
             add_help=False,
         ).set_defaults(
             func=ProbeAWS,
+        )
+
+        subparsers.add_parser(
+            'delegates',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Probe delegates (number of instances in subnet).
+
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho probe delegates
+            $ echo $?
+            0
+
+            """),
+            help='Print number of instances in each subnet',
+            parents=[cluster_options_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbeDelegates,
         )
 
         subparsers.add_parser(
@@ -221,6 +245,20 @@ class ProbeAWS(InitArgs):
     def run(self):
         connect_ec2()
         log.info("Connected to AWS EC2")
+
+
+class ProbeDelegates(InitArgs):
+
+    def __init__(self, args):
+        super(ProbeDelegates, self).__init__(args)
+        self.args = args
+
+    def run(self):
+        delegates = handson.myyaml.stanza('delegates')
+        for d in range(0, delegates + 1):
+            del_obj = Delegate(self.args, d)
+            count = del_obj.count_instances_in_subnet()
+            log.info("Delegate {} has {} instances".format(d, count))
 
 
 class ProbeRegion(InitArgs):

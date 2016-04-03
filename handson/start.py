@@ -29,43 +29,40 @@
 #
 
 import argparse
+import handson.myyaml
 import logging
 import textwrap
 
 from handson.cluster_options import (
     cluster_options_parser,
     ClusterOptions,
-    dry_run_only_parser,
 )
 from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
-    InitArgs,
 )
-from handson.subnet import Subnet
-from handson.vpc import VPC
 
 log = logging.getLogger(__name__)
 
 
-class Install(object):
+class Start(object):
 
     @staticmethod
     def get_parser():
         parser = argparse.ArgumentParser(
-            usage='ho install',
+            usage='ho start',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
-            Install delegats.
+            Start AWS delegates.
 
             The documentation for each sub-subcommand can be displayed with
 
-               ho install sub-subcommand --help
+               ho start sub-subcommand --help
 
             For instance:
 
-               ho install delegate --help
-               usage: ho install delegate [-h]
+               ho start delegates --help
+               usage: ho start delegates [-h]
                ...
 
             For more information, refer to the README.rst file at
@@ -73,114 +70,50 @@ class Install(object):
             """))
 
         subparsers = parser.add_subparsers(
-            title='install subcommands',
-            description='valid install subcommands',
-            help='install subcommand -h',
+            title='start subcommands',
+            description='valid start subcommands',
+            help='start subcommand -h',
         )
 
         subparsers.add_parser(
             'delegates',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
-            Install delegate cluster(s) in AWS.
+            Start (revive) stopped delegate clusters.
 
             """),
-            epilog=textwrap.dedent("""
-            Example:
+            epilog=textwrap.dedent(""" Examples:
 
-            $ ho install delegates 1-12
+            $ ho start subnets
             $ echo $?
             0
 
             """),
-            help='Install delegate cluster(s) in AWS',
+            help='Start (revive) stopped delegate clusters',
             parents=[cluster_options_parser()],
             add_help=False,
         ).set_defaults(
-            func=InstallDelegates,
-        )
-
-        subparsers.add_parser(
-            'subnets',
-            formatter_class=CustomFormatter,
-            description=textwrap.dedent("""\
-            Install delegate subnet(s) in AWS.
-
-            """),
-            epilog=textwrap.dedent("""
-            Example:
-
-            $ ho install subnets 1-12
-            $ ho install subnets --all
-            $ ho install subnets --all --dry-run
-
-            """),
-            help='Install delegate subnet(s) in AWS',
-            parents=[cluster_options_parser()],
-            add_help=False,
-        ).set_defaults(
-            func=InstallSubnets,
-        )
-
-        subparsers.add_parser(
-            'vpc',
-            formatter_class=CustomFormatter,
-            description=textwrap.dedent("""\
-            Install Virtual Private Cloud (VPC).
-
-            """),
-            epilog=textwrap.dedent("""
-            Example:
-
-            $ ho install vpc
-            $ ho install --dry-run
-
-            """),
-            help='Install Virtual Private Cloud (VPC)',
-            parents=[dry_run_only_parser()],
-            add_help=False,
-        ).set_defaults(
-            func=InstallVPC,
+            func=StartDelegates,
         )
 
         return parser
 
 
-class InstallDelegates(InitArgs, ClusterOptions):
+class InitArgs(object):
 
     def __init__(self, args):
-        super(InstallDelegates, self).__init__(args)
+        handson.myyaml._yfn = args.yamlfile
+
+
+class StartDelegates(InitArgs, ClusterOptions):
+
+    def __init__(self, args):
+        super(StartDelegates, self).__init__(args)
         self.args = args
 
     def run(self):
         self.process_delegate_list()
         for d in self.args.delegate_list:
-            log.info("Installing cluster for delegate {}".format(d))
+            log.info("Starting cluster for delegate {}".format(d))
             d = Delegate(self.args, d)
-            d.install(dry_run=self.args.dry_run)
-
-
-class InstallSubnets(InitArgs, ClusterOptions):
-
-    def __init__(self, args):
-        super(InstallSubnets, self).__init__(args)
-        self.args = args
-
-    def run(self):
-        self.process_delegate_list()
-        for d in self.args.delegate_list:
-            log.info("Installing subnet for delegate {}".format(d))
-            c = Subnet(self.args, d)
-            c.subnet_obj(create=True, dry_run=self.args.dry_run)
-
-
-class InstallVPC(InitArgs):
-
-    def __init__(self, args):
-        super(InstallVPC, self).__init__(args)
-        self.args = args
-
-    def run(self):
-        log.info("Creating VPC")
-        v = VPC(self.args)
-        v.vpc_obj(create=True, dry_run=self.args.dry_run)
+            d.start(dry_run=self.args.dry_run)

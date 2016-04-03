@@ -38,6 +38,7 @@ log = logging.getLogger(__name__)
 
 tree_stanzas = {
     'cluster-definition': {'default': [{'role': 'admin'}], 'type': list},
+    'clusters': {'default': {}, 'type': dict},
     'delegates': {'default': 1, 'type': int},
     'keyname': {'default': '', 'type': str},
     'nametag': {'default': 'handson', 'type': str},
@@ -154,6 +155,9 @@ def stanza(k, new_val=None):
     global _cache
     load()
     if new_val is not None:
+        assert k in tree_stanzas.keys(), (
+            "YAML stanza {!r} not permitted".format(k)
+        )
         _cache[k] = new_val
         write()
     stanza_is_sane(k)

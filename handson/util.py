@@ -28,6 +28,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 import logging
+import re
+
+from handson.misc import HandsOnError
 
 log = logging.getLogger(__name__)
 
@@ -41,3 +44,22 @@ def read_user_data(fn):
         r = fh.read()
         fh.close()
     return r
+
+
+def derive_ip_address(cidr_block, delegate, final8):
+    """
+        Given a CIDR block string, a delegate number, and an integer
+        representing the final 8 bits of the IP address, construct and return
+        the IP address derived from this values.  For example, if cidr_block is
+        10.0.0.0/16, the delegate number is 10, and the final8 is 8, the
+        derived IP address will be 10.0.10.8.
+    """
+    match = re.match(r'\d+\.\d+', cidr_block)
+    if match:
+        result = '{}.{}.{}'.format(match.group(0), delegate, final8)
+    else:
+        raise HandsOnError(
+            "{} passed to derive_ip_address() is not a CIDR block!"
+            .format(cidr_block)
+        )
+    return result

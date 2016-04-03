@@ -62,7 +62,7 @@ class Subnet(VPC):
         vpc_obj = self.vpc_obj(create=False, quiet=True)
         delegate = self._subnet['delegate']
         cidr_block = '10.0.{}.0/24'.format(delegate)
-        if delegate not in s_stanza:  # pragma: no cover
+        if delegate not in s_stanza or s_stanza[delegate] == {}:
             #
             # create new subnet
             if create:

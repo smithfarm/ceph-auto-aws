@@ -38,7 +38,7 @@ from handson.cluster_options import (
     dry_run_only_parser,
     ClusterOptions,
 )
-# from handson.delegate import Delegate
+from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
 )
@@ -65,8 +65,8 @@ class WipeOut(object):
 
             For instance:
 
-               ho wipeout aws --help
-               usage: ho wipeout aws [-h]
+               ho wipeout delegates --help
+               usage: ho wipeout delegates [-h]
                ...
 
             For more information, refer to the README.rst file at
@@ -163,8 +163,10 @@ class WipeOutDelegates(InitArgs, ClusterOptions):
 
     def run(self):
         self.process_delegate_list()
-        if self.args.dry_run:
-            return None
+        for d in self.args.delegate_list:
+            log.info("Wiping out cluster for delegate {}".format(d))
+            d = Delegate(self.args, d)
+            d.wipeout(dry_run=self.args.dry_run)
 
 
 class WipeOutSubnets(InitArgs, ClusterOptions):
