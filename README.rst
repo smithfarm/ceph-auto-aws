@@ -376,31 +376,23 @@ on the number of delegates given in the ``delegates`` stanza, e.g.::
 If you want more than one cluster, change the ``delegates`` stanza in the YAML
 file now.
 
-Validate subnets
-----------------
+Create subnets
+--------------
 
 To ensure that the subnets are created for each delegate plus the Salt Master,
 you should run::
 
-    (virtualenv)$ ho install subnets --all
-    2016-03-31 00:02:15,915 INFO Loaded yaml tree from './aws.yaml'
-    2016-03-31 00:02:15,916 INFO Probing 1 subnets
-    2016-03-31 00:02:15,916 INFO VPC ID according to yaml is vpc-cfd7c9aa
-    2016-03-31 00:02:16,175 INFO VPC ID is vpc-cfd7c9aa, CIDR block is 10.0.0.0/16
-    2016-03-31 00:02:16,379 INFO Created subnet subnet-6bfb121d (10.0.0.0/24)
-    2016-03-31 00:02:16,520 INFO Object Subnet:subnet-6bfb121d tagged with Name=handson
-    2016-03-31 00:02:16,643 INFO Object Subnet:subnet-6bfb121d tagged with Delegate=0
-    2016-03-31 00:02:16,644 INFO VPC ID according to yaml is vpc-cfd7c9aa
-    2016-03-31 00:02:16,912 INFO VPC ID is vpc-cfd7c9aa, CIDR block is 10.0.0.0/16
-    2016-03-31 00:02:17,097 INFO Created subnet subnet-68fb121e (10.0.1.0/24)
-    2016-03-31 00:02:17,230 INFO Object Subnet:subnet-68fb121e tagged with Name=handson
-    2016-03-31 00:02:17,358 INFO Object Subnet:subnet-68fb121e tagged with Delegate=1
+    (virtualenv)$ ho install subnets --all --master
+    2016-04-03 07:59:03,992 INFO Loaded yaml tree from './aws.yaml'
+    2016-04-03 07:59:03,992 INFO Delegate list is [0, 1]
+    2016-04-03 07:59:03,992 INFO Installing subnet for delegate 0
     ...
 
 This will create a ``10.0.0.0/24`` subnet for the Salt Master and one
-additional ``/24`` for each delegate. It will also add the appropriate tags to
-the subnet objects.
+additional ``/24`` for each delegate (one in the default case). It will also
+add the appropriate tags to the subnet objects.
 
+Like ``ho install vpc``, this command is idempotent.
 
 Subnet caveat
 -------------
@@ -416,20 +408,115 @@ addresses are not available for use:
 * 10.0.0.255: Network broadcast address. We do not support broadcast in a VPC,
   therefore we reserve this address. 
 
-Instances
-=========
+For this reason, instances must not be assigned ``last_octet`` values 0, 1, 2,
+3, or 255.
 
-Once the subnets are set up, the next step is to install a set of
-clusters/delegates.
+
+Role and cluster definition
+===========================
+
+Once the subnets are set up, the next step is to define the cluster each
+delegate will receive.
 
 This software assumes that each delegate will have one cluster and all the
 clusters will be identical.
 
-Each cluster consists of some number of instances, and each instance has a role
-that it plays in the cluster.
+Each cluster consists of some number of instances, and each instance has a
+"role" that it plays in the cluster. 
+
+**NOTE:** As far as this software is concerned, the term "role" is
+interchangeable with "node", "instance" or "virtual machine"!
 
 Before you can install a cluster (or twelve!), you must first edit the `cluster
 definition`_ and `role definitions`_ in the yaml.
+
+Role definitions
+----------------
+
+Roles are defined in the ``role-definitions`` stanza of the YAML. This stanza
+is a mapping, the keys of which are the names of the respective roles. 
+
+There are two special roles: ``default`` and ``master``. The former defines
+the set of permissible role attributes and their default values. The latter
+defines the attributes of the Salt Master node.
+
+Each role definition may contain one or more of the following attributes:
+
+========================= ====================================================
+Role definition attribute Description
+========================= ====================================================
+ami-id                    AMI ID of image from which to create the instance
+last-octet                value of last octet of instance IP address (10.0.0.x)
+replace-from-environment  FIXME
+type                      the Instance Type 
+user-data                 file containing user-data
+volume                    disk volume to be attached to the instance (optional)
+========================= ====================================================
+
+If you are setting up a hands-on, now would be a good time to define your
+roles. The following sections should help.
+
+ami-id (REQUIRED)
+^^^^^^^^^^^^^^^^^
+
+The ``ami-id`` is the ID of the `Amazon Machine Image (AMI)`_ to use when
+provisioning the node. Basically, it should be a recent Linux image that you
+are capable of installing Ceph on.
+
+.. _`Amazon Machine Image (AMI)`: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html
+
+last-octet (REQUIRED)
+^^^^^^^^^^^^^^^^^^^^^
+
+This attribute should be an integer value between 4 and 254 (inclusive) - see
+`Subnet caveat`_. Together with the delegate number, it determines the IP
+address of the node. For example, if the delegate number is 3 and
+``last-octet`` is 8, the IP address will be ``10.0.3.8/24``.
+
+replace-from-environment (OPTIONAL)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+FIXME
+
+type (REQUIRED)
+^^^^^^^^^^^^^^^ 
+
+This determines the `Instance Type`_ of the node. If all the nodes will have
+the same Instance Type, you can just set it once in the ``defaults`` section.
+It does not need to be set individually for each role.
+
+.. _`Instance Type`: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html
+
+user-data (OPTIONAL)
+^^^^^^^^^^^^^^^^^^^^
+
+The value of this attribute should be a relative path to a file containing a
+shell script (or set of cloud-init directives) that will be run in the instance
+when it first launches. See `Running Commands on Your Linux Instance at
+Launch`_.
+
+.. _`Running Commands on Your Linux Instance at Launch`:
+http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
+
+This value is optional in the sense that ``ho`` will instantiate nodes without
+it, but you will probably need it if you want to automate the process of
+installing and starting the Salt Minion service on the nodes.
+
+volume (OPTIONAL)
+^^^^^^^^^^^^^^^^^
+
+Each node has a root volume, the size of which is defined by the Instance Type
+(VERIFY). This is sufficient for admin nodes and monitor-only nodes. If you
+want to run an OSD on a node, though, a separate volume will be necessary.
+Typically this will be an `Amazon Elastic Block Store (EBS)`_ volume.
+
+.. _`Amazon Elastic Block Store (EBS)`: https://aws.amazon.com/ebs/
+
+The ``volume`` attribute takes an integer value which is interpreted as the
+volume size in  Gigabytes.
+
+If the attribute is missing, or has no value, or has a zero value, no separate
+volume is created.
 
 Cluster definition
 ------------------
@@ -453,31 +540,16 @@ This command loads the yaml file and performs various checks on the
 Role definitions
 ----------------
 
+To validate the roles and role definitions, do::
+
+    (virtualenv)$ ho probe yaml
+
 The roles themselves are defined in the ``roles`` section of the yaml, which
 contains a set of name-value pairs. The name is the role name, and the
 value is the role definition.
 
-Each role definition may contain one or more of the following attributes:
-
-========================= ====================================================
-Role definition attribute Description
-========================= ====================================================
-ami-id                    the AMI ID of the image from which to create the instance
-replace-from-environment  FIXME
-type                      the Instance Type 
-user-data                 file containing user-data
-volume                    disk volume to be attached to the instance (optional)
-========================= ====================================================
-
-If an attribute is missing, the default is taken. Defaults are defined in a
-special role called ``defaults``.
-
-To validate the role definitions, do::
-
-    (virtualenv)$ ho probe yaml
-
 This command loads the yaml file and performs various checks on the
-``roles`` attribute.
+``roles`` and ``role-definitions`` attributes.
 
 Instance tagging
 ----------------
