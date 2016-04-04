@@ -61,3 +61,4 @@ virtualenv/
 
 # handson
 aws.yaml
+keys/
