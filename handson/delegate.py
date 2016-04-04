@@ -30,6 +30,7 @@
 #
 import logging
 
+from handson.keypair import Keypair
 from handson.myyaml import stanza
 from handson.region import Region
 from handson.subnet import Subnet
@@ -44,12 +45,15 @@ class Delegate(Region):
     def __init__(self, args, delegate):
         super(Delegate, self).__init__(args)
         self.args = args
+        k = Keypair(self.args, delegate)
+        k.keypair_obj(import_ok=True, dry_run=self.args.dry_run)
         s = Subnet(self.args, delegate)
         s_obj = s.subnet_obj(create=True, dry_run=self.args.dry_run)
         ec2 = self.ec2()
         self._delegate = {
             'delegate': delegate,
             'ec2': ec2,
+            'keyname': k.keyname(),
             'roles': {},
             'subnet_obj': s_obj,
         }
@@ -62,6 +66,24 @@ class Delegate(Region):
             filters={"subnet-id": subnet_id}
         )
         return len(instance_list)
+
+    def set_subnet_map_public_ip(self):
+        """
+            Attempts to set the MapPublicIpOnLaunch attribute to True.
+            Code taken from http://stackoverflow.com/questions/25977048
+            Author: Mark Doliner
+        """
+        ec2 = self._delegate['ec2']
+        subnet_id = self._delegate['subnet_obj'].id
+        orig_api_version = ec2.APIVersion
+        ec2.APIVersion = '2014-06-15'
+        ec2.get_status(
+            'ModifySubnetAttribute',
+            {'SubnetId': subnet_id, 'MapPublicIpOnLaunch.Value': 'true'},
+            verb='POST'
+        )
+        ec2.APIVersion = orig_api_version
+        return None
 
     def ready_to_install(self, dry_run=False):
         delegate = self._delegate['delegate']
@@ -84,6 +106,7 @@ class Delegate(Region):
                 role_def = self.assemble_role_def(role)
                 self._delegate['roles'][role] = role_def
                 roles_to_install.append(role)
+        self.set_subnet_map_public_ip()
         log.info("Installing nodes: {!r}".format(roles_to_install))
         return True
 
@@ -104,7 +127,7 @@ class Delegate(Region):
             rd['last-octet'],
         )
         our_kwargs = {
-            "key_name": stanza('keyname'),
+            "key_name": self._delegate['keyname'],
             "subnet_id": self._delegate['subnet_obj'].id,
             "instance_type": rd['type'],
             "private_ip_address": private_ip,
