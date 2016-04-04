@@ -38,6 +38,7 @@ from handson.cluster_options import (
     dry_run_only_parser,
 )
 from handson.delegate import Delegate
+from handson.keypair import Keypair
 from handson.misc import (
     CustomFormatter,
     InitArgs,
@@ -101,6 +102,28 @@ class Install(object):
         )
 
         subparsers.add_parser(
+            'keypairs',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            Import SSH public key into AWS EC2.
+
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho install keypair
+            $ echo $?
+            0
+
+            """),
+            help='Import SSH public key into AWS EC2',
+            parents=[cluster_options_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=InstallKeypairs,
+        )
+
+        subparsers.add_parser(
             'subnets',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
@@ -160,6 +183,19 @@ class InstallDelegates(InitArgs, ClusterOptions):
             d.install(dry_run=self.args.dry_run)
 
 
+class InstallKeypairs(InitArgs, ClusterOptions):
+
+    def __init__(self, args):
+        super(InstallKeypairs, self).__init__(args)
+        self.args = args
+
+    def run(self):
+        self.process_delegate_list()
+        for d in self.args.delegate_list:
+            k = Keypair(self.args, d)
+            k.keypair_obj(import_ok=True, dry_run=self.args.dry_run)
+
+
 class InstallSubnets(InitArgs, ClusterOptions):
 
     def __init__(self, args):
@@ -181,6 +217,5 @@ class InstallVPC(InitArgs):
         self.args = args
 
     def run(self):
-        log.info("Creating VPC")
         v = VPC(self.args)
         v.vpc_obj(create=True, dry_run=self.args.dry_run)

@@ -147,7 +147,6 @@ class ClusterOptions(object):
                         "delegates in yaml)").format(max_delegates))
 
     def process_delegate_list(self):
-        log.info("Delegate list is {!r}".format(self.args.delegate_list))
         max_d = stanza('delegates')
         if self.args.delegate_list is None:
             self.args.delegate_list = []
@@ -156,3 +155,4 @@ class ClusterOptions(object):
         if self.args.master:
             self.args.delegate_list.insert(0, 0)
         self.validate_delegate_list()
+        log.info("Delegate list is {!r}".format(self.args.delegate_list))

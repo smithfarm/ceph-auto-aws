@@ -40,7 +40,8 @@ tree_stanzas = {
     'cluster-definition': {'default': [{'role': 'admin'}], 'type': list},
     'clusters': {'default': {}, 'type': dict},
     'delegates': {'default': 1, 'type': int},
-    'keyname': {'default': '', 'type': str},
+    'keyname': {'default': os.getlogin(), 'type': str},
+    'keypairs': {'default': {}, 'type': dict},
     'nametag': {'default': 'handson', 'type': str},
     'region': {'default': 'eu-west-1', 'type': str},
     'role-definitions': {'default': {

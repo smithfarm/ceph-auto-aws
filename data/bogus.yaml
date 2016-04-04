@@ -17,6 +17,8 @@ install_subnets:
 
 keyname: ncutler
 
+keypairs: {}
+
 master:
   ami-id: ami-e801af9f
   replace-from-environment:

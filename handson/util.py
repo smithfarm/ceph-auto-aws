@@ -35,7 +35,7 @@ from handson.misc import HandsOnError
 log = logging.getLogger(__name__)
 
 
-def read_user_data(fn):
+def get_file_as_string(fn):
     """
         Given a filename, returns the file's contents in a string.
     """
