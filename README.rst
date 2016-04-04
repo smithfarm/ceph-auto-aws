@@ -619,7 +619,7 @@ At this point, you should have completed the following steps:
 10. ``ho install keypairs --all --master``
 11. write user-data script for the Salt Master
 12. set ``user-data`` attribute of ``master`` role to filename of Salt Master
-user-data script
+    user-data script
 13. write user-data scripts for all your roles
 14. set ``user-data`` attribute of all roles to the appropriate filename
 
