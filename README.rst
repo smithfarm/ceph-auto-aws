@@ -320,37 +320,38 @@ documentation.
 .. _`Security Groups for Your VPC`: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html
 
 Even with the Internet Gateway and the Route Table set up, and Network ACL wide
-open or disabled, networking may still not work as expected inside the VPC. If
-this is the case, check if there are any Security Groups associated with your
-VPC::
+open (or disabled), networking will typically still "notwork" because the
+default Inbound Rule is:
+
+Open the default Security Group associated with your VPC::
 
     "Security" -> "Security Groups" in VPC Dashboard
 
-Initially, you can set the inbound and outbound rules of your VPC's default
-Security Group to "wide open" like this:
+By default, the Inbound Rules table will look like this:
 
-**Inbound Rules**
+=========== ======== ========== ======
+Type        Protocol Port Range Source 
+=========== ======== ========== ======
+ALL Traffic ALL      ALL        sg-...
+=========== ======== ========== ======
+
+Note that only packets originating from within the same Security Group are
+accepted. All others are dropped.
+
+Edit the line so Source is set to ``0.0.0.0/0``:
 
 =========== ======== ========== ===========
 Type        Protocol Port Range Source
 =========== ======== ========== ===========
-ALL Traffic ALL      ALL        sg-...
-=========== ======== ========== ===========
-
-**Outbound Rules**
-
-=========== ======== ========== ===========
-Type        Protocol Port Range Destination
-=========== ======== ========== ===========
 ALL Traffic ALL      ALL        0.0.0.0/0
 =========== ======== ========== ===========
 
-However, such a setup means the machines in your VPC will be exposed to
-scanning, and if they have any unpatched vulnerabilities evil people might take
-control of them.
+Such a setup means the machines in your VPC will be exposed to scanning, and if
+they have any unpatched vulnerabilities evil people might take control of them.
 
-To address this, remove those lines and add inbound/outbound rules covering all
-the public network segments from which people will be accessing your VPC.
+To address this, replace the ``0.0.0.0/0`` line in the Inbound Rules table with
+lines covering all the public network segments from which people will be
+accessing your VPC.
 
 **WARNING:** The scripting does not do this step for you!
 
@@ -559,47 +560,107 @@ This command loads the YAML file and performs various validations checks,
 including basic sanity checks on the ``cluster-definition`` and
 ``role-definitions`` stanzas.
 
-Install clusters
-================
 
-In its current form, this software's functionality is limited to instantiating
-nodes in AWS, starting and stopping them, and deleting them ("wipeout"). 
+Keypairs
+========
 
-The ``user-data`` scripts should bring the nodes into a "Salt-ready" state -
-i.e. Salt Master service running on the Salt Master node, and Salt Minion
-services running on the Delegate Cluster nodes.
+Before you spin up any Delegate Clusters, you will need to generate delegate
+(SSH) keypairs and import them to AWS.
 
-To actually get a cluster (or clusters) up and running, additional steps are
-necessary, but these are accomplished by running `SaltStack`_ commands on the
-Salt Master node.
+Keyname
+-------
+
+The ``keyname`` stanza in the YAML file determines how the keypairs will be
+named. If you do nothing, it will be set to your username. If your username is
+"regnaw", the Salt Master's keypair will be named ``regnaw-d0``, Delegate 1's
+keypair will be ``regnaw-d1``, etc.
+
+If you want the keypair names to be based on some other string, just set the
+``keyname`` attribute in the YAML file before continuing.
+
+Generate delegate keypairs
+--------------------------
+
+Each delegate will have its own keypair. To generate keypairs for all the
+delegates, do::
+
+    $ ./generate-keys.sh
+
+Then, to import them into AWS, do::
+
+    $ ho install keypairs --all --master
+
+
+Delegates
+=========
+
+When newly instantiated nodes boot up for the first time, a script called
+``user-data`` is run as root. The idea is for this script to bring the nodes
+into a "SaltStack-ready" state - i.e. Salt Master service running on the Salt
+Master node, Salt Minion services running on the Delegate Cluster nodes, and
+minions communicating with, and accepting orders from, the Salt Master. SSH
+access should also be possible using the respective delegate keypair.
+
+To get Ceph running on the cluster nodes, additional steps are necessary. These
+steps are accomplished by running `SaltStack`_ commands on the Salt Master
+node.
+
+At this point, you should have completed the following steps:
+
+1. ``ho probe aws``
+2. ``ho probe yaml``
+3. ``ho probe region``
+4. ``ho install vpc``
+5. create Internet Gateway in VPC Console
+6. ``ho install subnets --all --master``
+7. define roles (by editing the YAML file)
+8. define cluster (by editing the YAML file)
+9. ``./generate-keys.sh``
+10. ``ho install keypairs --all --master``
+11. write user-data script for the Salt Master
+12. set ``user-data`` attribute of ``master`` role to filename of Salt Master
+user-data script
+13. write user-data scripts for all your roles
+14. set ``user-data`` attribute of all roles to the appropriate filename
+
+Now you are ready to instantiate nodes. We start with the Salt Master node.
 
 Install Salt Master
 -------------------
 
-To instantiate the Salt Master node, do::
+Delegate 0 is the Salt Master, but we do not write, e.g., ``ho install delegate
+0``. Instead, we pass the ``--master`` option like so::
 
     $ ho install delegate --master
 
-This is rather cryptic, but the logic is that the Salt Master node is "Delegate
-Number Zero" (i.e. it exists in a ``10.0.x.0/24`` subnet just like the Delegate
-Clusters, but its delegate number is 0).
+.. Theoretically, it is possible to instantiate the Salt Master node and all
+.. the Delegate Cluster nodes at once by doing::
+.. 
+..     $ ho install delegate --all --master
+.. 
+.. In practice, this will not work. The nodes will be instantiated and the
+.. ``user-data`` scripts will run. However, tis not recommended, however, because it's a good idea to let the Salt
+.. Master node "settle" and verify its proper functioning before instantiating any
+.. Delegate Cluster nodes, since these nodes will typically have ``user-data``
+.. scripts that automate registration of minion keys with the Salt Master.
+.. 
+It is a good idea to wait until the Salt Master boots up for the first time and
+finishes running its user-data script before installing any Delegate Clusters.
 
-If you know what you're doing, you can instantiate the Salt Master node and all
-the Delegate Cluster nodes at once by doing::
+.. Once the SSH service is running, you can SSH into the Salt Master. Then you can
+.. tail the logs in FIXME like so::
+.. 
+..     $ FIXME FIXME FIXME TAIL THE USER-DATA LOGS
 
-    $ ho install delegate --all --master
-
-This is not recommended, however, because it's a good idea to let the Salt
-Master node "settle" and verify its proper functioning before instantiating any
-Delegate Cluster nodes, since these nodes will typically have ``user-data``
-scripts that automate registration of minion keys with the Salt Master.
 
 Install Delegate Clusters
 -------------------------
 
-Once you have proper role and cluster definitions, you can try to instantiate
-some nodes. I recommend starting small and working up from there. By "starting
-small" I mean, for example, the following YAML file::
+This software is capable of automating the installation of multiple Delegate
+Clusters - up to the number set in the ``delegates`` stanza of the YAML file.
+
+If you are just testing the software, it's probably a good idea not to set
+``delegates`` too high. You could set a value of 1 to start with::
 
     cluster-definition:
       - role: admin
@@ -610,12 +671,15 @@ small" I mean, for example, the following YAML file::
 
 The ``delegates`` stanza limits the number of clusters that can be instantiated
 at once (or at all). A value of 1 means that the ``ho install delegates``
-command will only take an argument of 1. Any other argument will fail.
+command will only take an argument of 1. Any other argument will fail. If you
+specify ``--all``, it will mean 1.
 
-With the above YAML a single cluster, consisting of a single admin node, will
-be instantiated in the ``10.0.1.0/24`` subnet when you run::
+With the above YAML a single Delegate Cluster will be installed when you run::
 
     $ ho install delegates 1
+
+The cluster will consist of a single admin node which will be instantiated in
+the ``10.0.1.0/24`` subnet.
 
 Instance tagging
 ----------------
