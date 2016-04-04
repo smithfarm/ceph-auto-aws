@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+* Implement "install keypairs" command
+* delegate.py: set MapPublicIpOnLaunch subnet attribute
+* README: Security Groups snafu, Keypairs chapter
+* generate-keys.sh script
+* update ChangeLog
+
 v0.1.3
 ------
 
