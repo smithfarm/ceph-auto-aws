@@ -320,10 +320,10 @@ documentation.
 .. _`Security Groups for Your VPC`: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html
 
 Even with the Internet Gateway and the Route Table set up, and Network ACL wide
-open (or disabled), networking will typically still "notwork" because the
-default Inbound Rule is:
+open (or disabled), you will still not be able to ping your AWS nodes unless
+you edit the Inbound Rules table of your VPC's default Security Group.
 
-Open the default Security Group associated with your VPC::
+You will find it under::
 
     "Security" -> "Security Groups" in VPC Dashboard
 
