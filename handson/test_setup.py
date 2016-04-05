@@ -43,6 +43,6 @@ class SetUp(object):
         pass
 
     def reset_yaml(self):
-        myyaml.reset()
+        myyaml.initialize_internal_buffers()
         myyaml.yaml_file_name('./aws.yaml')
         myyaml.load()

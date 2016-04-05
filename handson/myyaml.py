@@ -75,7 +75,7 @@ _cache_populated = False
 _yfn = None
 
 
-def reset():
+def initialize_internal_buffers():
     global _cache, _cache_populated, _yfn
     _cache = {}
     _cache_populated = False

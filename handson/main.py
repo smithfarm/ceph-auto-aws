@@ -191,8 +191,7 @@ class HandsOn(object):
         logging.getLogger('handson').setLevel(level)
 
         # log.info("HandsOn self.args {!r}".format(self.args))
-
-        handson.myyaml.reset()
+        handson.myyaml.initialize_internal_buffers()
         self.args.func(self.args).run()
 
         sys.exit(0)
