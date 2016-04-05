@@ -34,12 +34,15 @@ import logging
 import textwrap
 
 from handson.cluster_options import (
-    cluster_options_parser,
     ClusterOptions,
 )
 from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
+    InitArgs,
+)
+from handson.parsers import (
+    cluster_options_parser,
 )
 
 log = logging.getLogger(__name__)
@@ -97,12 +100,6 @@ class Stop(object):
         )
 
         return parser
-
-
-class InitArgs(object):
-
-    def __init__(self, args):
-        handson.myyaml._yfn = args.yamlfile
 
 
 class StopDelegates(InitArgs, ClusterOptions):

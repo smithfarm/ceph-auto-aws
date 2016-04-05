@@ -38,6 +38,9 @@ from handson.cluster_options import cluster_options_parser
 from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
+    InitArgs,
+)
+from handson.parsers import (
     subcommand_parser,
     subcommand_parser_with_retag
 )
@@ -232,12 +235,6 @@ class Probe(object):
         )
 
         return parser
-
-
-class InitArgs(object):
-
-    def __init__(self, args):
-        handson.myyaml._yfn = args.yamlfile
 
 
 class ProbeAWS(InitArgs):

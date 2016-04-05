@@ -33,15 +33,17 @@ import logging
 import textwrap
 
 from handson.cluster_options import (
-    cluster_options_parser,
     ClusterOptions,
-    dry_run_only_parser,
 )
 from handson.delegate import Delegate
 from handson.keypair import Keypair
 from handson.misc import (
     CustomFormatter,
     InitArgs,
+)
+from handson.parsers import (
+    cluster_options_parser,
+    dry_run_only_parser,
 )
 from handson.subnet import Subnet
 from handson.vpc import VPC

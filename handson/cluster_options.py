@@ -32,7 +32,6 @@ import argparse
 import handson.myyaml
 import logging
 
-from handson.misc import subcommand_parser
 from handson.myyaml import stanza
 
 log = logging.getLogger(__name__)
@@ -68,61 +67,6 @@ def expand_delegate_list(raw_input):
     assert final_list[0] > 0, "detected too-low delegate (min. 1)"
     assert final_list[-1] <= 50, "detected too-high delegate (max. 50)"
     return final_list
-
-
-class ParseDelegateList(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, expand_delegate_list(values))
-
-
-def cluster_options_parser():
-        parser = argparse.ArgumentParser(
-            description="Cluster",
-            parents=[subcommand_parser()],
-            add_help=False,
-        )
-
-        parser.add_argument(
-            '-a', '--all',
-            action='store_true',
-            help="Apply subcommand to all delegate clusters",
-        )
-
-        parser.add_argument(
-            '-d', '--dry-run',
-            action='store_true', default=None,
-            help="Go through the motions, but do nothing",
-        )
-
-        parser.add_argument(
-            '-m', '--master',
-            action='store_true', default=None,
-            help="Apply subcommand to Salt Master",
-        )
-
-        parser.add_argument(
-            'delegate_list', nargs='?', default=None,
-            action=ParseDelegateList,
-            help="e.g. 1-3,5",
-        )
-
-        return parser
-
-
-def dry_run_only_parser():
-        parser = argparse.ArgumentParser(
-            description="Cluster",
-            parents=[subcommand_parser()],
-            add_help=False,
-        )
-
-        parser.add_argument(
-            '-d', '--dry-run',
-            action='store_true', default=None,
-            help="Go through the motions, but do nothing",
-        )
-
-        return parser
 
 
 class ClusterOptions(object):

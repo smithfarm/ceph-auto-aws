@@ -34,13 +34,16 @@ import logging
 import textwrap
 
 from handson.cluster_options import (
-    cluster_options_parser,
-    dry_run_only_parser,
     ClusterOptions,
 )
 from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
+    InitArgs,
+)
+from handson.parsers import (
+    cluster_options_parser,
+    dry_run_only_parser,
 )
 # from handson.region import Region
 from handson.subnet import Subnet
@@ -147,12 +150,6 @@ class WipeOut(object):
         )
 
         return parser
-
-
-class InitArgs(object):
-
-    def __init__(self, args):
-        handson.myyaml._yfn = args.yamlfile
 
 
 class WipeOutDelegates(InitArgs, ClusterOptions):

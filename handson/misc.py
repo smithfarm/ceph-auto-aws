@@ -40,27 +40,3 @@ class InitArgs(object):
 
     def __init__(self, args):
         handson.myyaml._yfn = args.yamlfile
-
-
-def subcommand_parser():
-    """
-        Necessary for handling -h in, e.g., ho probe aws -h
-    """
-    parser = argparse.ArgumentParser(
-        parents=[],
-        conflict_handler='resolve',
-    )
-    return parser
-
-
-def subcommand_parser_with_retag():
-    parser = argparse.ArgumentParser(
-        parents=[subcommand_parser()],
-        conflict_handler='resolve',
-    )
-    parser.add_argument(
-        '-r', '--retag',
-        action='store_true', default=None,
-        help='retag all objects we touch',
-    )
-    return parser
