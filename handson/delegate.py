@@ -58,14 +58,18 @@ class Delegate(Region):
             'subnet_obj': s_obj,
         }
 
-    def count_instances_in_subnet(self):
+    def preexisting_instances(self):
         ec2 = self._delegate['ec2']
-        subnet_obj = self._delegate['subnet_obj']
-        subnet_id = subnet_obj.id
+        s_obj = self._delegate['subnet_obj']
+        s_id = s_obj.id
         instance_list = ec2.get_only_instances(
-            filters={"subnet-id": subnet_id}
+            filters={"subnet-id": s_id}
         )
-        return len(instance_list)
+        count = len(instance_list) 
+        if count > 0:
+            log.warning("Delegate {} (subnet {}) already has {} instances"
+                        .format(delegate, s_obj.cidr_block, count))
+        return count
 
     def set_subnet_map_public_ip(self):
         """
@@ -85,28 +89,29 @@ class Delegate(Region):
         ec2.APIVersion = orig_api_version
         return None
 
-    def ready_to_install(self, dry_run=False):
-        delegate = self._delegate['delegate']
-        if dry_run:
-            return True
-        count = self.count_instances_in_subnet()
-        if count > 0:
-            log.warning("This delegate already has {} instances"
-                        .format(count))
-            return False
-        roles_to_install = []
+    def roles_to_install(self):
+        rti = []
         if delegate == 0:
             role_def = self.assemble_role_def('master')
             self._delegate['roles']['master'] = role_def
-            roles_to_install.append('master')
+            rti.append('master')
         if delegate > 0:
             cluster_def = stanza('cluster-definition')
             for cluster_def_entry in cluster_def:
                 role = cluster_def_entry['role']
                 role_def = self.assemble_role_def(role)
                 self._delegate['roles'][role] = role_def
-                roles_to_install.append(role)
-        self.set_subnet_map_public_ip()
+                rti.append(role)
+        return rti
+
+    def ready_to_install(self, dry_run=False):
+        delegate = self._delegate['delegate']
+        s_obj = self._delegate['subnet_obj']
+        if self.preexisting_instances():
+            return False
+        if dry_run:
+            return True
+        rti = self.roles_to_install()
         log.info("Installing nodes: {!r}".format(roles_to_install))
         return True
 
@@ -140,17 +145,16 @@ class Delegate(Region):
         return i_obj
 
     def install(self, dry_run=False):
-        delegate = self._delegate['delegate']
         if not self.ready_to_install(dry_run=dry_run):
             return None
+        if dry_run:
+            log.info("Dry run: doing nothing")
+        delegate = self._delegate['delegate']
         c_stanza = stanza('clusters')
         c_stanza[delegate] = {}
         stanza('clusters', c_stanza)
+        self.set_subnet_map_public_ip()
         for role in self._delegate['roles']:
-            if dry_run:
-                log.info("Dry run: doing nothing for role {!r}"
-                         .format(role))
-                continue
             c_stanza[delegate][role] = {}
             stanza('clusters', c_stanza)
             i_obj = self.instantiate_role(role)
@@ -158,6 +162,7 @@ class Delegate(Region):
             stanza('clusters', c_stanza)
             log.info("Instantiated {} node (instance ID {})"
                      .format(role, i_obj.id))
+        return None
 
     def walk_clusters(self, operation=None, dry_run=False):
         ec2 = self._delegate['ec2']
