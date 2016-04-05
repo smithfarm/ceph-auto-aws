@@ -48,7 +48,7 @@ class Keypair(Region):
             'keyname': None,
         }
 
-    def keyname(self):
+    def get_keyname_from_yaml(self):
         if self._keypair['keyname']:
             return self._keypair['keyname']
         k_stanza = stanza('keypairs')
@@ -66,45 +66,52 @@ class Keypair(Region):
         fn = "keys/{}.pub".format(keyname)
         return get_file_as_string(fn)
 
-    def keypair_obj(self, import_ok=False, dry_run=False):
-        if self._keypair['keypair_obj'] is not None:
-            return self._keypair['keypair_obj']
-        d = self._keypair['delegate']
-        ec2 = self.ec2()
-        keyname = "{}-d{}".format(stanza('keyname'), d)
-        k_id = self.keyname()
-        if k_id:
-            log.debug("Getting keypair {} from AWS".format(k_id))
-            k_list = ec2.get_all_key_pairs(keynames=[keyname])
-            log.info("Keypair object {} fetched from AWS".format(k_id))
+    def get_keypair_from_aws(self):
+        keyname_from_yaml = self.get_keyname_from_yaml()
+        if keyname_from_yaml:
+            log.debug("Getting keypair {} from AWS".format(keyname_from_yaml))
+            k_list = self.ec2().get_all_key_pairs(keynames=[keyname_from_yaml])
+            log.info("Keypair object {} fetched from AWS".
+                     format(keyname_from_yaml))
             self._keypair['keypair_obj'] = k_list[0]
-            return k_list[0]
-        assert import_ok, (
-           "Keypair {} should be imported, but import not allowed"
-           .format(keyname)
-        )
-        log.info("Keypair {} not imported yet: importing".format(keyname))
+            return True
+        return False
+
+    def import_keypair(self):
+        d = self._keypair['delegate']
         if dry_run:
             log.info("Dry run: doing nothing")
             return None
         # we pitifully assume the user has already run generate-keys.sh
-        k_mat = self.get_key_material(keyname)
-        k_obj = ec2.import_key_pair(keyname, k_mat)
-        log.info("Keypair {} imported to AWS".format(keyname))
+        k_name = "{}-d{}".format(stanza('keyname'), d)
+        k_mat = self.get_key_material(k_name)
+        k_obj = self.ec2().import_key_pair(k_name, k_mat)
+        log.info("Keypair {} imported to AWS".format(k_name))
         self._keypair['keypair_obj'] = k_obj
-        self._keypair['key_name'] = keyname
+        self._keypair['key_name'] = k_name
         k_stanza = stanza('keypairs')
         k_stanza[d] = {}
-        k_stanza[d]['keyname'] = keyname
+        k_stanza[d]['keyname'] = k_name
         stanza('keypairs', k_stanza)
+
+    def keypair_obj(self, import_ok=False, dry_run=False):
+        if self._keypair['keypair_obj'] is not None:
+            return self._keypair['keypair_obj']
+        d = self._keypair['delegate']
+        if self.get_keypair_from_aws():
+            return self._keypair['keypair_obj']
+        log.info("Delegate {} keypair not imported yet: importing".format(d))
+        assert import_ok, (
+           "Delegate {} keypair should be imported, but import not allowed"
+           .format(d)
+        )
+        k_obj = self.import_keypair()
         return k_obj
 
     def wipeout(self, dry_run=False):
-        vpc_obj = self.vpc_obj(create=False, dry_run=dry_run)
-        if vpc_obj and not dry_run:
-            log.info("Wiping out VPC ID {}".format(vpc_obj.id))
-            self.vpc().delete_vpc(vpc_obj.id)
-            stanza('vpc', {})
-        else:
-            log.info("No VPC in YAML; nothing to do")
-        return None
+        k_name = get_keyname_from_yaml(self)
+        if k_name:
+            # wipeout
+            pass
+        log.info("Delegate {} has no keypair in YAML: doing nothing"
+                 .format(self._keypair['delegate']))
