@@ -36,18 +36,6 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
     pass
 
 
-class YamlError(Exception):
-    pass
-
-
-class HandsOnError(Exception):
-    pass
-
-
-def error_exit(e):
-    raise HandsOnError(e)
-
-
 class InitArgs(object):
 
     def __init__(self, args):

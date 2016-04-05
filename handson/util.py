@@ -30,8 +30,6 @@
 import logging
 import re
 
-from handson.misc import HandsOnError
-
 log = logging.getLogger(__name__)
 
 
@@ -55,11 +53,9 @@ def derive_ip_address(cidr_block, delegate, final8):
         derived IP address will be 10.0.10.8.
     """
     match = re.match(r'\d+\.\d+', cidr_block)
-    if match:
-        result = '{}.{}.{}'.format(match.group(0), delegate, final8)
-    else:
-        raise HandsOnError(
-            "{} passed to derive_ip_address() is not a CIDR block!"
-            .format(cidr_block)
-        )
+    assert match, (
+        "{} passed to derive_ip_address() is not a CIDR block!"
+        .format(cidr_block)
+    )
+    result = '{}.{}.{}'.format(match.group(0), delegate, final8)
     return result

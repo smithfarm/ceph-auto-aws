@@ -32,7 +32,7 @@ import argparse
 import handson.myyaml
 import logging
 
-from handson.misc import error_exit, subcommand_parser
+from handson.misc import subcommand_parser
 from handson.myyaml import stanza
 
 log = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ log = logging.getLogger(__name__)
 
 def expand_delegate_list(raw_input):
     """
-        Given a string, raw_input, that looks like "1-3,7"
+        Given a string raw_input, that looks like "1-3,7"
         return a sorted list of integers [1, 2, 3, 7]
     """
     if raw_input is None:
@@ -50,9 +50,9 @@ def expand_delegate_list(raw_input):
         t = item.split('-')
         try:
             ti = list(map(int, t))
-            # ti = map(int, t)  # <- SEGFAULT
+            # ti = map(int, t)  # <- SEGFAULT IN PYTHON 3.4.1
         except ValueError as e:
-            error_exit(e)
+            raise e
         if len(ti) == 1:
             intermediate_list.extend(ti)
             continue
@@ -63,12 +63,10 @@ def expand_delegate_list(raw_input):
             ):
                 intermediate_list.extend(range(ti[0], ti[1]+1))
                 continue
-        error_exit("Illegal delegate list")
+        assert 1 == 0, "Illegal delegate list {!r}".format(ti))
     final_list = list(sorted(set(intermediate_list), key=int))
-    if final_list[0] < 1:
-        error_exit("detected too-low delegate (min. 1)")
-    if final_list[-1] > 50:
-        error_exit("detected too-high delegate (max. 50)")
+    assert final_list[0] > 0, "detected too-low delegate (min. 1)"
+    assert final_list[-1] <= 50, "detected too-high delegate (max. 50)"
     return final_list
 
 
@@ -135,16 +133,15 @@ class ClusterOptions(object):
             return True
         max_delegates = handson.myyaml.stanza('delegates')
         log.debug("Maximum number of delegates is {!r}".format(max_delegates))
-        if (
-                max_delegates is None or
-                max_delegates < 1 or
-                max_delegates > 50
-        ):  # pragma: no cover
-            error_exit("Bad number of delegates in yaml: {!r}".
-                       format(max_delegates))
-        if dl[-1] > max_delegates:
-            error_exit(("Delegate list exceeds {!r} (maximum number of " +
-                        "delegates in yaml)").format(max_delegates))
+        assert (
+                max_delegates is not None and
+                max_delegates > 0 and
+                max_delegates <= 50
+        ), "Bad delegates stanza in YAML: {!r}".format(max_delegates))
+        assert dl[-1] <= max_delegates, (
+            ("Delegate list exceeds {!r} (maximum number of " +
+             "delegates in YAML)").format(max_delegates)
+        )
 
     def process_delegate_list(self):
         max_d = stanza('delegates')
