@@ -1,6 +1,8 @@
 CHANGES
 =======
 
+* Stabilize after the big cleanup
+* YAML: add last-octet values to sample YAML file
 * cleanup: move parsers into their own module
 * myyaml.py: rename reset() -> initialize_internal_buffers()
 * keypair.py: cleanup
