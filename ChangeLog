@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+v0.1.5
+------
+
+* Bump version: 0.1.4 → 0.1.5
+* tox.ini: revert to using python setup.py develop
+* update ChangeLog
 * user-data scripts for Linux and Windows cluster nodes
 * Install and wipeout now support user-data and volume
 * Update ChangeLog
