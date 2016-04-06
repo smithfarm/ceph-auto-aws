@@ -59,3 +59,12 @@ def derive_ip_address(cidr_block, delegate, final8):
     )
     result = '{}.{}.{}'.format(match.group(0), delegate, final8)
     return result
+
+
+def template_token_subst(buf, key, val):
+    """
+        Given a string (buf), a key (e.g. '@@MASTER_IP@@') and val, replace all
+        occurrences of key in buf with val. Return the new string.
+    """
+    targetre = re.compile(re.escape(key))
+    return re.sub(targetre, str(val), buf)

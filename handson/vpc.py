@@ -80,6 +80,14 @@ class VPC(Region):
                         'cidr_block': vpc_obj.cidr_block,
                         'id': vpc_obj.id
                     })
+                    vpc_conn.modify_vpc_attribute(
+                        vpc_obj.id,
+                        enable_dns_support=True,
+                    )
+                    vpc_conn.modify_vpc_attribute(
+                        vpc_obj.id,
+                        enable_dns_hostnames=True,
+                    )
             else:
                 log.info("VPC ID not specified in yaml: nothing to do")
                 vpc_obj = None
@@ -103,6 +111,14 @@ class VPC(Region):
                 vpc_stanza['id'], vpc_stanza['cidr_block'],
             ))
         self._vpc['vpc_obj'] = vpc_obj
+        vpc_conn.modify_vpc_attribute(
+            vpc_obj.id,
+            enable_dns_support=True,
+        )
+        vpc_conn.modify_vpc_attribute(
+            vpc_obj.id,
+            enable_dns_hostnames=True,
+        )
         return vpc_obj
 
     def wipeout(self, dry_run=False):

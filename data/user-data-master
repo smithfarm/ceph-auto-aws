@@ -13,7 +13,7 @@
 #mailx -r ceph-auto-aws@github.com -s "$message user-data start" $EMAIL
 
 zypper -n addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/openSUSE_Leap_42.1/home:smithfarm:susecon.repo
-zypper -n refresh
+zypper --gpg-auto-import-keys refresh
 zypper -n update
 
 ## update packages

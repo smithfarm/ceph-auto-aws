@@ -748,3 +748,96 @@ Master, like so::
 and EBS volumes only. They do not have any effect on subnets or the VPC. (If
 needed, those must be wiped out separately.)
 
+Spin up a Delegate Cluster
+==========================
+
+Take the following example::
+
+    cluster-definition:
+      - role: admin
+      - role: mon1
+      - role: mon2
+      - role: mon3
+      - role: windows
+
+    ...
+
+    role-definitions:
+      admin:
+        last-octet: 10
+        volume:
+      defaults:
+        ami-id: ami-ff63dd8c
+        last-octet:
+        replace-from-environment: []
+        type: t2.small
+        user-data: data/user-data-nodes
+        volume: 20
+      master:
+        last-octet: 10
+        user-data: data/user-data-master
+        volume:
+      mon1:
+        last-octet: 11
+        volume: 20
+      mon2:
+        last-octet: 12
+        volume: 20
+      mon3:
+        last-octet: 13
+        volume: 20
+      osd:
+        last-octet: 14
+        volume: 20
+      windows:
+        ami-id: ami-c6972fb5
+        last-octet: 15
+        user-data: data/user-data-windows
+        volume:
+
+The ``user-data-nodes`` script updates each cluster node and adds the repo
+containing the latest versions of the ``ceph`` and ``ceph-deploy`` packages.  
+It also configures and enables the ``ntp`` and ``salt-minion`` services.
+
+One can follow progress of the user-data script on a given node by sshing into 
+the node and doing::
+
+    (Cluster Node)# tail -n 100 -f /var/log/cloud-init-output.log
+
+Once all the cluster nodes have finished running their user-data scripts, you
+can SSH to the Salt Master and list the minion keys::
+
+    (Salt Master)# salt-key -L
+
+This shows the unaccepted keys. Accept them by doing::
+
+    (Salt Master)# salt-key -A -y
+
+If there are stale keys from clusters that have been wiped out, you can just
+delete all keys and wait for the live minions to re-connect::
+
+    (Salt Master)# salt-key -A -y
+
+The next step is to run the ``ceph-admin`` Salt State on all the nodes. In this
+example we are spinning up a cluster for Delegate 2::
+
+    (Salt Master)# salt -C "G@delegate:2" state.sls ceph-admin
+
+Examine **all** the output. If there are failures, just run the command over
+again. Once it is completing without any failures, remotely run the
+``ceph-deploy-sh`` Salt State on the admin node to deploy a Ceph cluster::
+
+    (Salt Master)# salt -C "G@delegate:2 and G@role:admin" state.sls ceph-deploy-sh
+
+This will take a minute or two to complete. If all goes well, it will succeed.
+If it fails, you have no choice but to wipe out the delegate and start over.
+
+Of course, the gold standard of a well-functioning Ceph cluster is
+``HEALTH_OK``. Check the cluster health by running the ``ceph-s`` Salt State::
+
+    (Salt Master)# salt -C "G@delegate:2 and G@role:admin" state.sls ceph-s
+
+At this point, you can SSH into the Delegate 2 admin node and become user "ceph" by doing::
+
+    (Delegate 2 admin node)# su - ceph
+

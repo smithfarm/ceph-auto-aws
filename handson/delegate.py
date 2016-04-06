@@ -28,14 +28,20 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+import copy
 import logging
+import time
 
 from handson.keypair import Keypair
 from handson.myyaml import stanza
 from handson.region import Region
 from handson.subnet import Subnet
 from handson.tag import apply_tag
-from handson.util import derive_ip_address, get_file_as_string
+from handson.util import (
+    derive_ip_address,
+    get_file_as_string,
+    template_token_subst,
+)
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +63,12 @@ class Delegate(Region):
             'roles': {},
             'subnet_obj': s_obj,
         }
+
+    def apply_tags(self, aws_obj, role=None):
+        delegate = self._delegate['delegate']
+        apply_tag(aws_obj, tag='Name', val=stanza('nametag'))
+        apply_tag(aws_obj, tag='Role', val=role)
+        apply_tag(aws_obj, tag='Delegate', val=delegate)
 
     def preexisting_instances(self):
         delegate = self._delegate['delegate']
@@ -93,39 +105,40 @@ class Delegate(Region):
     def roles_to_install(self):
         delegate = self._delegate['delegate']
         rti = []
+        rdd = {}
         if delegate == 0:
             role_def = self.assemble_role_def('master')
-            self._delegate['roles']['master'] = role_def
+            rdd['master'] = role_def
             rti.append('master')
         if delegate > 0:
             cluster_def = stanza('cluster-definition')
             for cluster_def_entry in cluster_def:
                 role = cluster_def_entry['role']
                 role_def = self.assemble_role_def(role)
-                self._delegate['roles'][role] = role_def
+                rdd[role] = role_def
                 rti.append(role)
-        return rti
+        return (rti, rdd)
 
     def ready_to_install(self, dry_run=False):
         if self.preexisting_instances():
             return False
         if dry_run:
             return True
-        rti = self.roles_to_install()
-        log.info("Installing nodes: {!r}".format(rti))
-        return True
+        (rti, self._delegate['role_defs']) = self.roles_to_install()
+        return rti
 
     def assemble_role_def(self, role):
         rd = stanza('role-definitions')
-        rv = rd['defaults']
+        rv = copy.deepcopy(rd['defaults'])
         for a in rd[role]:
             rv[a] = rd[role][a]
         return rv
 
-    def instantiate_role(self, role):
+    def instantiate_role(self, role, node_no):
         delegate = self._delegate['delegate']
         ec2 = self._delegate['ec2']
-        rd = self._delegate['roles'][role]
+        rd = self._delegate['role_defs'][role]
+        log.info("Instantiating role {} from role-def {!r}".format(role, rd))
         private_ip = derive_ip_address(
             self._delegate['subnet_obj'].cidr_block,
             self._delegate['delegate'],
@@ -139,20 +152,69 @@ class Delegate(Region):
             "private_ip_address": private_ip,
         }
         # conditional kwargs
+        master_ip = '10.0.0.10'
         if rd['user-data']:
-            material = get_file_as_string(rd['user-data'])
+            u = get_file_as_string(rd['user-data'])
             log.info("Read {} characters of user-data from file {}"
-                     .format(len(material), rd['user-data']))
-            our_kwargs['user_data'] = material
+                     .format(len(u), rd['user-data']))
+            u = template_token_subst(u, '@@MASTER_IP@@', master_ip)
+            u = template_token_subst(u, '@@DELEGATE@@', delegate)
+            u = template_token_subst(u, '@@ROLE@@', role)
+            u = template_token_subst(u, '@@NODE_NO@@', node_no)
+            our_kwargs['user_data'] = u
         reservation = ec2.run_instances(rd['ami-id'], **our_kwargs)
         i_obj = reservation.instances[0]
-        apply_tag(i_obj, tag='Name', val=stanza('nametag'))
-        apply_tag(i_obj, tag='Role', val=role)
-        apply_tag(i_obj, tag='Delegate', val=delegate)
-        return i_obj
+        self.apply_tags(i_obj, role=role)
+        v_obj = None
+        if rd['volume']:
+            vol_size = int(rd['volume'])
+            log.info("Role {} requires {}GB volume".format(role, vol_size))
+            if vol_size > 0:
+                v_obj = ec2.create_volume(vol_size, i_obj.placement)
+                self.apply_tags(v_obj, role=role)
+        return (i_obj, v_obj)
+
+    def instance_await_state(self, role, instance_id, state='running'):
+        return self.await_state(
+            role,
+            instance_id,
+            state=state,
+            thing='instance'
+        )
+
+    def volume_await_state(self, role, volume_id, state='running'):
+        return self.await_state(
+            role,
+            volume_id,
+            state=state,
+            thing='volume'
+        )
+
+    def await_state(self, role, t_id, thing=None, state=None):
+        log.info("Waiting for {} {} to reach '{}' state"
+                 .format(role, thing, state))
+        ec2 = self._delegate['ec2']
+        while True:
+            if thing == 'instance':
+                things = ec2.get_only_instances(instance_ids=[t_id])
+                aws_state = things[0].state
+            elif thing == 'volume':
+                things = ec2.get_all_volumes(volume_ids=[t_id])
+                aws_state = things[0].status
+            else:
+                assert 1 == 0, "Programmer brain failure"
+            log.info("Current state is {}".format(aws_state))
+            if aws_state != state:
+                log.info("Sleeping for 5 seconds")
+                time.sleep(5)
+            else:
+                # log.info("Sleeping another 5 seconds for good measure"
+                # time.sleep(5)
+                break
 
     def install(self, dry_run=False):
-        if not self.ready_to_install(dry_run=dry_run):
+        self._delegate['roles'] = self.ready_to_install(dry_run=dry_run)
+        if not self._delegate['roles']:
             return None
         if dry_run:
             log.info("Dry run: doing nothing")
@@ -161,15 +223,61 @@ class Delegate(Region):
         c_stanza[delegate] = {}
         stanza('clusters', c_stanza)
         self.set_subnet_map_public_ip()
+        # instantiate node for each role
+        aws_objs = {}
+        count = 0
         for role in self._delegate['roles']:
             c_stanza[delegate][role] = {}
             stanza('clusters', c_stanza)
-            i_obj = self.instantiate_role(role)
+            (i_obj, v_obj) = self.instantiate_role(role, ++count)
+            aws_objs[role] = {}
+            aws_objs[role]['instance_obj'] = i_obj
+            aws_objs[role]['volume_obj'] = v_obj
             c_stanza[delegate][role]['instance_id'] = i_obj.id
+            c_stanza[delegate][role]['placement'] = i_obj.placement
+            if v_obj:
+                c_stanza[delegate][role]['volume_id'] = v_obj.id
             stanza('clusters', c_stanza)
             log.info("Instantiated {} node (instance ID {})"
                      .format(role, i_obj.id))
+        # attach volumes
+        ec2 = self._delegate['ec2']
+        for role in self._delegate['roles']:
+            i_obj = aws_objs[role]['instance_obj']
+            v_obj = aws_objs[role]['volume_obj']
+            if v_obj:
+                c_stanza[delegate][role]['volume_id'] = v_obj.id
+                self.instance_await_state(role, i_obj.id, state='running')
+                self.volume_await_state(role, v_obj.id, state='available')
+                assert ec2.attach_volume(v_obj.id, i_obj.id, '/dev/sdb'), (
+                    "Failed to attach volume to role {}, delegate {}"
+                    .format(role, delegate))
         return None
+
+    def is_attached(self, v_id, i_id):
+        ec2 = self._delegate['ec2']
+        attached_vol = ec2.get_all_volumes(
+            filters={
+                "volume-id": v_id,
+                "attachment.instance-id": i_id,
+                "attachment.device": "/dev/sdb"
+            }
+        )
+        log.debug("attached_vol == {}".format(attached_vol))
+        if attached_vol is None or len(attached_vol) == 0:
+            return False
+        return True
+
+    def wait_for_detachment(self, v_id, i_id):
+        log.info("Waiting for volume {} to be detached from instance {}"
+                 .format(v_id, i_id))
+        while True:
+            if self.is_attached(v_id, i_id):
+                time.sleep(5)
+                log.info("Still attached")
+                continue
+            log.info("Volume has been detached")
+            break
 
     def walk_clusters(self, operation=None, dry_run=False):
         ec2 = self._delegate['ec2']
@@ -192,20 +300,53 @@ class Delegate(Region):
         else:
             assert 1 == 0
 
-        id_list = []
+        instance_id_list = []
+        iv_map = {}  # keys are instance IDs and values are volume IDs
         for role in c_stanza[delegate]:
             if dry_run:
                 log.info("Dry run: doing nothing for role {!r}"
                          .format(role))
                 continue
-            id_list.append(c_stanza[delegate][role]['instance_id'])
-        if id_list:
-            do_what(instance_ids=id_list)
+            i_id = c_stanza[delegate][role]['instance_id']
+            instance_id_list.append(i_id)
+            if 'volume_id' in c_stanza[delegate][role]:
+                iv_map[i_id] = {
+                    'volume_id': c_stanza[delegate][role]['volume_id'],
+                    'role': role
+                }
+        if operation == "wipeout" and iv_map:
+            ec2.stop_instances(instance_ids=iv_map.keys())
+            # for i_id in iv_map.keys():
+            #     self.instance_await_state(
+            #         iv_map[i_id]['role'],
+            #         i_id,
+            #         state='stopped',
+            #     )
+            log.info("Detaching {} volumes...".format(len(iv_map)))
+            for i_id in iv_map.keys():
+                v_id = iv_map[i_id]['volume_id']
+                v_list = ec2.get_all_volume_status(volume_ids=[v_id])
+                log.debug("Volume {} status {}"
+                          .format(v_id, v_list[0].__dict__))
+                if self.is_attached(v_id, i_id):
+                    ec2.detach_volume(
+                        v_id,
+                        instance_id=i_id,
+                        device='/dev/sdb',
+                        force=True
+                    )
+            log.info("Deleting {} volumes...".format(len(iv_map)))
+            for i_id in iv_map.keys():
+                v_id = iv_map[i_id]['volume_id']
+                self.wait_for_detachment(v_id, i_id)
+                ec2.delete_volume(v_id)
+        if instance_id_list:
+            do_what(instance_ids=instance_id_list)
         if operation == "wipeout" and not dry_run:
             del(c_stanza[delegate])
             stanza('clusters', c_stanza)
         log.info("{} instances {} for delegate {}"
-                 .format(len(id_list), what_done, delegate))
+                 .format(len(instance_id_list), what_done, delegate))
 
     def wipeout(self, dry_run=False):
         self.walk_clusters(operation='wipeout', dry_run=dry_run)
