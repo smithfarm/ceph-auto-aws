@@ -77,7 +77,7 @@ class Keypair(Region):
             return True
         return False
 
-    def import_keypair(self):
+    def import_keypair(self, dry_run):
         d = self._keypair['delegate']
         if dry_run:
             log.info("Dry run: doing nothing")
@@ -105,11 +105,11 @@ class Keypair(Region):
            "Delegate {} keypair should be imported, but import not allowed"
            .format(d)
         )
-        k_obj = self.import_keypair()
+        k_obj = self.import_keypair(dry_run)
         return k_obj
 
     def wipeout(self, dry_run=False):
-        k_name = get_keyname_from_yaml(self)
+        k_name = self.get_keyname_from_yaml(self)
         if k_name:
             # wipeout
             pass

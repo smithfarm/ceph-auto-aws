@@ -32,7 +32,6 @@ import logging
 import unittest
 
 from handson import main
-from handson.misc import HandsOnError
 from handson.test_setup import SetUp
 from mock import patch
 from yaml.parser import ParserError
@@ -81,7 +80,7 @@ class TestHandsOn(SetUp, unittest.TestCase):
     def test_install_01(self):
         m = main.HandsOn()
 
-        with self.assertRaises(HandsOnError):
+        with self.assertRaises(AssertionError):
             m.run([
                 '-v', 'install', 'delegates', '1-50',
             ])
@@ -89,7 +88,7 @@ class TestHandsOn(SetUp, unittest.TestCase):
     def test_install_02(self):
         m = main.HandsOn()
 
-        with self.assertRaises(HandsOnError):
+        with self.assertRaises(AssertionError):
             m.run([
                 'install', 'delegates', '51',
             ])
@@ -97,7 +96,7 @@ class TestHandsOn(SetUp, unittest.TestCase):
     def test_install_03(self):
         m = main.HandsOn()
 
-        with self.assertRaises(HandsOnError):
+        with self.assertRaises(ValueError):
             m.run([
                 'install', 'delegates', 'FartOnTheWater',
             ])
@@ -105,7 +104,7 @@ class TestHandsOn(SetUp, unittest.TestCase):
     def test_install_04(self):
         m = main.HandsOn()
 
-        with self.assertRaises(HandsOnError):
+        with self.assertRaises(AssertionError):
             m.run([
                 'install', 'delegates', '0,1,3',
             ])
@@ -113,7 +112,7 @@ class TestHandsOn(SetUp, unittest.TestCase):
     def test_install_05(self):
         m = main.HandsOn()
 
-        with self.assertRaises(HandsOnError):
+        with self.assertRaises(AssertionError):
             m.run([
                 'install', 'delegates', '1,3-2',
             ])

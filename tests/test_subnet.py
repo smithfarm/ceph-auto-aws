@@ -32,7 +32,7 @@ import handson.myyaml
 # import logging
 import unittest
 
-from handson.misc import subcommand_parser_with_retag
+from handson.parsers import subcommand_parser_with_retag
 from handson.subnet import Subnet
 from handson.test_setup import SetUp
 

@@ -28,45 +28,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-import argparse
-import handson.myyaml
 import logging
 
 from handson.myyaml import stanza
 
 log = logging.getLogger(__name__)
-
-
-def expand_delegate_list(raw_input):
-    """
-        Given a string raw_input, that looks like "1-3,7"
-        return a sorted list of integers [1, 2, 3, 7]
-    """
-    if raw_input is None:
-        return None
-    intermediate_list = []
-    for item in raw_input.split(','):
-        t = item.split('-')
-        try:
-            ti = list(map(int, t))
-            # ti = map(int, t)  # <- SEGFAULT IN PYTHON 3.4.1
-        except ValueError as e:
-            raise e
-        if len(ti) == 1:
-            intermediate_list.extend(ti)
-            continue
-        if len(ti) == 2:
-            if (
-                    ti[1] > ti[0] and
-                    (ti[1] - ti[0]) < 50
-            ):
-                intermediate_list.extend(range(ti[0], ti[1]+1))
-                continue
-        assert 1 == 0, "Illegal delegate list {!r}".format(ti))
-    final_list = list(sorted(set(intermediate_list), key=int))
-    assert final_list[0] > 0, "detected too-low delegate (min. 1)"
-    assert final_list[-1] <= 50, "detected too-high delegate (max. 50)"
-    return final_list
 
 
 class ClusterOptions(object):
@@ -75,13 +41,13 @@ class ClusterOptions(object):
         dl = self.args.delegate_list
         if dl is None or len(dl) == 0:
             return True
-        max_delegates = handson.myyaml.stanza('delegates')
+        max_delegates = stanza('delegates')
         log.debug("Maximum number of delegates is {!r}".format(max_delegates))
         assert (
                 max_delegates is not None and
                 max_delegates > 0 and
                 max_delegates <= 50
-        ), "Bad delegates stanza in YAML: {!r}".format(max_delegates))
+        ), "Bad delegates stanza in YAML: {!r}".format(max_delegates)
         assert dl[-1] <= max_delegates, (
             ("Delegate list exceeds {!r} (maximum number of " +
              "delegates in YAML)").format(max_delegates)

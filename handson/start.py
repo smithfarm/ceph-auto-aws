@@ -29,7 +29,6 @@
 #
 
 import argparse
-import handson.myyaml
 import logging
 import textwrap
 

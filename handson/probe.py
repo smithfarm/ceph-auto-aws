@@ -34,13 +34,13 @@ import logging
 import textwrap
 
 from boto import connect_ec2
-from handson.cluster_options import cluster_options_parser
 from handson.delegate import Delegate
 from handson.misc import (
     CustomFormatter,
     InitArgs,
 )
 from handson.parsers import (
+    cluster_options_parser,
     subcommand_parser,
     subcommand_parser_with_retag
 )

@@ -35,7 +35,7 @@ from handson.myyaml import stanza
 from handson.region import Region
 from handson.subnet import Subnet
 from handson.tag import apply_tag
-from handson.util import derive_ip_address  # , read_user_data
+from handson.util import derive_ip_address, get_file_as_string
 
 log = logging.getLogger(__name__)
 
@@ -53,19 +53,20 @@ class Delegate(Region):
         self._delegate = {
             'delegate': delegate,
             'ec2': ec2,
-            'keyname': k.keyname(),
+            'keyname': k.get_keyname_from_yaml(),
             'roles': {},
             'subnet_obj': s_obj,
         }
 
     def preexisting_instances(self):
+        delegate = self._delegate['delegate']
         ec2 = self._delegate['ec2']
         s_obj = self._delegate['subnet_obj']
         s_id = s_obj.id
         instance_list = ec2.get_only_instances(
             filters={"subnet-id": s_id}
         )
-        count = len(instance_list) 
+        count = len(instance_list)
         if count > 0:
             log.warning("Delegate {} (subnet {}) already has {} instances"
                         .format(delegate, s_obj.cidr_block, count))
@@ -90,6 +91,7 @@ class Delegate(Region):
         return None
 
     def roles_to_install(self):
+        delegate = self._delegate['delegate']
         rti = []
         if delegate == 0:
             role_def = self.assemble_role_def('master')
@@ -105,14 +107,12 @@ class Delegate(Region):
         return rti
 
     def ready_to_install(self, dry_run=False):
-        delegate = self._delegate['delegate']
-        s_obj = self._delegate['subnet_obj']
         if self.preexisting_instances():
             return False
         if dry_run:
             return True
         rti = self.roles_to_install()
-        log.info("Installing nodes: {!r}".format(roles_to_install))
+        log.info("Installing nodes: {!r}".format(rti))
         return True
 
     def assemble_role_def(self, role):
@@ -131,12 +131,19 @@ class Delegate(Region):
             self._delegate['delegate'],
             rd['last-octet'],
         )
+        # kwargs we use always
         our_kwargs = {
             "key_name": self._delegate['keyname'],
             "subnet_id": self._delegate['subnet_obj'].id,
             "instance_type": rd['type'],
             "private_ip_address": private_ip,
         }
+        # conditional kwargs
+        if rd['user-data']:
+            material = get_file_as_string(rd['user-data'])
+            log.info("Read {} characters of user-data from file {}"
+                     .format(len(material), rd['user-data']))
+            our_kwargs['user_data'] = material
         reservation = ec2.run_instances(rd['ami-id'], **our_kwargs)
         i_obj = reservation.instances[0]
         apply_tag(i_obj, tag='Name', val=stanza('nametag'))

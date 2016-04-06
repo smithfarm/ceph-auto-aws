@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* cleanup: move parsers into their own module
+* myyaml.py: rename reset() -> initialize_internal_buffers()
+* keypair.py: cleanup
+* delegate.py: cleanup
+* cleanup: drop error_exit, HandsOnError, YamlError
+* README: fix numbered list formatting issue
+* README: make Security Groups section less incoherent
+* update ChangeLog
 * Implement "install keypairs" command
 * delegate.py: set MapPublicIpOnLaunch subnet attribute
 * README: Security Groups snafu, Keypairs chapter

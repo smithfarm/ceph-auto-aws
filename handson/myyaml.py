@@ -47,12 +47,12 @@ tree_stanzas = {
     'role-definitions': {'default': {
         'admin': {'last-octet': 10},
         'defaults': {
-            'ami-id': '',
-            'last-octet': '',
+            'ami-id': None,
+            'last-octet': None,
             'replace-from-environment': [],
             'type': 't2.small',
-            'user-data': '',
-            'volume': ''
+            'user-data': None,
+            'volume': None
         },
         'master': {'last-octet': 10},
         'mon1': {'last-octet': 11},

@@ -1,0 +1,45 @@
+#!/bin/bash -x
+#
+# user-data-master
+#
+# Launch script for Salt Master
+
+#EMAIL=@@EMAIL@@
+#
+## notify via email that script started to run
+#instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
+#public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
+#message="Salt Master $public_ipv4"
+#mailx -r ceph-auto-aws@github.com -s "$message user-data start" $EMAIL
+
+zypper -n addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/openSUSE_Leap_42.1/home:smithfarm:susecon.repo
+zypper -n refresh
+zypper -n update
+
+## update packages
+## wait for background zyppers to finish
+#while sleep 5 ; do
+#    zypper -n update
+#    if [[ $? = 0 ]] ; then
+#        break
+#    fi
+#done
+
+# be the Salt Master
+zypper -n install salt-master susecon-salt-master
+systemctl enable salt-master.service
+systemctl start salt-master.service
+
+# salt-related scripts
+cat <<EOF >/root/bin/salt-setup-admin.sh
+DELEGATE=\$1 ; salt -C "G@delegate:\$DELEGATE and G@role:admin" state.sls ceph-admin
+EOF
+cat <<EOF >/root/bin/salt-setup-mons.sh
+DELEGATE=\$1 ; salt -C "G@delegate:\$DELEGATE and G@role:mon" state.sls ceph-mon
+EOF
+chmod 755 /root/bin/*
+
+## announce completion
+#mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL
+
+systemctl reboot
