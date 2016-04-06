@@ -16,27 +16,28 @@ region: eu-west-1
 
 role-definitions:
   admin:
+    last-octet: 10
   defaults:
     ami-id: ami-ff63dd8c
-    replace-from-environment:
-      - EMAIL
-    type: t2.micro
-    user-data: user-data-nodes
-    volume:
-  master:
-    replace-from-environment:
-      - EMAIL
-      - BETA_PROGRAM_USERNAME
-      - BETA_PROGRAM_PASSWORD
-    type: t2.micro
-    user-data: user-data-master
-  mon:
-  osd:
-  windows:
-    ami-id: ami-abe9c9dc
+    last-octet: 10
     replace-from-environment: []
     type: t2.small
-    user-data: user-data-windows
+    user-data:
+    volume:
+  master:
+    last-octet: 10
+    user-data: data/user-data-master
+  mon1:
+    last-octet: 11
+  mon2:
+    last-octet: 12
+  mon3:
+    last-octet: 13
+  osd:
+    last-octet: 14
+  windows:
+    ami-id: ami-c6972fb5
+    last-octet: 15
 
 subnets:
 
