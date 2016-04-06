@@ -1,0 +1,50 @@
+#!/bin/bash -x
+#
+# user-data-nodes
+#
+# Launch script for Ceph nodes
+
+#EMAIL=@@EMAIL@@
+#MASTER_IP=@@MASTER_IP@@
+#DELEGATE=@@DELEGATE@@
+#
+## notify via email that script started to run
+#instance_id=$(curl http://169.254.169.254/2009-04-04/meta-data/instance-id)
+#public_ipv4=$(curl http://169.254.169.254/2009-04-04/meta-data/public-ipv4)
+#message="Delegate $DELEGATE @@ROLE@@ node $public_ipv4"
+#mailx -r ceph-auto-aws@github.com -s "$message user-data start" $EMAIL
+
+zypper -n addrepo http://download.opensuse.org/repositories/filesystems:ceph:hammer/openSUSE_Leap_42.1/filesystems:ceph:hammer.repo
+zypper --gpg-auto-import-keys refresh
+zypper -n install ntp salt-minion
+
+# set up ntpd
+cat <<EOF >>/etc/ntp.conf
+server 0.amazon.pool.ntp.org iburst
+server 1.amazon.pool.ntp.org iburst
+server 2.amazon.pool.ntp.org iburst
+server 3.amazon.pool.ntp.org iburst
+EOF
+systemctl enable ntpd.service
+systemctl start ntpd.service
+
+# set up salt-minion
+systemctl enable salt-minion.service
+MINION_CONF=/etc/salt/minion.d/ceph.conf
+cat <<EOF > $MINION_CONF
+master: @@MASTER_IP@@
+grains:
+  delegate: @@DELEGATE@@
+  role: @@ROLE@@
+  node_no: @@NODE_NO@@
+EOF
+chown root:root $MINION_CONF
+chmod 0644 $MINION_CONF
+
+# update all installed packages
+zypper -n update
+
+## announce completion
+#mailx -r ceph-auto-aws@github.com -s "$message user-data complete, rebooting" $EMAIL
+
+systemctl reboot
