@@ -1,6 +1,8 @@
 CHANGES
 =======
 
+* user-data scripts for Linux and Windows cluster nodes
+* Install and wipeout now support user-data and volume
 * Update ChangeLog
 
 v0.1.4
