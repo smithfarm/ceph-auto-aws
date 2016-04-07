@@ -134,7 +134,7 @@ class Delegate(Region):
             rv[a] = rd[role][a]
         return rv
 
-    def instantiate_role(self, role, node_no):
+    def instantiate_role(self, role):
         delegate = self._delegate['delegate']
         ec2 = self._delegate['ec2']
         rd = self._delegate['role_defs'][role]
@@ -160,7 +160,7 @@ class Delegate(Region):
             u = template_token_subst(u, '@@MASTER_IP@@', master_ip)
             u = template_token_subst(u, '@@DELEGATE@@', delegate)
             u = template_token_subst(u, '@@ROLE@@', role)
-            u = template_token_subst(u, '@@NODE_NO@@', node_no)
+            u = template_token_subst(u, '@@NODE_NO@@', rd('node_no'))
             our_kwargs['user_data'] = u
         reservation = ec2.run_instances(rd['ami-id'], **our_kwargs)
         i_obj = reservation.instances[0]
@@ -225,11 +225,10 @@ class Delegate(Region):
         self.set_subnet_map_public_ip()
         # instantiate node for each role
         aws_objs = {}
-        count = 0
         for role in self._delegate['roles']:
             c_stanza[delegate][role] = {}
             stanza('clusters', c_stanza)
-            (i_obj, v_obj) = self.instantiate_role(role, ++count)
+            (i_obj, v_obj) = self.instantiate_role(role)
             aws_objs[role] = {}
             aws_objs[role]['instance_obj'] = i_obj
             aws_objs[role]['volume_obj'] = v_obj

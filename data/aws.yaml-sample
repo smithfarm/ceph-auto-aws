@@ -20,6 +20,7 @@ role-definitions:
   defaults:
     ami-id: ami-ff63dd8c
     last-octet: 10
+    node-no:
     replace-from-environment: []
     type: t2.small
     user-data:
@@ -29,12 +30,16 @@ role-definitions:
     user-data: data/user-data-master
   mon1:
     last-octet: 11
+    node-no: 1
   mon2:
     last-octet: 12
+    node-no: 2
   mon3:
     last-octet: 13
+    node-no: 3
   osd:
     last-octet: 14
+    node-no: 4
   windows:
     ami-id: ami-c6972fb5
     last-octet: 15

@@ -448,6 +448,8 @@ Role definition attribute Description
 ========================= ====================================================
 ami-id                    AMI ID of image from which to create the instance
 last-octet                value of last octet of instance IP address (10.0.0.x)
+node-no                   arbitrary number that can optionally be associated
+                          with a node
 replace-from-environment  FIXME
 type                      the Instance Type 
 user-data                 file containing user-data
@@ -473,6 +475,12 @@ This attribute should be an integer value between 4 and 254 (inclusive) - see
 `Subnet caveat`_. Together with the delegate number, it determines the IP
 address of the node. For example, if the delegate number is 3 and
 ``last-octet`` is 8, the IP address will be ``10.0.3.8/24``.
+
+node-no (OPTIONAL)
+^^^^^^^^^^^^^^^^^^
+
+This is an entirely optional value that can be associated with a node. This
+number determines what ``@@NODE_NO@@`` in the user-data will be replaced with.
 
 replace-from-environment (OPTIONAL)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
