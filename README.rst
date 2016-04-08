@@ -845,6 +845,10 @@ Of course, the gold standard of a well-functioning Ceph cluster is
 
     (Salt Master)# salt -C "G@delegate:2 and G@role:admin" state.sls ceph-s
 
+If you want to fill the cluster partially up with some data, do::
+
+    (Salt Master)# salt -C "G@delegate:2 and G@role:mon1" state.sls owen-data-sh
+
 At this point, you can SSH into the Delegate 2 admin node and become user "ceph" by doing::
 
     (Delegate 2 admin node)# su - ceph

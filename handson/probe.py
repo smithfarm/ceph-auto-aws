@@ -253,9 +253,8 @@ class ProbeDelegates(InitArgs):
     def run(self):
         delegates = handson.myyaml.stanza('delegates')
         for d in range(0, delegates + 1):
-            del_obj = Delegate(self.args, d)
-            count = del_obj.count_instances_in_subnet()
-            log.info("Delegate {} has {} instances".format(d, count))
+            delegate_obj = Delegate(self.args, d)
+            delegate_obj.probe()
 
 
 class ProbeRegion(InitArgs):

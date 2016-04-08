@@ -160,7 +160,7 @@ class Delegate(Region):
             u = template_token_subst(u, '@@MASTER_IP@@', master_ip)
             u = template_token_subst(u, '@@DELEGATE@@', delegate)
             u = template_token_subst(u, '@@ROLE@@', role)
-            u = template_token_subst(u, '@@NODE_NO@@', rd('node_no'))
+            u = template_token_subst(u, '@@NODE_NO@@', rd['node-no'])
             our_kwargs['user_data'] = u
         reservation = ec2.run_instances(rd['ami-id'], **our_kwargs)
         i_obj = reservation.instances[0]
@@ -355,3 +355,31 @@ class Delegate(Region):
 
     def start(self, dry_run=False):
         self.walk_clusters(operation='start', dry_run=dry_run)
+
+    def fetch_public_ip(self, role):
+        ec2 = self._delegate['ec2']
+        subnet_id = self._delegate['subnet_obj'].id
+        instances = ec2.get_only_instances( 
+            filters={"subnet-id": subnet_id, "tag-key": "Role", "tag-value": role} 
+        )
+        found = False
+        public_ip = ''
+        for i in instances:
+            public_ip = "{}".format(i.ip_address)
+            found = True
+        if not found:
+            public_ip = "(none)"
+        return public_ip
+
+    def probe(self):
+        ec2 = self._delegate['ec2']
+        delegate = self._delegate['delegate']
+        c_stanza = stanza('clusters')
+        if delegate not in c_stanza:
+            log.info("Delegate {} not instantiated".format(delegate))
+            return None
+        d_stanza = c_stanza[delegate]
+        for role in d_stanza.keys():
+            log.info("Delegate {}, role {}, public IP {}"
+                     .format(delegate, role, self.fetch_public_ip(role)))
+        return None

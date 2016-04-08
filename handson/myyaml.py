@@ -49,6 +49,7 @@ tree_stanzas = {
         'defaults': {
             'ami-id': None,
             'last-octet': None,
+            'node-no': None,
             'replace-from-environment': [],
             'type': 't2.small',
             'user-data': None,
