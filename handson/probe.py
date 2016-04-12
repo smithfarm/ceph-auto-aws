@@ -128,6 +128,28 @@ class Probe(object):
         )
 
         subparsers.add_parser(
+            'public-ips',
+            formatter_class=CustomFormatter,
+            description=textwrap.dedent("""\
+            List public IPs in a special format
+
+            """),
+            epilog=textwrap.dedent("""
+            Example:
+
+            $ ho probe public-ips
+            $ echo $?
+            0
+
+            """),
+            help='List public IP addresses in special format',
+            parents=[cluster_options_parser()],
+            add_help=False,
+        ).set_defaults(
+            func=ProbePublicIPs,
+        )
+
+        subparsers.add_parser(
             'region',
             formatter_class=CustomFormatter,
             description=textwrap.dedent("""\
@@ -255,6 +277,30 @@ class ProbeDelegates(InitArgs):
         for d in range(0, delegates + 1):
             delegate_obj = Delegate(self.args, d)
             delegate_obj.probe()
+
+
+class ProbePublicIPs(InitArgs):
+
+    def __init__(self, args):
+        super(ProbePublicIPs, self).__init__(args)
+        self.args = args
+
+    def run(self):
+        level = logging.WARNING
+        logging.getLogger('handson').setLevel(level)
+        delegates = handson.myyaml.stanza('delegates')
+        for d in range(0, delegates + 1):
+            delegate_obj = Delegate(self.args, d)
+            public_ips = delegate_obj.public_ips()
+            if public_ips is None:
+                continue
+            if 'admin' in public_ips:
+                print ("Delegate {}, role {}, public IP {}"
+                       .format(d, 'admin', public_ips['admin']))
+            if 'windows' in public_ips:
+                print ("Delegate {}, role {}, public IP {}"
+                       .format(d, 'windows', public_ips['admin']))
+                print
 
 
 class ProbeRegion(InitArgs):

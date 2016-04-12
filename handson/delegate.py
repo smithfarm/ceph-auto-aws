@@ -383,3 +383,16 @@ class Delegate(Region):
             log.info("Delegate {}, role {}, public IP {}"
                      .format(delegate, role, self.fetch_public_ip(role)))
         return None
+
+    def public_ips(self):
+        ec2 = self._delegate['ec2']
+        delegate = self._delegate['delegate']
+        c_stanza = stanza('clusters')
+        public_ips = {}
+        if delegate not in c_stanza:
+            log.info("Delegate {} not instantiated".format(delegate))
+            return None
+        d_stanza = c_stanza[delegate]
+        for role in d_stanza.keys():
+            public_ips[role] = self.fetch_public_ip(role)
+        return public_ips
