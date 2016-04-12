@@ -4,7 +4,10 @@
 #
 # Launch script for Ceph nodes
 
-zypper -n addrepo http://download.opensuse.org/repositories/filesystems:ceph:hammer/openSUSE_Leap_42.1/filesystems:ceph:hammer.repo
+zypper -n addrepo http://download.opensuse.org/repositories/systemsmanagement:saltstack/SLE_12_SP1/systemsmanagement:saltstack.repo
+zypper -n addrepo http://ip-10-0-0-10/iscsi-repo iscsi-repo
+zypper -n addrepo http://ip-10-0-0-10/SES2-media1 SES2-media1
+zypper -n addrepo http://ip-10-0-0-10/SES2-update SES2-update
 zypper --gpg-auto-import-keys refresh
 zypper -n install ntp salt-minion
 
@@ -29,5 +32,9 @@ chown root:root $MINION_CONF
 chmod 0644 $MINION_CONF
 
 zypper -n update
+
+zypper --no-gpg-checks --non-interactive install --oldpackage kernel-default-3.12.51-60.25.1.10225.0.PTF.964727.x86_64
+zypper --non-interactive remove kernel-default-3.12.49
+zypper --non-interactive remove kernel-default-3.12.53
 
 systemctl reboot
