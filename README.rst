@@ -496,16 +496,36 @@ It does not need to be set individually for each role.
 
 .. _`Instance Type`: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html
 
+The instance types are described at https://aws.amazon.com/ec2/instance-types/
+
+I am using t2.small for cluster nodes and t2.micro for the Salt Master. Both
+are single CPU, t2.small has 2 GB of memory and t2.micro has 1 GB.
+
+There are two "types" of instance types: "ebs" and "paravirtual". All the
+t2.xxx types are EBS-only. EBS stands for "Elastic Block Store". This is
+important to know if you make a snapshot and want to create an AMI from that
+snapshot. (Also, I think any volumes you create must be EBS if you want to use
+them with t2.xxx instances.)
+
 user-data (OPTIONAL)
 ^^^^^^^^^^^^^^^^^^^^
 
-The value of this attribute should be a relative path to a file containing a
-shell script (or set of cloud-init directives) that will be run in the instance
-when it first launches. See `Running Commands on Your Linux Instance at
-Launch`_.
+After the image boots for the first time, we need to run a custom setup script.
+In Cloud terminology this is known as "user-data". Often the user-data takes
+form of "cloud-init" YAML. However, with AWS it can be an ordinary shell
+script.
 
-.. _`Running Commands on Your Linux Instance at Launch`:
-http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
+For testing, you can type or cut-and-paste user-data in the web console, into
+the box located at the very bottom of the "3. Configure Instance" dialog,
+hidden under "Advanced Details".
+
+Once you have developed just the right user-data for your application, put it
+in a file, and set the ``user-data`` YAML attribute to the absolute or relative
+path to this file. Whatever it is, the ``user-data`` in that file will be run
+in the instance when it first launches. See `Running Commands on Your Linux
+Instance at Launch`_.
+
+.. _`Running Commands on Your Linux Instance at Launch`: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
 
 This value is optional in the sense that ``ho`` will instantiate nodes without
 it, but you will probably need it if you want to automate the process of
@@ -863,3 +883,129 @@ The following lessons were learned:
   times in a row)
 * figure out how best to freeze the state so we no longer run "zypper up",
   exposing ourselves to the risk of a new kernel, etc. coming out
+
+Other miscellaneous notes
+=========================
+
+Package Updates
+---------------
+
+Once a SLES image boots up, the first thing you need to do is "zypper up".
+Once nice feature of AWS is that it has its own internal SMT server. However,
+it takes some seconds after boot for the the associated zypper service to
+appear. Therefore, we use the following loop in the user-data script:
+
+while sleep 10 ; do
+    zypper services | grep 'SMT-http_smt-ec2_susecloud_net'
+    if [[ $? = 0 ]] ; then
+        break
+    fi  
+done
+
+After that completes, you can assume that the basic repos are available, so you
+can do "zypper up" as follows:
+
+while sleep 5 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
+
+SUSE Enterprise Storage repos
+-----------------------------
+
+Unfortunately, the AWS SMT server only has the basic SLES pool and update
+repos. No SUSE Enterprise Storage or any other add-ons for that matter.
+So we have to make our own installation sources. The way I ended up doing
+that was to loop mount the SES2 GA ISO on the Salt Master and run an apache2
+server there to make it available to the delegate instances.
+
+First, append the ISO to /etc/fstab::
+
+    $MEDIA_FULL_PATH /srv/repos/SES2-media1 iso9660 loop 0 0
+
+Second, mount the ISO::
+
+    mount /srv/repos/SES2-media1
+
+Third, set up Apache::
+
+    # zypper in apache2
+    # systemctl enable apache2.service
+    # echo "I am a puppet" > /srv/repos/puppet.txt
+    # vim /etc/apache2/vhosts.d/admin.conf
+
+    <VirtualHost *:80>
+        ServerAdmin presnypreklad@gmail.com
+        ServerName admin
+        DocumentRoot /srv/repos
+        HostnameLookups Off
+        UseCanonicalName Off
+        ServerSignature On
+        <Directory /srv/repos>
+            Options Indexes FollowSymLinks
+            AllowOverride All
+            Require all granted
+        </Directory>
+    </VirtualHost>
+
+    # systemctl restart apache2.service
+    # curl http://localhost/puppet.txt
+    I am a puppet
+
+Fourth, try the curl command from another machine in the cluster.
+
+Fifth, add the repo on the cluster nodes::
+
+    # zypper ar http://localhost/SES2/ SES2
+    Adding repository 'SES2' ......................................................[done]
+    Repository 'SES2' successfully added
+    Enabled     : Yes                  
+    Autorefresh : No                   
+    GPG Check   : Yes                  
+    URI         : http://localhost/SES2
+
+Sixth, install Ceph packages from the ISO on the cluster nodes
+(use SaltStack for this).
+
+
+Logging user-data script output
+===============================
+
+Source: https://alestic.com/2010/12/ec2-user-data-output/
+
+As the user-data script runs, its output is logged to a file called::
+
+    /var/log/cloud-init-output.log
+
+
+Adding tags to instances after run_instances
+--------------------------------------------
+
+http://stackoverflow.com/questions/8070186/boto-ec2-create-an-instance-with-tags
+
+
+SaltStack notes
+===============
+
+Ping all machines belonging to a given delegate:
+
+# salt -G 'delegate:12' test.ping
+
+Get IP addresses of all machines belonging to the delegate:
+
+# salt -G 'delegate:12' network.ip_addrs
+
+Compound match: get IP address of Delegate 12's admin node:
+
+# salt -C 'G@delegate:1 and G@role:admin' network.ip_addrs
+
+
+
+Windows change administrator password via user-data script
+==========================================================
+
+<script>net user Administrator GieGh7ie</script>
+
