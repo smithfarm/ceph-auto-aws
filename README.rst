@@ -853,3 +853,13 @@ At this point, you can SSH into the Delegate 2 admin node and become user "ceph"
 
     (Delegate 2 admin node)# su - ceph
 
+Lessons Learned from Snow Unix 2016
+===================================
+
+The following lessons were learned:
+
+* double-check instance limit
+* practice spinning up the full number of delegates (not just once, but several
+  times in a row)
+* figure out how best to freeze the state so we no longer run "zypper up",
+  exposing ourselves to the risk of a new kernel, etc. coming out
