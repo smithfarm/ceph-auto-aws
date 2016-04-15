@@ -359,8 +359,12 @@ class Delegate(Region):
     def fetch_public_ip(self, role):
         ec2 = self._delegate['ec2']
         subnet_id = self._delegate['subnet_obj'].id
-        instances = ec2.get_only_instances( 
-            filters={"subnet-id": subnet_id, "tag-key": "Role", "tag-value": role} 
+        instances = ec2.get_only_instances(
+            filters={
+                "subnet-id": subnet_id,
+                "tag-key": "Role",
+                "tag-value": role
+            }
         )
         found = False
         public_ip = ''
@@ -372,7 +376,6 @@ class Delegate(Region):
         return public_ip
 
     def probe(self):
-        ec2 = self._delegate['ec2']
         delegate = self._delegate['delegate']
         c_stanza = stanza('clusters')
         if delegate not in c_stanza:
@@ -385,7 +388,6 @@ class Delegate(Region):
         return None
 
     def public_ips(self):
-        ec2 = self._delegate['ec2']
         delegate = self._delegate['delegate']
         c_stanza = stanza('clusters')
         public_ips = {}
