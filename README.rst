@@ -268,7 +268,14 @@ by design, but it is not appropriate for a hands-on demonstration.
 
 To remedy this, first create an Internet Gateway and attach it to the VPC. 
 
+The steps to create the internet gateway are explained in detail at the
+`aws official docs`.
+You can create an internet gateway from https://console.aws.amazon.com/vpc/ and
+add it to the the vpc (handson by default) created from the previous steps.
+
 **WARNING:** The scripting does not do this step for you!
+
+.. _aws official docs: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html#Add_IGW_Attach_Gateway
 
 Route Table
 -----------
