@@ -1,8 +1,8 @@
 #!/bin/bash -x
 #
-# user-data-nodes
+# user-data-minions
 #
-# Launch script for Ceph nodes
+# Launch script for Salt minions (e.g. Ceph nodes)
 
 zypper -n addrepo http://download.opensuse.org/repositories/systemsmanagement:saltstack/SLE_12_SP1/systemsmanagement:saltstack.repo
 zypper -n addrepo http://ip-10-0-0-10/iscsi-repo iscsi-repo

@@ -806,7 +806,7 @@ Take the following example::
         last-octet:
         replace-from-environment: []
         type: t2.small
-        user-data: data/user-data-nodes
+        user-data: data/user-data-minions
         volume: 20
       master:
         last-octet: 10
@@ -830,7 +830,7 @@ Take the following example::
         user-data: data/user-data-windows
         volume:
 
-The ``user-data-nodes`` script updates each cluster node and adds the repo
+The ``user-data-minions`` script updates each cluster node and adds the repo
 containing the latest versions of the ``ceph`` and ``ceph-deploy`` packages.  
 It also configures and enables the ``ntp`` and ``salt-minion`` services.
 
