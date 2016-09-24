@@ -444,7 +444,7 @@ Role definitions
 Roles are defined in the ``role-definitions`` stanza of the YAML. This stanza
 is a mapping, the keys of which are the names of the respective roles. 
 
-There are two special roles: ``default`` and ``master``. The former defines
+There are two special roles: ``defaults`` and ``master``. The former defines
 the set of permissible role attributes and their default values. The latter
 defines the attributes of the Salt Master node.
 
@@ -663,15 +663,15 @@ Now you are ready to instantiate nodes. We start with the Salt Master node.
 Install Salt Master
 -------------------
 
-Delegate 0 is the Salt Master, but we do not write, e.g., ``ho install delegate
+Delegate 0 is the Salt Master, but we do not write, e.g., ``ho install delegates
 0``. Instead, we pass the ``--master`` option like so::
 
-    $ ho install delegate --master
+    $ ho install delegates --master
 
 .. Theoretically, it is possible to instantiate the Salt Master node and all
 .. the Delegate Cluster nodes at once by doing::
 .. 
-..     $ ho install delegate --all --master
+..     $ ho install delegates --all --master
 .. 
 .. In practice, this will not work. The nodes will be instantiated and the
 .. ``user-data`` scripts will run. However, tis not recommended, however, because it's a good idea to let the Salt
