@@ -1,19 +1,30 @@
 CHANGES
 =======
 
-v0.1.5
-------
-
+* Bump version: 0.1.5 → 0.1.6
+* susecon2016: update and add modules in sleep loops
+* README.rst: fix broken pre-formatted blocks
+* susecon2016: new directory with user-data-master file
+* scripts: more error-checking in generate-keys.sh
+* keys: remove keys directory
+* generate-keys: grab number of delegates from aws yaml
+* README: fixup use of ho delegates
+* Rename user-data-nodes to user-data-minions
+* add instructions on where to add igw
+* handson/delegate.py: flake8 cleanup
+* README.rst: integrate remaining SUSEcon 2015 notes
+* README.rst: lessons from SNOW Unix 2016
+* Hack up a "ho probe public-ips" command
+* user-data-nodes: use SLES12-SP1 instead of openSUSE Leap
+* Fix node numbers and probe delegates
+* Fix and document "node-no" attribute
+* update ChangeLog
 * Bump version: 0.1.4 → 0.1.5
 * tox.ini: revert to using python setup.py develop
 * update ChangeLog
 * user-data scripts for Linux and Windows cluster nodes
 * Install and wipeout now support user-data and volume
 * Update ChangeLog
-
-v0.1.4
-------
-
 * Bump version: 0.1.3 → 0.1.4
 * update ChangeLog
 * Stabilize after the big cleanup
@@ -31,18 +42,10 @@ v0.1.4
 * README: Security Groups snafu, Keypairs chapter
 * generate-keys.sh script
 * update ChangeLog
-
-v0.1.3
-------
-
 * Bump version: 0.1.2 → 0.1.3
 * Basic install/stop/start/wipeout delegate commandset
 * Instantiate delegate
 * update ChangeLog
-
-v0.1.2
-------
-
 * Bump version: 0.1.1 → 0.1.2
 * Tweak install/wipeout operations on subnets and VPC
 * README: write about defining and instantiating clusters
@@ -52,10 +55,6 @@ v0.1.2
 * Preparatory work for "install" and "wipeout" commands
 * Convert "install 1-50" to "install delegates 1-50"
 * update ChangeLog
-
-v0.1.1
-------
-
 * Bump version: 0.1.0 → 0.1.1
 * tests/: adapt to current state
 * Implement "wipeout vpc" subcommand
@@ -73,10 +72,6 @@ v0.1.1
 * README.rst: clarify python-virtualenv dependency
 * README.rst: probe cluster-definition and probe roles are no more
 * update ChangeLog
-
-v0.1.0
-------
-
 * Bump version: 0.0.18 → 0.1.0
 * update ChangeLog
 * Redesign
@@ -91,10 +86,6 @@ v0.1.0
 * util.py: add a module for utility functions
 * myyaml.py: make validate_role_definitions() validate type
 * update ChangeLog
-
-v0.0.18
--------
-
 * Bump version: 0.0.17 → 0.0.18
 * Implement "probe cluster-definition" and "probe role-definitions"
 * main.py: explicitly exit with status code 0
@@ -107,10 +98,6 @@ v0.0.18
 * clusters.py: validate delegate list in Install class
 * aws.py: fix logic in get_subnet_obj()
 * update ChangeLog
-
-v0.0.17
--------
-
 * Bump version: 0.0.16 → 0.0.17
 * Implement 'probe types' subcommand
 * aws.py: clean up vpc and subnet functions and methods
@@ -123,31 +110,15 @@ v0.0.17
 * Block out install subcommand
 * aws.py: refrain from tagging VPC if it's already there
 * update ChangeLog
-
-v0.0.16
--------
-
 * Bump version: 0.0.15 → 0.0.16
 * tests/: test probe-subnets subcommand
 * aws.py: check that subnet ID really exists
 * update ChangeLog
-
-v0.0.15
--------
-
 * Bump version: 0.0.14 → 0.0.15
 * release.sh: deduce version tag and push it to remote
 * update ChangeLog
-
-v0.0.14
--------
-
 * Bump version: 0.0.13 → 0.0.14
 * release.sh: tweak release script
-
-v0.0.13
--------
-
 * Bump version: 0.0.12 → 0.0.13
 * Implement probe-subnets subcommand
 * main.py, probe.py: add probe-subnets boilerplate
@@ -173,34 +144,18 @@ v0.0.13
 * testcred.py: use ping_ec2() method
 * Move error classes to error.py
 * release.sh: tone down ChangesLog spam
-
-v0.0.12
--------
-
 * Bump version: 0.0.11 → 0.0.12
 * Implement myyaml singleton and test-yaml subcommand
 * tox.ini: run flake8 on tests/ directory, too
 * aws.py: rename conn() method to ec2()
-
-v0.0.11
--------
-
 * Bump version: 0.0.10 → 0.0.11
 * release.sh: run tox instead of "python setup.py install"
 * tests: mock the boto.connect_ec2() function
 * aws.py: implement and use AWS connection state singleton
-
-v0.0.10
--------
-
 * Bump version: 0.0.9 → 0.0.10
 * update ChangeLog
 * Implement and test --version option
 * .bumpversion.cfg: update version number in main.py
-
-v0.0.9
-------
-
 * Bump version: 0.0.8 → 0.0.9
 * update ChangeLog
 * Improve test coverage
@@ -208,33 +163,17 @@ v0.0.9
 * Move bumpversion configuration to separate file
 * README.rst: describe new tox-based installation workflow
 * README.rst: split code and documentation license
-
-v0.0.8
-------
-
 * Bump version: 0.0.7 → 0.0.8
 * update ChangeLog
 * tests: implement first unit test
 * requirements.txt: add pytest and pytest-capturelog
 * Add tox.ini and start using tox to build
 * requirements.txt: add coverage and mock
-
-v0.0.7
-------
-
 * Bump version: 0.0.6 → 0.0.7
 * update ChangeLog
 * release.sh: release automation script
-
-v0.0.6
-------
-
 * Bump version: 0.0.5 → 0.0.6
 * Start using bumpversion to increment version numbers
-
-v0.0.5
-------
-
 * 0.0.5
 * Bump target version to 0.0.5
 * README.rst: bootstrapping instructions
