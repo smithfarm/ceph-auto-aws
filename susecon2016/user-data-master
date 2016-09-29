@@ -21,7 +21,33 @@ while sleep 5 ; do
     fi
 done
 
-zypper -n install salt-master # susecon-salt-master
-systemctl enable salt-master.service
+#zypper -n install salt-master # susecon-salt-master
+#systemctl enable salt-master.service
+
+# set up directories from which we will serve media repos
+mkdir -p /srv/repos
+mkdir -p /srv/repos/SES4-media1
+
+zypper -n install apache2
+cat <<EOF >/etc/apache2/vhosts.d/admin.conf
+<VirtualHost *:80>
+    ServerAdmin presnypreklad@gmail.com
+    ServerName admin
+    DocumentRoot /srv/repos
+    HostnameLookups Off
+    UseCanonicalName Off
+    ServerSignature On
+    <Directory /srv/repos>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+EOF
+systemctl enable apache2.service
 
 systemctl reboot
+
+cat <<EOF >>/etc/fstab
+/home/ec2-user/SES4.iso /srv/repos/SES4-media1 iso9660 loop 0 0
+EOF
