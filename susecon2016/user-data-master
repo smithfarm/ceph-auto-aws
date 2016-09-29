@@ -1,0 +1,12 @@
+#!/bin/bash -x
+#
+# user-data-master
+#
+# Launch script for Salt Master
+
+SUSEConnect -p SLES/12.2/x86_64 -r @@BETAKEY@@
+zypper ref
+zypper up
+zypper -n install salt-master # susecon-salt-master
+systemctl enable salt-master.service
+systemctl reboot
