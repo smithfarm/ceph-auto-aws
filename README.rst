@@ -900,24 +900,24 @@ Package Updates
 Once a SLES image boots up, the first thing you need to do is "zypper up".
 Once nice feature of AWS is that it has its own internal SMT server. However,
 it takes some seconds after boot for the the associated zypper service to
-appear. Therefore, we use the following loop in the user-data script:
+appear. Therefore, we use the following loop in the user-data script::
 
-while sleep 10 ; do
-    zypper services | grep 'SMT-http_smt-ec2_susecloud_net'
-    if [[ $? = 0 ]] ; then
-        break
-    fi  
-done
+    while sleep 10 ; do
+        zypper services | grep 'SMT-http_smt-ec2_susecloud_net'
+        if [[ $? = 0 ]] ; then
+            break
+        fi
+    done
 
 After that completes, you can assume that the basic repos are available, so you
-can do "zypper up" as follows:
+can do "zypper up" as follows::
 
-while sleep 5 ; do
-    zypper -n update
-    if [[ $? = 0 ]] ; then
-        break
-    fi
-done
+    while sleep 5 ; do
+        zypper -n update
+        if [[ $? = 0 ]] ; then
+            break
+        fi
+    done
 
 
 SUSE Enterprise Storage repos
@@ -927,7 +927,7 @@ Unfortunately, the AWS SMT server only has the basic SLES pool and update
 repos. No SUSE Enterprise Storage or any other add-ons for that matter.
 So we have to make our own installation sources. The way I ended up doing
 that was to loop mount the SES2 GA ISO on the Salt Master and run an apache2
-server there to make it available to the delegate instances.
+server there to farm it out to the delegate instances.
 
 First, append the ISO to /etc/fstab::
 
@@ -997,17 +997,17 @@ http://stackoverflow.com/questions/8070186/boto-ec2-create-an-instance-with-tags
 SaltStack notes
 ===============
 
-Ping all machines belonging to a given delegate:
+Ping all machines belonging to a given delegate::
 
-# salt -G 'delegate:12' test.ping
+    salt -G 'delegate:12' test.ping
 
-Get IP addresses of all machines belonging to the delegate:
+Get IP addresses of all machines belonging to the delegate::
 
-# salt -G 'delegate:12' network.ip_addrs
+    salt -G 'delegate:12' network.ip_addrs
 
-Compound match: get IP address of Delegate 12's admin node:
+Compound match: get IP address of Delegate 12's admin node::
 
-# salt -C 'G@delegate:1 and G@role:admin' network.ip_addrs
+    salt -C 'G@delegate:1 and G@role:admin' network.ip_addrs
 
 
 
