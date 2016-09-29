@@ -4,9 +4,24 @@
 #
 # Launch script for Salt Master
 
-SUSEConnect -p SLES/12.2/x86_64 -r @@BETAKEY@@
-zypper ref
-zypper up
+# update packages
+# wait for background zyppers to finish
+while sleep 5 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
+SUSEConnect -p sle-module-adv-systems-management/12/x86_64
+while sleep 5 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
 zypper -n install salt-master # susecon-salt-master
 systemctl enable salt-master.service
+
 systemctl reboot
