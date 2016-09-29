@@ -51,3 +51,19 @@ systemctl reboot
 cat <<EOF >>/etc/fstab
 /home/ec2-user/SES4.iso /srv/repos/SES4-media1 iso9660 loop 0 0
 EOF
+
+cat <<EOF >/home/ec2-user/init.sh
+#!/bin/bash
+sudo umount /srv/repos/SES4-media1
+rm -rf SUSE-Enterprise-Storage-4-DVD*
+echo "Upload the new DVD ISO, and then press enter"
+read a
+ln -si SUSE-Enterprise-Storage-4-DVD* SES4.iso
+sudo mount /srv/repos/SES4-media1
+sudo systemctl restart apache2.service
+sudo zypper ar http://localhost/SES4-media1/ SES4-media1
+sudo zypper --no-gpg-checks ref
+EOF
+
+chmod 755 /home/ec2-user/init.sh
+
