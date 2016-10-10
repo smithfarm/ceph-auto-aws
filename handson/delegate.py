@@ -152,12 +152,13 @@ class Delegate(Region):
             "private_ip_address": private_ip,
         }
         # conditional kwargs
-        master_ip = '10.0.0.10'
         if rd['user-data']:
             u = get_file_as_string(rd['user-data'])
             log.info("Read {} characters of user-data from file {}"
                      .format(len(u), rd['user-data']))
-            u = template_token_subst(u, '@@MASTER_IP@@', master_ip)
+            # FIXME master IP address is hardcoded
+            # FIXME template_token_subst() calls are hardcoded
+            u = template_token_subst(u, '@@MASTER_IP@@', '10.0.0.10')
             u = template_token_subst(u, '@@DELEGATE@@', delegate)
             u = template_token_subst(u, '@@ROLE@@', role)
             u = template_token_subst(u, '@@NODE_NO@@', rd['node-no'])
