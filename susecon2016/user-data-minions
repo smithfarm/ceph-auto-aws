@@ -1,0 +1,38 @@
+#!/bin/bash -x
+#
+# user-data-minion
+#
+# Launch script for Salt Minion
+
+# update packages
+# wait for background zyppers to finish
+while sleep 5 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
+# ntpd
+cat <<EOF >>/etc/ntp.conf
+server 10.0.0.10
+EOF
+systemctl enable ntpd.service
+systemctl start ntpd.service
+
+# salt minion
+zypper -n install salt-minion
+
+MINION_CONF=/etc/salt/minion.d/ceph.conf
+cat <<EOF > $MINION_CONF
+master: @@MASTER_IP@@
+grains:
+  delegate: @@DELEGATE@@
+  role: @@ROLE@@
+  node_no: @@NODE_NO@@
+EOF
+chown root:root $MINION_CONF
+chmod 0644 $MINION_CONF
+
+systemctl enable salt-minion.service
+systemctl start salt-minion.service

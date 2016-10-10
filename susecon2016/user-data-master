@@ -13,57 +13,18 @@ while sleep 5 ; do
     fi
 done
 
-SUSEConnect -p sle-module-adv-systems-management/12/x86_64
-while sleep 5 ; do
-    zypper -n update
-    if [[ $? = 0 ]] ; then
-        break
-    fi
-done
-
-#zypper -n install salt-master # susecon-salt-master
-#systemctl enable salt-master.service
-
-# set up directories from which we will serve media repos
-mkdir -p /srv/repos
-mkdir -p /srv/repos/SES4-media1
-
-zypper -n install apache2
-cat <<EOF >/etc/apache2/vhosts.d/admin.conf
-<VirtualHost *:80>
-    ServerAdmin presnypreklad@gmail.com
-    ServerName admin
-    DocumentRoot /srv/repos
-    HostnameLookups Off
-    UseCanonicalName Off
-    ServerSignature On
-    <Directory /srv/repos>
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
+# set up ntpd
+cat <<EOF >>/etc/ntp.conf
+server 0.amazon.pool.ntp.org iburst
+server 1.amazon.pool.ntp.org iburst
+server 2.amazon.pool.ntp.org iburst
+server 3.amazon.pool.ntp.org iburst
 EOF
-systemctl enable apache2.service
+systemctl enable ntpd.service
+systemctl start ntpd.service
 
-systemctl reboot
-
-cat <<EOF >>/etc/fstab
-/home/ec2-user/SES4.iso /srv/repos/SES4-media1 iso9660 loop 0 0
-EOF
-
-cat <<EOF >/home/ec2-user/init.sh
-#!/bin/bash
-sudo umount /srv/repos/SES4-media1
-rm -rf SUSE-Enterprise-Storage-4-DVD*
-echo "Upload the new DVD ISO, and then press enter"
-read a
-ln -si SUSE-Enterprise-Storage-4-DVD* SES4.iso
-sudo mount /srv/repos/SES4-media1
-sudo systemctl restart apache2.service
-sudo zypper ar http://localhost/SES4-media1/ SES4-media1
-sudo zypper --no-gpg-checks ref
-EOF
-
-chmod 755 /home/ec2-user/init.sh
+# set up salt master
+zypper -n install salt-master
+systemctl enable salt-master.service
+systemctl start salt-master.service
 
