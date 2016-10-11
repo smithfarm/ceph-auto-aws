@@ -48,3 +48,6 @@ EOF
 # clone salt recipes
 cd /srv
 git clone https://github.com/smithfarm/susecon-salt-master salt
+
+# inject SSH key
+cp /root/.ssh/id_rsa* /srv/salt
