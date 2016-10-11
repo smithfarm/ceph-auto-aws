@@ -33,6 +33,11 @@ SUSEConnect -p sle-sdk/12.2/x86_64
 zypper --gpg-auto-import-keys ref
 zypper -n install --no-recommends git
 
+# generate SSH key
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+ssh-keygen -b 1024 -t rsa -q -N "" -f /root/.ssh/id_rsa
+
 # set motd
 cat <<EOF >/etc/motd
 This is the Salt Master.
@@ -41,5 +46,5 @@ Have a lot of fun...
 EOF
 
 # clone salt recipes
-cd /root
-git clone https://github.com/smithfarm/susecon-salt-master
+cd /srv
+git clone https://github.com/smithfarm/susecon-salt-master salt
