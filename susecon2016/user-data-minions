@@ -21,6 +21,7 @@ systemctl enable ntpd.service
 systemctl start ntpd.service
 
 # salt minion
+zypper -n install salt-minion # creates /etc/salt/minion.d directory
 MINION_CONF=/etc/salt/minion.d/ceph.conf
 cat <<EOF > $MINION_CONF
 master: @@MASTER_IP@@
@@ -31,6 +32,5 @@ grains:
 EOF
 chown root:root $MINION_CONF
 chmod 0644 $MINION_CONF
-zypper -n install salt-minion
 systemctl enable salt-minion.service
 systemctl start salt-minion.service

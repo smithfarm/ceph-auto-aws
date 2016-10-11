@@ -33,13 +33,13 @@ SUSEConnect -p sle-sdk/12.2/x86_64
 zypper --gpg-auto-import-keys ref
 zypper -n install --no-recommends git
 
-# clone salt recipes
-cd
-git clone https://github.com/smithfarm/susecon-salt-master
-
-# motd
+# set motd
 cat <<EOF >/etc/motd
 This is the Salt Master.
 
 Have a lot of fun...
 EOF
+
+# clone salt recipes
+cd /root
+git clone https://github.com/smithfarm/susecon-salt-master
