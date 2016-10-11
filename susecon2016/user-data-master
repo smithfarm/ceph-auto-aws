@@ -51,3 +51,4 @@ git clone https://github.com/smithfarm/susecon-salt-master salt
 
 # inject SSH key
 cp /root/.ssh/id_rsa* /srv/salt
+chmod 644 /srv/salt/id_rsa*
