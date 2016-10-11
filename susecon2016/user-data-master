@@ -28,6 +28,6 @@ zypper -n install salt-master
 systemctl enable salt-master.service
 systemctl start salt-master.service
 
-zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12_SP1/home:smithfarm:susecon.repo
-zypper --gpg-auto-import-keys ref
-zypper -n install susecon-salt-master
+#zypper addrepo http://download.opensuse.org/repositories/home:smithfarm:susecon/SLE_12_SP1/home:smithfarm:susecon.repo
+#zypper --gpg-auto-import-keys ref
+#zypper -n install susecon-salt-master
