@@ -1,6 +1,23 @@
 CHANGES
 =======
 
+* Bump version: 0.1.6 → 0.2.0
+* Display public IP when Salt Master instantiated
+* Copy user-data-windows from susecon2015
+* user-data-master: allow salt to access SSH key
+* user-data-master: inject SSH key
+* user-data-master: generate SSH key and clone repo into /srv/salt
+* user-data tweaks
+* susecon2016/user-data-master: install git, update motd
+* susecon2016/user-data-master: remove commented-out lines
+* susecon2016/user-data-minions: minor cleanup
+* susecon2016/user-data-master: do not install stuff from home repo
+* Install susecon-salt-master package on the Salt Master
+* handson/delegate.py: draw attention to hardcoded values
+* susecon2016: new user-data-{master,minions}
+* susecon2016: add init.sh script to Salt Master user-data
+* susecon2016: make Salt Master install and run apache
+* update ChangeLog
 * Bump version: 0.1.5 → 0.1.6
 * susecon2016: update and add modules in sleep loops
 * README.rst: fix broken pre-formatted blocks
