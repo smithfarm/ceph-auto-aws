@@ -31,6 +31,7 @@
 import argparse
 import logging
 import textwrap
+import time
 
 from handson.cluster_options import (
     ClusterOptions,
@@ -183,6 +184,11 @@ class InstallDelegates(InitArgs, ClusterOptions):
             log.info("Installing cluster for delegate {}".format(d))
             d = Delegate(self.args, d)
             d.install(dry_run=self.args.dry_run)
+        if self.args.master:
+            d = Delegate(self.args, 0)
+            log.info("Polling for Salt Master public IP")
+            while not d.probe():
+                time.sleep(5)
 
 
 class InstallKeypairs(InitArgs, ClusterOptions):

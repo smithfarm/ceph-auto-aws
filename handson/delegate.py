@@ -383,10 +383,12 @@ class Delegate(Region):
             log.info("Delegate {} not instantiated".format(delegate))
             return None
         d_stanza = c_stanza[delegate]
+        retval = False
         for role in d_stanza.keys():
+            retval = True
             log.info("Delegate {}, role {}, public IP {}"
                      .format(delegate, role, self.fetch_public_ip(role)))
-        return None
+        return retval
 
     def public_ips(self):
         delegate = self._delegate['delegate']
