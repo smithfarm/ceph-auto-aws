@@ -45,7 +45,7 @@ from handson.wipeout import WipeOut
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
 log = logging.getLogger(__name__)
 
-__version__ = "0.1.6"
+__version__ = "0.2.0"
 
 
 class HandsOn(object):
