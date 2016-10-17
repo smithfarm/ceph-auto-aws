@@ -13,13 +13,6 @@ while sleep 5 ; do
     fi
 done
 
-# ntpd
-cat <<EOF >>/etc/ntp.conf
-server 10.0.0.10
-EOF
-systemctl enable ntpd.service
-systemctl start ntpd.service
-
 # salt minion
 zypper -n install salt-minion # creates /etc/salt/minion.d directory
 MINION_CONF=/etc/salt/minion.d/ceph.conf
