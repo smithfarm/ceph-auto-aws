@@ -32,12 +32,12 @@ server 2.amazon.pool.ntp.org iburst
 server 3.amazon.pool.ntp.org iburst
 EOF
 systemctl enable ntpd.service
-systemctl start ntpd.service
+systemctl restart ntpd.service
 
 # set up salt master
 zypper -n install salt-master
 systemctl enable salt-master.service
-systemctl start salt-master.service
+systemctl restart salt-master.service
 
 # install git
 SUSEConnect -p sle-sdk/12.2/x86_64
