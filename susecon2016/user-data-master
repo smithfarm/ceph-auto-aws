@@ -14,7 +14,18 @@ while sleep 5 ; do
 done
 
 # set up ntpd
-cat <<EOF >>/etc/ntp.conf
+cat <<EOF >/etc/ntp.conf
+restrict -4 default notrap nomodify nopeer noquery
+restrict -6 default notrap nomodify nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+restrict 10.0.0.0 mask 255.255.0.0
+driftfile /var/lib/ntp/drift/ntp.drift # path for drift file
+logfile   /var/log/ntp
+keys /etc/ntp.keys
+trustedkey 1
+requestkey 1
+controlkey 1
 server 0.amazon.pool.ntp.org iburst
 server 1.amazon.pool.ntp.org iburst
 server 2.amazon.pool.ntp.org iburst
