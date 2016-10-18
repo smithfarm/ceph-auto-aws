@@ -319,15 +319,15 @@ class ProbeRegion(InitArgs):
         log.info("Detected {!r} VPCs".format(vpc_count))
         az = r.availability_zone()
         if az:
-             log.info("Availability zone explicitly set to {}"
-                      .format(az))
-             ec2 = r.ec2()
-             if ec2.get_all_zones(zones=[az]):
-                 log.info("Availability zone is OK")
-             else:
-                 log.info("Availability zone is NOT OK!!!")
+            log.info("Availability zone explicitly set to {}"
+                     .format(az))
+            ec2 = r.ec2()
+            if ec2.get_all_zones(zones=[az]):
+                log.info("Availability zone is OK")
+            else:
+                log.info("Availability zone is NOT OK!!!")
         else:
-             log.info("Availability zone not set in YAML")
+            log.info("Availability zone not set in YAML")
 
 
 class ProbeSubnets(InitArgs):
