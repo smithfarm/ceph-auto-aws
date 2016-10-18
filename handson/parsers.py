@@ -75,14 +75,14 @@ def expand_delegate_list(raw_input):
         if len(ti) == 2:
             if (
                     ti[1] > ti[0] and
-                    (ti[1] - ti[0]) < 50
+                    (ti[1] - ti[0]) < 100
             ):
                 intermediate_list.extend(range(ti[0], ti[1]+1))
                 continue
         assert 1 == 0, "Illegal delegate list {!r}".format(ti)
     final_list = list(sorted(set(intermediate_list), key=int))
     assert final_list[0] > 0, "detected too-low delegate (min. 1)"
-    assert final_list[-1] <= 50, "detected too-high delegate (max. 50)"
+    assert final_list[-1] <= 100, "detected too-high delegate (max. 100)"
     return final_list
 
 
