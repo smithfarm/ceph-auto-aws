@@ -67,11 +67,9 @@ class Region(object):
             return self._region['availability_zone']
         self._region['availability_zone'] = stanza('region')['availability_zone']
         if self._region['availability_zone']:
-            log.info("Availability zone is {}"
+            log.debug("Availability zone is {}"
                 .format(self._region['availability_zone'])
             )
-        else:
-            log.info("Availability zone not specified")
         return self._region['availability_zone']
 
     def ec2(self):
