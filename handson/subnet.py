@@ -58,6 +58,7 @@ class Subnet(VPC):
             return self._subnet['s_obj']
         s_stanza = stanza('subnets')
         log.debug("Subnet stanza {!r}".format(s_stanza))
+        az = self.availability_zone()
         vpc = self.vpc()
         vpc_obj = self.vpc_obj(create=False, quiet=True)
         delegate = self._subnet['delegate']
@@ -75,7 +76,8 @@ class Subnet(VPC):
                     s_obj = vpc.create_subnet(
                         vpc_obj.id,
                         cidr_block,
-                        dry_run=dry_run
+                        dry_run=dry_run,
+                        availability_zone=az
                     )
                     log.info(
                         "Created subnet {} ({})".format(
