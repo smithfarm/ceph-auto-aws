@@ -46,7 +46,7 @@ class ClusterOptions(object):
         assert (
                 max_delegates is not None and
                 max_delegates > 0 and
-                max_delegates <= 50
+                max_delegates <= 100
         ), "Bad delegates stanza in YAML: {!r}".format(max_delegates)
         assert dl[-1] <= max_delegates, (
             ("Delegate list exceeds {!r} (maximum number of " +

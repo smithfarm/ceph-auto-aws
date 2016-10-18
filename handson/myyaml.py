@@ -43,7 +43,10 @@ tree_stanzas = {
     'keyname': {'default': os.getlogin(), 'type': str},
     'keypairs': {'default': {}, 'type': dict},
     'nametag': {'default': 'handson', 'type': str},
-    'region': {'default': 'eu-west-1', 'type': str},
+    'region': {'default': {
+        'region_str': 'eu-west-1',
+        'availability_zone': None
+    }, 'type': dict},
     'role-definitions': {'default': {
         'admin': {'last-octet': 10},
         'defaults': {

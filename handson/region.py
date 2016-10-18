@@ -45,7 +45,8 @@ class Region(object):
         self._region = {
             'ec2_conn': None,
             'region_str': None,
-            'vpc_conn': None
+            'vpc_conn': None,
+            'availability_zone': None
         }
 
     def region(self):
@@ -54,9 +55,22 @@ class Region(object):
         """
         if self._region['region_str']:
             return self._region['region_str']
-        self._region['region_str'] = stanza('region')
+        self._region['region_str'] = stanza('region')['region_str']
         log.debug("Region is {}".format(self._region['region_str']))
         return self._region['region_str']
+
+    def availability_zone(self):
+        """
+            gets availability_zone from yaml, default to None
+        """
+        if self._region['availability_zone']:
+            return self._region['availability_zone']
+        self._region['availability_zone'] = stanza('region')['availability_zone']
+        if self._region['availability_zone']:
+            log.debug("Availability zone is {}"
+                .format(self._region['availability_zone'])
+            )
+        return self._region['availability_zone']
 
     def ec2(self):
         """
