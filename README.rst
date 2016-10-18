@@ -197,21 +197,33 @@ You can see that the YAML file has been created::
 You can run ``ho probe yaml`` anytime to check your configuration file, and
 especially after any manual modifications.
 
-Region
-------
+Region and Availability Zone
+----------------------------
 
 The next step is to configure the AWS Region. The default is ``eu-west-1``,
 i.e. "EU (Ireland)". If you want to use a different region, edit the YAML file
 (``aws.yaml`` in current directory) and edit the following line::
 
-    region: eu-west-1
+    region:
+      availability_zone:
+      region_str: eu-west-1
+
+If you don't care about the availability zone, just leave it unset. AWS will
+assign one.
+
+If you want to set an availability zone, you must do so before subnets are
+created, since subnets exist within an availability zone. Once subnets are
+created the availability zone cannot be changed (or, more accurately, it *can*
+be changed but ``ho install delegates`` will then fail because of the
+availability zone mismatch).
 
 Next, verify that you can connect to that region by running the command::
 
     (virtualenv)$ ho probe region
-    2016-03-30 21:54:34,545 INFO Loaded yaml tree from './aws.yaml'
-    2016-03-30 21:54:34,545 INFO Testing connectivity to AWS Region 'eu-west-1'
-    2016-03-30 23:02:52,146 INFO Detected 1 VPCs
+    2016-10-18 13:51:58,156 INFO Loaded yaml tree from './aws.yaml'
+    2016-10-18 13:51:58,156 INFO Testing connectivity to AWS Region {'region_str': 'us-east-1', 'availability_zone': None}
+    2016-10-18 13:51:58,404 INFO Detected 5 VPCs
+    2016-10-18 13:51:58,404 INFO Availability zone not set in YAML
 
 Virtual Private Cloud
 =====================
