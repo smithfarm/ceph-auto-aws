@@ -45,7 +45,8 @@ class Region(object):
         self._region = {
             'ec2_conn': None,
             'region_str': None,
-            'vpc_conn': None
+            'vpc_conn': None,
+            'availability_zone': None
         }
 
     def region(self):
