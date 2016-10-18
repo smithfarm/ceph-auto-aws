@@ -150,6 +150,7 @@ class Delegate(Region):
             "subnet_id": self._delegate['subnet_obj'].id,
             "instance_type": rd['type'],
             "private_ip_address": private_ip,
+            "placement": self.availability_zone()
         }
         # conditional kwargs
         if rd['user-data']:
