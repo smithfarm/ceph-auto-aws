@@ -35,6 +35,7 @@ import pwd
 from yaml import safe_load
 from pyaml import dump
 
+
 def get_logged_user():
     user = None
     try:
