@@ -30,9 +30,20 @@
 #
 import logging
 import os
+import pwd
 
 from yaml import safe_load
 from pyaml import dump
+
+def get_logged_user():
+    user = None
+    try:
+        user = os.getlogin()
+    except:
+        pass
+    if user is None:
+        user = pwd.getpwuid(os.geteuid())[0]
+    return user
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +51,7 @@ tree_stanzas = {
     'cluster-definition': {'default': [{'role': 'admin'}], 'type': list},
     'clusters': {'default': {}, 'type': dict},
     'delegates': {'default': 1, 'type': int},
-    'keyname': {'default': os.getlogin(), 'type': str},
+    'keyname': {'default': get_logged_user(), 'type': str},
     'keypairs': {'default': {}, 'type': dict},
     'nametag': {'default': 'handson', 'type': str},
     'region': {'default': {
