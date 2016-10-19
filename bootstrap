@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if ! sh -c "which virtualenv > /dev/null 2>&1" ; then
     echo "virtualenv not available - have you installed the package?"
     exit 1
@@ -7,7 +7,7 @@ set -ex
 rm -rf virtualenv .tox
 #virtualenv -p python3.4 virtualenv
 virtualenv virtualenv
-source virtualenv/bin/activate
+source ./virtualenv/bin/activate
 pip install --upgrade pip 
 pip install --upgrade setuptools
 pip install -r requirements.txt
