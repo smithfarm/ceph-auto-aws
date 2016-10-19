@@ -56,9 +56,9 @@ class ClusterOptions(object):
     def process_delegate_list(self):
         max_d = stanza('delegates')
         if self.args.delegate_list is None:
-            self.args.delegate_list = []
+            self.args.delegate_list = list()
         if self.args.all:
-            self.args.delegate_list = range(1, max_d + 1)
+            self.args.delegate_list = list(range(1, max_d + 1))
         if self.args.master:
             self.args.delegate_list.insert(0, 0)
         self.validate_delegate_list()
