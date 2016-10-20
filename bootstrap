@@ -6,7 +6,7 @@ fi
 set -ex
 rm -rf virtualenv .tox
 #virtualenv -p python3.4 virtualenv
-virtualenv virtualenv
+virtualenv -p python2.7 virtualenv
 source ./virtualenv/bin/activate
 pip install --upgrade pip 
 pip install --upgrade setuptools
