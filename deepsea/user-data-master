@@ -1,0 +1,115 @@
+#!/bin/bash -x
+#
+# user-data-master
+#
+# Launch script for Salt Master
+
+# update packages
+# wait for background zyppers to finish
+while sleep 5 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
+#set up resolv.conf
+echo "search @@REGION@@.compute.internal" >> /etc/resolv.conf
+
+# set up ntpd
+cat <<EOF >/etc/ntp.conf
+restrict -4 default notrap nomodify nopeer noquery
+restrict -6 default notrap nomodify nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+restrict 10.0.0.0 mask 255.255.0.0
+driftfile /var/lib/ntp/drift/ntp.drift # path for drift file
+logfile   /var/log/ntp
+keys /etc/ntp.keys
+trustedkey 1
+requestkey 1
+controlkey 1
+server 0.amazon.pool.ntp.org iburst
+server 1.amazon.pool.ntp.org iburst
+server 2.amazon.pool.ntp.org iburst
+server 3.amazon.pool.ntp.org iburst
+EOF
+systemctl enable ntpd.service
+systemctl restart ntpd.service
+
+# set up salt master
+zypper -n install salt-master
+systemctl enable salt-master.service
+systemctl restart salt-master.service
+
+# salt minion
+zypper -n install salt-minion # creates /etc/salt/minion.d directory
+MINION_CONF=/etc/salt/minion.d/ceph.conf
+cat <<EOF > $MINION_CONF
+master: @@MASTER_IP@@
+grains:
+  delegate: @@DELEGATE@@
+  role: @@ROLE@@
+  node_no: @@NODE_NO@@
+EOF
+chown root:root $MINION_CONF
+chmod 0644 $MINION_CONF
+systemctl enable salt-minion.service
+systemctl start salt-minion.service
+
+# install git
+SUSEConnect -p sle-sdk/12.2/x86_64
+zypper --gpg-auto-import-keys ref
+zypper -n install --no-recommends git
+
+# generate SSH key
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+ssh-keygen -b 1024 -t rsa -q -N "" -f /root/.ssh/id_rsa
+
+# set motd
+cat <<EOF >/etc/motd
+This is the Salt Master.
+
+Have a lot of fun...
+EOF
+
+# clone salt recipes
+cd /srv
+git clone https://github.com/smithfarm/susecon-salt-master salt
+
+# inject SSH key
+cp /root/.ssh/id_rsa* /srv/salt
+chmod 644 /srv/salt/id_rsa*
+
+# install ttyrec
+zypper ar http://download.opensuse.org/repositories/utilities/SLE-12-SP1 utilities
+zypper --gpg-auto-import-keys ref
+zypper -n install ttyrec
+
+# wait for other instances to initialize
+sleep 30
+
+# install deepsea
+salt-key -Ay
+zypper -n install deepsea
+mkdir -p /srv/pillar/ceph/proposals
+
+cat <<EOF > /srv/pillar/ceph/proposals/policy.cfg
+# Cluster assignment
+cluster-ceph/cluster/*.sls
+# Hardware Profile
+1Disk20GB-1/cluster/*.sls
+1Disk20GB-1/stack/default/ceph/minions/*yml
+# Common configuration
+config/stack/default/global.yml
+config/stack/default/ceph/cluster.yml
+# Role assignment
+role-master/cluster/ip-10-0-0-10*.sls
+role-admin/cluster/ip-10-0-0-10*.sls
+role-admin/cluster/ip-10-0-1-1[123]*.sls
+role-mon/cluster/ip-10-0-1-1[123]*.sls
+role-mon/stack/default/ceph/minions/ip-10-0-1-1[123]*.yml
+EOF
+
+chown -R salt:salt /srv/*
