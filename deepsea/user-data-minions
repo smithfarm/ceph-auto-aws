@@ -1,0 +1,32 @@
+#!/bin/bash -x
+#
+# user-data-minion
+#
+# Launch script for Salt Minion
+
+# update packages
+# wait for background zyppers to finish
+while sleep 5 ; do
+    zypper -n update
+    if [[ $? = 0 ]] ; then
+        break
+    fi
+done
+
+#set up resolv.conf
+echo "search @@REGION@@.compute.internal" >> /etc/resolv.conf
+
+# salt minion
+zypper -n install salt-minion # creates /etc/salt/minion.d directory
+MINION_CONF=/etc/salt/minion.d/ceph.conf
+cat <<EOF > $MINION_CONF
+master: @@MASTER_IP@@
+grains:
+  delegate: @@DELEGATE@@
+  role: @@ROLE@@
+  node_no: @@NODE_NO@@
+EOF
+chown root:root $MINION_CONF
+chmod 0644 $MINION_CONF
+systemctl enable salt-minion.service
+systemctl start salt-minion.service

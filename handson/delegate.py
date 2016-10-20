@@ -163,6 +163,7 @@ class Delegate(Region):
             u = template_token_subst(u, '@@DELEGATE@@', delegate)
             u = template_token_subst(u, '@@ROLE@@', role)
             u = template_token_subst(u, '@@NODE_NO@@', rd['node-no'])
+            u = template_token_subst(u, '@@REGION@@', self.region())
             our_kwargs['user_data'] = u
         reservation = ec2.run_instances(rd['ami-id'], **our_kwargs)
         i_obj = reservation.instances[0]
