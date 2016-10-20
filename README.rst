@@ -1028,3 +1028,40 @@ Windows change administrator password via user-data script
 
 <script>net user Administrator GieGh7ie</script>
 
+
+Deploying with DeepSea
+===================
+
+Single delegate
+-------------------
+
+It is now possible to deploy a single Delegate Cluster in AWS using DeepSea
+instead of ceph-deploy.
+
+The user-data scripts already generate a `policy.cfg` example file assuming
+the existence of a master node with address 10.0.0.1, 2 mon nodes with
+addresses 10.0.1.1[123], and 4 storage nodes, with a single 20GB disk each,
+with the addresses 10.0.1.1[4567].
+
+After installing the delegate cluster in AWS, login into the Master node,
+and run the following commands as root::
+
+	salt-run state.orch ceph.stage.0
+	salt-run state.orch ceph.stage.1
+	salt-run state.orch ceph.stage.2
+	salt-run state.orch ceph.stage.3
+
+In the end of stage 3, you should have a fully deployed Ceph cluster. Check
+its status using the command `ceph -s`.
+
+Multiple delegates
+-----------------------
+
+It is also feasible to deploy multiple Delegate Clusters using DeepSea. Doing
+this would require running a salt-master instance for DeepSea for each
+Delegate, in addition to the ceph-auto-aws Salt Master node.
+
+The VM where the Delegate's salt-master instance runs would need to have two
+salt-minion instances: one pointing to the Delegate's salt-master instance and
+one pointing to the ceph-auto-aws Salt Master.
+
