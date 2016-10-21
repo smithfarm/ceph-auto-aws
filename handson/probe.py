@@ -299,7 +299,7 @@ class ProbePublicIPs(InitArgs):
                        .format(d, 'admin', public_ips['admin']))
             if 'windows' in public_ips:
                 print ("Delegate {}, role {}, public IP {}"
-                       .format(d, 'windows', public_ips['admin']))
+                       .format(d, 'windows', public_ips['windows']))
                 print
 
 
