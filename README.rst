@@ -327,6 +327,18 @@ there is a Network ACL associated with your VPC, and check the settings::
 
     "Security" -> "Network ACLs" in VPC Dashboard
 
+A working (wide open) Network ACL table might look like this ("Inbound Rules"
+and "Outbound Rules"):
+
+====== =========== =========== =========== =========== ============
+Rule # Type        Protocol    Port Range  Destination Allow / Deny
+====== =========== =========== =========== =========== ============
+100    ALL Traffic ALL         ALL         0.0.0.0/0   ALLOW
+*      ALL Traffic ALL         ALL         0.0.0.0/0   DENY
+====== =========== =========== =========== =========== ============
+
+Make sure you are looking at the Network ACL that is associated with your VPC.
+
 **WARNING:** The scripting does not do this step for you!
 
 Security Groups
