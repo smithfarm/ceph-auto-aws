@@ -1,6 +1,29 @@
 CHANGES
 =======
 
+* Bump version: 0.2.0 → 0.2.1
+* probe.py: make "ho probe public-ips" return windows Public IP
+* Fix flake8 complaint "E302 expected 2 blank lines, found 1"
+* Updated README with deployment instructions using DeepSea
+* Added deepsea user-data scripts
+* Force virtualenv to use python2.7
+* Fixed bug in delegates list construction
+* Get logged user bug fix for gterminal users
+* Fixed boostrap bugs when running on Ubuntu xenial
+* build/ops: make flake8 pass
+* README.rst: add availability zone verbiage
+* delegate.py: specify availability zone when creating instance
+* subnet.py: specify availability zone when creating subnet
+* Increase maximum number of delegates from 50 to 100
+* Add availability zone check to "ho probe region"
+* region.py: add availability_zone() accessor
+* myyaml.py: include availability_zone in region stanza
+* region.py: add availability_zone to object data store
+* susecon2016/user-data-minions: do not touch NTP configuration
+* susecon2016/user-data-master: restart instead of start
+* user-data-master: new NTP configuration file
+* build/ops: setup.cfg (new file)
+* update ChangeLog
 * Bump version: 0.1.6 → 0.2.0
 * Display public IP when Salt Master instantiated
 * Copy user-data-windows from susecon2015
