@@ -915,6 +915,41 @@ The following lessons were learned:
 * figure out how best to freeze the state so we no longer run "zypper up",
   exposing ourselves to the risk of a new kernel, etc. coming out
 
+Notes for developers
+====================
+
+This software is designed to be run from a virtualenv (created by running the
+``bootstrap`` script) within a local clone of this git repository.
+
+If you make changes to the code, these will not be automatically reflected in
+the virtualenv. To make that happen, run the following command in the top-level
+directory::
+
+    python setup.py development
+
+If the version number is incremented using the ``release.sh`` script, the code
+in the virtualenv can be upgraded by running this command in the top-level
+directory::
+
+    easy_install -U .
+
+The version number has three components, X.Y.Z or major.minor.patch. For
+example, if the version number is 2.3.1 the major version is 2, the minor
+version is 3, and the patch level is 1. The version number can be incremented
+by running the ``release.sh`` script with an argument indicating which
+component should be incremented::
+
+    ./release.sh major|minor|patch
+
+So, to "bump" the version number from 2.3.1 to 2.3.2, you would do::
+
+    ./release.sh patch
+    easy_install -U .
+
+Note that the ChangeLog file is updated automatically from the git commit
+descriptions. You should not attempt to edit the ChangeLog file manually. 
+
+
 Other miscellaneous notes
 =========================
 
