@@ -1,4 +1,4 @@
-boto==2.39.0
+boto==2.48.0
 bumpversion==0.5.3
 coverage==4.0.3
 d2to1==0.2.12.post1
