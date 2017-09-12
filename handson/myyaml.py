@@ -78,7 +78,7 @@ tree_stanzas = {
         'windows': {'last-octet': 15},
     }, 'type': dict},
     'subnets': {'default': {}, 'type': dict},
-    'types': {'default': ['t2.small'], 'type': list},
+    'types': {'default': ['t2.micro', 't2.small'], 'type': list},
     'vpc': {'default': {}, 'type': dict}
 }
 
