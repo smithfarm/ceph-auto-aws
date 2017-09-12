@@ -85,22 +85,26 @@ section of the AWS documentation.
 
 We placed our user in the "ec2_full_access" group.
 
-.. _`Creating an IAM User in Your AWS Account`: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html`
+.. _`Creating an IAM User in Your AWS Account`: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html
 
 Obtain access key
 -----------------
 
 Access to AWS via boto requires an access key (Access Key ID and Secret
-Access Key). For detailed instructions, see the `Getting Your Access Key ID
-and Secret Access Key`_ section of the AWS documentation.
+Access Key).
 
-The access key comes in a file called "credentials.csv". Put this in a safe
-place.
+First, check whether you were given an Access Key ID and Secret Access Key
+along with your AWS web console credentials.
 
-Put your AWS credentials in ``~/.boto`` as described in the 
-`Configuring boto credentials section of the boto documentation`_.
+If you have an IAM user, see the `Managing Access Keys for IAM Users`_
+section of the AWS documentation. The access key comes in a file called
+"credentials.csv". Put this in a safe place.
 
-.. _`Getting Your Access Key ID and Secret Access Key`: http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html
+However you got your AWS access key (Access Key ID and Secret Access Key),
+you will need to put them in ``~/.boto`` as described in the `Configuring boto
+credentials section of the boto documentation`_.
+
+.. _`Managing Access Keys for IAM Users`: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html
 .. _`Configuring boto credentials section of the boto documentation`: http://boto.readthedocs.org/en/latest/getting_started.html#configuring-boto-credentials
 
 Sample ``~/.boto`` file::
