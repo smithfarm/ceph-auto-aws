@@ -31,3 +31,17 @@ chown root:root $MINION_CONF
 chmod 0644 $MINION_CONF
 systemctl enable salt-minion.service
 systemctl start salt-minion.service
+
+# make DeepSea grains available to bash scripts running on the minion
+BASEDIR=/etc/susecon2017
+mkdir -p $BASEDIR/grains
+cat <<EOF > $BASEDIR/grains/delegate
+@@DELEGATE@@
+EOF
+cat <<EOF > $BASEDIR/grains/role
+@@ROLE@@
+EOF
+cat <<EOF > $BASEDIR/grains/node_no
+@@NODE_NO@@
+EOF
+chmod -R o+r /etc/susecon2017
