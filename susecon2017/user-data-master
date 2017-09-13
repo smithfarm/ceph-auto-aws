@@ -42,24 +42,7 @@ zypper -n install salt-master
 systemctl enable salt-master.service
 systemctl restart salt-master.service
 
-# salt minion
-zypper -n install salt-minion # creates /etc/salt/minion.d directory
-MINION_CONF=/etc/salt/minion.d/ceph.conf
-cat <<EOF > $MINION_CONF
-master: @@MASTER_IP@@
-grains:
-  delegate: @@DELEGATE@@
-  role: @@ROLE@@
-  node_no: @@NODE_NO@@
-  deepsea: True
-EOF
-chown root:root $MINION_CONF
-chmod 0644 $MINION_CONF
-systemctl enable salt-minion.service
-systemctl start salt-minion.service
-
 # install git
-SUSEConnect -p sle-sdk/12.3/x86_64
 zypper --gpg-auto-import-keys ref
 zypper -n install --no-recommends git
 
@@ -83,10 +66,10 @@ git clone https://github.com/smithfarm/susecon-salt-master salt
 cp /root/.ssh/id_rsa* /srv/salt
 chmod 644 /srv/salt/id_rsa*
 
-# install ttyrec
-zypper ar http://download.opensuse.org/repositories/utilities/openSUSE_Leap_42.3/utilities.repo
-zypper --gpg-auto-import-keys ref
-zypper -n install ttyrec
+## install ttyrec
+#zypper ar http://download.opensuse.org/repositories/utilities/openSUSE_Leap_42.3/utilities.repo
+#zypper --gpg-auto-import-keys ref
+#zypper -n install ttyrec
 
 # wait for other instances to initialize
 sleep 30
