@@ -66,6 +66,7 @@ git clone https://github.com/smithfarm/susecon-salt-master salt
 cp /root/.ssh/id_rsa* /srv/salt
 chmod 644 /srv/salt/id_rsa.pub
 chmod 600 /srv/salt/id_rsa
+chown salt.salt /srv/salt/id_rsa
 
 ## install ttyrec
 #zypper ar http://download.opensuse.org/repositories/utilities/openSUSE_Leap_42.3/utilities.repo
