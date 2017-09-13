@@ -1038,8 +1038,8 @@ Run DeepSea to deploy Ceph
 
 The final step is to run DeepSea on each Delegate's local master node ("admin
 node"). Since we have lost the root master's connection to the Delegate
-Minions, we have no choice but to ssh to each local master in turn, and run the
-script. The deepsea-salt-master state installs a
+Minions, we have no choice but to ssh to each local master in turn, accept
+the minion keys, and run the script. The deepsea-salt-master state installs a
 ``/home/cephadm/bin/health-ok`` shell script to make this easier::
 
     ip-10-0-0-10:/home/ec2-user # ssh cephadm@ip-10-0-3-10
