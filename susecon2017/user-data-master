@@ -83,7 +83,7 @@ cp /root/.ssh/id_rsa* /srv/salt
 chmod 644 /srv/salt/id_rsa*
 
 # install ttyrec
-zypper ar http://download.opensuse.org/repositories/utilities/SLE-12-SP1 utilities
+zypper ar http://download.opensuse.org/repositories/utilities/openSUSE_Leap_42.3/utilities.repo
 zypper --gpg-auto-import-keys ref
 zypper -n install ttyrec
 
