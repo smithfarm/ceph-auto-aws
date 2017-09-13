@@ -21,8 +21,10 @@ if [ -d keys ] ; then
 fi
 mkdir keys
 
+
+KEYNAME="$(grep "keyname:" ./aws.yaml | awk '{ print $2 }')"
 for d in $(seq 0 $DELEGATES) ; do
-    ssh-keygen -b 1024 -t rsa -f "keys/$(whoami)-d$d" -q -N "" -C "$(whoami)-d$d.localhost"
+    ssh-keygen -b 1024 -t rsa -f "keys/$KEYNAME-d$d" -q -N "" -C "$KEYNAME-d$d.localhost"
 done
 
-chmod 400 keys/$(whoami)*
+chmod 400 keys/$KEYNAME*
