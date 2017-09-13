@@ -954,6 +954,102 @@ Note that the ChangeLog file is updated automatically from the git commit
 descriptions. You should not attempt to edit the ChangeLog file manually. 
 
 
+Deploying with DeepSea
+======================
+
+It is now possible, and expected, to deploy Delegate Clusters using
+DeepSea.
+
+Caveat
+------
+
+Because the process of deploying DeepSea requires a local Salt Master
+within the Delegate Cluster, clusters lose their connection with the root
+Salt Master after deployment. This is unavoidable until someone comes up 
+with a way to run two salt-minion.service instances in a single VM.
+
+How to proceed
+--------------
+
+In the role definition, specify ``susecon2017/user-data-root-master`` for the
+master node's user-data and ``susecon2017/user-data-minion`` for all the minion
+nodes. When the master and minion (delegate) VMs come up, all the delegate VMs
+will be configured as Salt Minions pointing to the root Salt Master.
+
+After running ``ho install delegates --all --master`` to create the VMs, ssh to
+the root master VM, become root, and change the current working directory to
+``/srv/salt``::
+
+    $ ssh -i keys/smithfarm-d0 ec2-user@52.14.191.25
+    Last login: Wed Sep 13 19:42:59 2017 from 193.165.237.27
+    This is the Salt Master.
+
+    Have a lot of fun...
+    ec2-user@ip-10-0-0-10:~> sudo -s
+    ip-10-0-0-10:/home/ec2-user # cd /srv/salt
+
+The ``/srv/salt`` directory contains the contents of
+``https://github.com/smithfarm/susecon-salt-master.git`` (master branch).  This
+is a set of Salt state files to facilitate deployment of local Salt clusters in
+each Delegate Cluster and then using DeepSea to install Ceph in the Delegate
+Cluster. Before anything else, apply the bootstrap state on all minions::
+
+    # salt '*' state.apply bootstrap
+
+The bootstrap state is quite busy, but from the user's perspective it creates a
+cephadm user on all the delegate nodes, with the possibility to ssh as cephadm 
+to any node from the root master. For example, assuming Delegate 3's "admin"
+(local Salt Master) node is ip-10-0-3-10, we can ssh to it like so::
+
+    ip-10-0-0-10:/home/ec2-user # ssh cephadm@ip-10-0-3-10
+    Last login: Wed Sep 13 20:12:11 2017 from 10.0.0.10
+
+    This is the admin node.
+
+    cephadm@ip-10-0-3-10:~> 
+
+After applying the bootstrap state, we continue by applying the
+deepsea-salt-master state to all nodes with the "role:admin" grain (this is
+assuming the Delegate "admin" role will be used for the local Salt Master)::
+
+    # salt -G 'role:admin' state.apply deepsea-salt-master
+
+This clones the DeepSea git repo into ``/home/cephadm/DeepSea``, installs DeepSea
+and its dependencies. In the final step, we will run one of the scripts in
+``/home/cephadm/DeepSea/qa`` to actually deploy Ceph, but let's not get ahead
+of ourselves. Next, we apply the deepsea-salt-minion state to point the
+Delegate Minions to their new master. Since the local master node is also a
+minion, we can simply apply it to all nodes, or to all nodes::
+
+    # salt -G 'role:admin' state.apply deepsea-salt-minion
+
+Or to all nodes belonging to a certain Delegate::
+
+    # salt -G 'delegate:3' state.apply deepsea-salt-minion
+
+After this step, we can no longer ping or otherwise control these nodes, so
+their keys should be deleted. For example, to delete all minion keys belonging
+to Delegate 3::
+
+    # salt-key -d ip-10-0-3-*
+
+Run DeepSea to deploy Ceph
+--------------------------
+
+The final step is to run DeepSea on each Delegate's local master node ("admin
+node"). Since we have lost the root master's connection to the Delegate
+Minions, we have no choice but to ssh to each local master in turn, and run the
+script. The deepsea-salt-master state installs a
+``/home/cephadm/bin/health-ok`` shell script to make this easier::
+
+    ip-10-0-0-10:/home/ec2-user # ssh cephadm@ip-10-0-3-10
+    Last login: Wed Sep 13 20:12:11 2017 from 10.0.0.10
+
+    This is the admin node.
+
+    cephadm@ip-10-0-3-10:~> bin/health-ok
+
+
 Other miscellaneous notes
 =========================
 
@@ -1079,40 +1175,4 @@ Windows change administrator password via user-data script
 
 <script>net user Administrator GieGh7ie</script>
 
-
-Deploying with DeepSea
-===================
-
-Single delegate
--------------------
-
-It is now possible to deploy a single Delegate Cluster in AWS using DeepSea
-instead of ceph-deploy.
-
-The user-data scripts already generate a `policy.cfg` example file assuming
-the existence of a master node with address 10.0.0.1, 2 mon nodes with
-addresses 10.0.1.1[123], and 4 storage nodes, with a single 20GB disk each,
-with the addresses 10.0.1.1[4567].
-
-After installing the delegate cluster in AWS, login into the Master node,
-and run the following commands as root::
-
-	salt-run state.orch ceph.stage.0
-	salt-run state.orch ceph.stage.1
-	salt-run state.orch ceph.stage.2
-	salt-run state.orch ceph.stage.3
-
-In the end of stage 3, you should have a fully deployed Ceph cluster. Check
-its status using the command `ceph -s`.
-
-Multiple delegates
------------------------
-
-It is also feasible to deploy multiple Delegate Clusters using DeepSea. Doing
-this would require running a salt-master instance for DeepSea for each
-Delegate, in addition to the ceph-auto-aws Salt Master node.
-
-The VM where the Delegate's salt-master instance runs would need to have two
-salt-minion instances: one pointing to the Delegate's salt-master instance and
-one pointing to the ceph-auto-aws Salt Master.
 
