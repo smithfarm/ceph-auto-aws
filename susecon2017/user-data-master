@@ -51,6 +51,7 @@ grains:
   delegate: @@DELEGATE@@
   role: @@ROLE@@
   node_no: @@NODE_NO@@
+  deepsea: True
 EOF
 chown root:root $MINION_CONF
 chmod 0644 $MINION_CONF
