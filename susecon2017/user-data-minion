@@ -34,6 +34,10 @@ systemctl start salt-minion.service
 
 # make DeepSea grains available to bash scripts running on the minion
 BASEDIR=/etc/susecon2017
+mkdir -p $BASEDIR
+cat <<EOF > $BASEDIR/local_master
+ip-10-0-@@DELEGATE@@-10
+EOF
 mkdir -p $BASEDIR/grains
 cat <<EOF > $BASEDIR/grains/delegate
 @@DELEGATE@@
