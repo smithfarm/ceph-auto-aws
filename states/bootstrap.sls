@@ -1,16 +1,19 @@
 # bootstrap.sls
 #
-# apply this state on all delegate minions (i.e. all delegate instances)
+# apply this state first, on all Delegate minions (all instances except the
+# Root Master, which should not have a minion, anyway)
 
-mycommand2:
+zypper-refresh:
   cmd.run:
-    - name: zypper --gpg-auto-import-keys ref
+    - name: zypper --gpg-auto-import-keys refresh
     - user: root
 
-salt:
+salt-minion-installed:
   pkg.installed:
     - pkgs:
       - salt-minion
+
+cephadm-user-present:
   user.present:
     - name: cephadm
     - password: ceDx/cy5D.nug
@@ -31,11 +34,11 @@ salt:
     - mode: 644
     - template: jinja
 
-/root/resiliency-data.sh:
+/home/cephadm/resiliency-data.sh:
   file.managed:
     - source: salt://resiliency-data.sh
-    - user: root
-    - group: root
+    - user: cephadm
+    - group: users
     - mode: 755
 
 /root/.bashrc:
@@ -118,6 +121,7 @@ salt:
     - group: users
     - mode: 644
 
+# disable IPv6
 /etc/sysctl.conf:
   file.managed:
     - source: salt://sysctl.conf
@@ -136,14 +140,14 @@ ntpd:
   service.running:
     - enable: True
 
-ssh-no-interactive.sh-cephadm:
+ssh-no-interactive-cephadm:
   cmd.script:
     - source: salt://ssh-no-interactive.sh
     - cwd: /home/cephadm
     - user: cephadm
     - template: jinja
 
-ssh-no-interactive.sh-ec2-user:
+ssh-no-interactive-ec2-user:
   cmd.script:
     - source: salt://ssh-no-interactive.sh
     - cwd: /home/ec2-user
