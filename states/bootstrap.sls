@@ -50,7 +50,7 @@ cephadm-user-present:
     - template: jinja
 
 /etc/sudoers:
-  file.managed:
+  file.append:
     - source: salt://sudoers
     - user: root
     - group: root

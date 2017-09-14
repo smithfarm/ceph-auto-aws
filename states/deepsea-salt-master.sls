@@ -1,6 +1,7 @@
 # deepsea-salt-master.sls
 #
-# apply this state on the delegate (DeepSea) master nodes
+# apply this state on all the delegate (DeepSea) master nodes, after
+# the "bootstrap" state but before the "delegate-salt-minion" state
 
 salt-master-install:
   pkg.installed:
