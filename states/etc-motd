@@ -1,0 +1,5 @@
+{% if grains['role'] == 'admin' %}
+This is the admin node.
+{% else %}
+This is node {{ grains['node_no'] }}.
+{% endif %}

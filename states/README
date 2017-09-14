@@ -1,0 +1,46 @@
+This package installs Salt State files in /srv/salt for the purpose
+of facilitating automation of cluster deployments at the SUSE Enterprise
+Storage hands-on session at SUSEcon 2015.
+
+More and better information can be found here: 
+
+http://docs.saltstack.com/en/latest/topics/tutorials/walkthrough.html
+
+
+NOTE: All of the following commands should be run on the Salt Master
+
+
+Accept minion keys (once master and all minions are up and running):
+===================================================================
+
+# salt-key -A
+
+
+Run arbitrary commands on all minions:
+======================================
+
+# salt '*' cmd.run '<CMD>'
+
+E.g.:
+
+smithfarm-adm:~ # salt '*' cmd.run 'zypper -n update'
+
+NOTE: you can "watch" the update in real time by logging in to an instance
+(e.g. at the web GUI console) and running 'top'
+
+
+Reboot or poweroff all minions safely:
+======================================
+
+# salt '*' system.reboot
+# salt '*' system.poweroff
+
+
+Prepare cluster for ceph-deploy:
+================================
+
+This directory contains a collection of files that, if appropriately
+installed on the Salt Master, will allow you to prepare the cluster for
+ceph-deploy with a single command.
+
+However, this functionality is still a Work In Progress.
