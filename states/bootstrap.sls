@@ -52,9 +52,6 @@ cephadm-user-present:
 /etc/sudoers:
   file.append:
     - source: salt://sudoers
-    - user: root
-    - group: root
-    - mode: 440
 
 /etc/motd:
   file.managed:
