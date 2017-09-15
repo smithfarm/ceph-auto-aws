@@ -72,6 +72,8 @@ sudo salt-key -L
 echo "Are all minion keys present (no matter whether accepted or unaccepted)?"
 echo "If not, hit CTRL-C and re-run the script. Otherwise, press <ENTER> to continue."
 read a
+sudo salt-key -Ay 2>&1 > /dev/null || true
+echo "Pinging all minions..."
 sudo salt '*' test.ping
 echo "Are all minions responding to ping?"
 echo "If not, hit CTRL-C and re-run the script. Otherwise, press <ENTER> to continue."
