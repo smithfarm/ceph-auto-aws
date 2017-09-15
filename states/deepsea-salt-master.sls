@@ -25,3 +25,10 @@ restart-salt-master:
     - user: cephadm
     - group: users
     - mode: 755
+
+/home/cephadm/bin/health-openattic:
+  file.managed:
+    - source: salt://health-openattic.sh
+    - user: cephadm
+    - group: users
+    - mode: 755
