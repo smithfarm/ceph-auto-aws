@@ -4,14 +4,16 @@
 #
 # Launch script for Salt Minion
 
-# update packages
 # wait for background zyppers to finish
 while sleep 5 ; do
-    zypper -n update
+    zypper --non-interactive refresh
     if [[ $? = 0 ]] ; then
         break
     fi
 done
+
+# update packages
+zypper --non-interactive update --auto-agree-with-licenses
 
 #set up resolv.conf
 echo "search @@REGION@@.compute.internal" >> /etc/resolv.conf
