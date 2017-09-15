@@ -83,6 +83,9 @@ sudo salt -G 'role:admin' state.apply deepsea-salt-master
 sudo salt '*' state.apply deepsea-salt-minion
 echo "All minions are now reporting to their local masters; deleting minion keys."
 sudo salt-key -Dy
+echo
+echo "All the local Delegate Masters should be ready to run DeepSea."
+echo "Do \"ssh cephadm@ip-10-0-1-10\" to access the master node of Delegate 1"
 EOF
 chown ec2-user.users /home/ec2-user/bin/install.sh
 chmod 755 /home/ec2-user/bin/install.sh
