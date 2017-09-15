@@ -40,7 +40,7 @@ systemctl restart ntpd.service
 # install rpms
 zypper --gpg-auto-import-keys refresh
 zypper --non-interactive --no-gpg-checks install --no-recommends \
-    git \
+    git-core \
     salt-master
 
 # restart salt-master
