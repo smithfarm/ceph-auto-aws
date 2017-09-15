@@ -1,21 +1,19 @@
 #!/bin/bash
-ssh-keygen -R 10.0.{{ grains['delegate'] }}.10 || :
-ssh-keygen -R 10.0.{{ grains['delegate'] }}.11 || :
-ssh-keygen -R 10.0.{{ grains['delegate'] }}.12 || :
-ssh-keygen -R 10.0.{{ grains['delegate'] }}.13 || :
-ssh-keygen -R 10.0.{{ grains['delegate'] }}.14 || :
-ssh -o StrictHostKeyChecking=no cephadm@10.0.{{ grains['delegate'] }}.10 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@10.0.{{ grains['delegate'] }}.11 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@10.0.{{ grains['delegate'] }}.12 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@10.0.{{ grains['delegate'] }}.13 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@10.0.{{ grains['delegate'] }}.14 echo || :
-ssh-keygen -R ip-10-0-{{ grains['delegate'] }}-10 || :
-ssh-keygen -R ip-10-0-{{ grains['delegate'] }}-11 || :
-ssh-keygen -R ip-10-0-{{ grains['delegate'] }}-12 || :
-ssh-keygen -R ip-10-0-{{ grains['delegate'] }}-13 || :
-ssh-keygen -R ip-10-0-{{ grains['delegate'] }}-14 || :
-ssh -o StrictHostKeyChecking=no cephadm@ip-10-0-{{ grains['delegate'] }}-10 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@ip-10-0-{{ grains['delegate'] }}-11 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@ip-10-0-{{ grains['delegate'] }}-12 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@ip-10-0-{{ grains['delegate'] }}-13 echo || :
-ssh -o StrictHostKeyChecking=no cephadm@ip-10-0-{{ grains['delegate'] }}-14 echo || :
+# 
+# Possibly arrange for ssh to the Delegate Nodes to be non-interactive
+
+for n in 10 11 12 13 14 15 16 17 18 19 ; do
+    ssh-keygen -R 10.0.{{ grains['delegate'] }}.$n || :
+done
+
+for n in 10 11 12 13 14 15 16 17 18 19 ; do
+    ssh -o StrictHostKeyChecking=no cephadm@10.0.{{ grains['delegate'] }}.$n echo || :
+done
+
+for n in 10 11 12 13 14 15 16 17 18 19 ; do
+    ssh-keygen -R ip-10-0-{{ grains['delegate'] }}-$n || :
+done
+
+for n in 10 11 12 13 14 15 16 17 18 19 ; do
+    ssh -o StrictHostKeyChecking=no cephadm@ip-10-0-{{ grains['delegate'] }}-$n echo || :
+done

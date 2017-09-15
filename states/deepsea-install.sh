@@ -1,7 +1,7 @@
 #!/bin/bash -x
 #
-# install DeepSea on local master (will be run as root)
-#
+# Script used by deepsea-salt-master.sls to install DeepSea on Delegate (local)
+# master node
 
 #---------------------------------------------------------
 #--- can be dropped once python-click reaches SES5 channel
