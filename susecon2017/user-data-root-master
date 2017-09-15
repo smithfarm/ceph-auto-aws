@@ -81,6 +81,8 @@ read a
 sudo salt '*' state.apply bootstrap
 sudo salt -G 'role:admin' state.apply deepsea-salt-master
 sudo salt '*' state.apply deepsea-salt-minion
+echo "All minions are now reporting to their local masters; deleting minion keys."
+sudo salt-key -Dy
 EOF
 chown ec2-user.users /home/ec2-user/bin/install.sh
 chmod 755 /home/ec2-user/bin/install.sh
