@@ -59,6 +59,30 @@ This is the Root Master node.
 Have a lot of fun...
 EOF
 
+# populate /home/ec2-user/bin/install.sh
+mkdir -p /home/ec2-user/bin
+cat <<EOF >/home/ec2-user/bin/install.sh
+#!/bin/bash
+#
+# installs DeepSea on all Delegate Clusters
+#
+# does not actually *run* DeepSea (yet)
+
+sudo salt-key -L
+echo "Are all minion keys present (no matter whether accepted or unaccepted)?"
+echo "If not, hit CTRL-C and re-run the script. Otherwise, press <ENTER> to continue."
+read a
+sudo salt '*' test.ping
+echo "Are all minions responding to ping?"
+echo "If not, hit CTRL-C and re-run the script. Otherwise, press <ENTER> to continue."
+read a
+sudo salt '*' state.apply bootstrap
+sudo salt -G 'role:admin' state.apply deepsea-salt-master
+sudo salt '*' state.apply deepsea-salt-minion
+EOF
+chown ec2-user.users /home/ec2-user/bin/install.sh
+chmod 755 /home/ec2-user/bin/install.sh
+
 # clone Salt states
 mkdir -p /srv/salt
 cd /root
