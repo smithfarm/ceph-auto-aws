@@ -8,6 +8,7 @@ sudo zypper --non-interactive --no-gpg-checks addrepo http://download.opensuse.o
 sudo zypper --non-interactive --no-gpg-checks refresh
 sudo zypper --non-interactive --no-gpg-checks install --no-recommends deepsea deepsea-qa
 sudo zypper --non-interactive --no-gpg-checks removerepo filesystems_ceph
+sudo zypper --non-interactive --no-gpg-checks refresh
 
 # install DeepSea from source
 #sudo zypper --non-interactive --no-gpg-checks install --no-recommends make rpm
