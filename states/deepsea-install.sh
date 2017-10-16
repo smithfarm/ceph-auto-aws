@@ -6,7 +6,7 @@
 # install DeepSea from RPM
 sudo zypper --non-interactive --no-gpg-checks addrepo http://download.opensuse.org/repositories/filesystems:ceph/SLE_12_SP3/filesystems:ceph.repo
 sudo zypper --non-interactive --no-gpg-checks refresh
-sudo zypper --non-interactive --no-gpg-checks install --no-recommends deepsea
+sudo zypper --non-interactive --no-gpg-checks install --no-recommends deepsea deepsea-qa
 
 # install DeepSea from source
 #sudo zypper --non-interactive --no-gpg-checks install --no-recommends make rpm
