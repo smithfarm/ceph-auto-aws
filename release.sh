@@ -27,3 +27,4 @@ git commit -as -m "update ChangeLog"
 git push
 VERSION_TAG=$(git describe --tags | cut -d '-' -f1)
 git push origin $VERSION_TAG
+echo "Now push a commit that bumps the minor version number in setup.cfg to the one after $VERSION_TAG"
